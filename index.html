@@ -63,6 +63,21 @@
     opacity:.9;
   }
 
+  /* Tabs */
+  .tabbar{
+    display:flex; gap:10px; margin-bottom:24px;
+  }
+  .tabbar button{
+    flex:1; padding:14px 16px; border-radius:14px; border:1.5px solid var(--line);
+    background:#fff; cursor:pointer; font-family:'Baloo 2'; font-weight:700; font-size:15px;
+    color:#8b8195; display:flex; align-items:center; justify-content:center; gap:8px;
+    transition:.15s;
+  }
+  .tabbar button.active{
+    background:linear-gradient(135deg, var(--hotpink), var(--hotpink-dark)); color:#fff; border-color:transparent;
+    box-shadow:0 3px 0 var(--hotpink-dark);
+  }
+
   h2.step{
     font-family:'Baloo 2'; font-weight:700; font-size:15px; letter-spacing:.02em;
     color:var(--hotpink-dark); text-transform:uppercase; margin:0 0 10px;
@@ -225,43 +240,69 @@
 
   <div class="torn"></div>
 
+  <div class="tabbar" id="modeTabs">
+    <button data-mode="image" class="active">🖼️ Plantilla de imagen</button>
+    <button data-mode="circle">⚪ Plantilla círculo</button>
+  </div>
+
   <!-- STEP 1 -->
   <section class="card">
-    <h2 class="step"><span class="num">1</span>Imagen del diseño</h2>
+    <h2 class="step"><span class="num">1</span><span id="step1Label">Imagen del diseño</span></h2>
 
-    <div id="dropzone">
-      <span class="icon">🖼️</span>
-      <strong>Toca para elegir una imagen</strong> o arrástrala aquí
-      <small>JPG o PNG · con o sin transparencia</small>
-    </div>
-    <input type="file" id="fileInput" accept="image/png, image/jpeg">
+    <div id="imageFields">
+      <div id="dropzone">
+        <span class="icon">🖼️</span>
+        <strong>Toca para elegir una imagen</strong> o arrástrala aquí
+        <small>JPG o PNG · con o sin transparencia</small>
+      </div>
+      <input type="file" id="fileInput" accept="image/png, image/jpeg">
 
-    <div id="previewRow">
-      <div id="thumbWrap"><img id="thumbImg" alt="Vista previa"></div>
-      <div id="fileMeta"></div>
+      <div id="previewRow">
+        <div id="thumbWrap"><img id="thumbImg" alt="Vista previa"></div>
+        <div id="fileMeta"></div>
+      </div>
+      <button id="changeFile" style="display:none;">Cambiar imagen</button>
     </div>
-    <button id="changeFile" style="display:none;">Cambiar imagen</button>
+
+    <div id="circleFields" style="display:none;">
+      <div class="field">
+        <label class="fl">Radio del círculo</label>
+        <div class="size-input">
+          <input type="number" id="radiusInput" value="30" min="2" max="150" step="0.5">
+          <span class="unit">cm</span>
+        </div>
+      </div>
+      <div class="field">
+        <label class="fl">Grosor del contorno <span class="hint">— solo la línea, sin relleno</span></label>
+        <div class="size-input">
+          <input type="number" id="circleStrokeInput" value="3" min="0.5" max="15" step="0.5">
+          <span class="unit">mm</span>
+        </div>
+      </div>
+    </div>
   </section>
 
   <!-- STEP 2 -->
   <section class="card">
-    <h2 class="step"><span class="num">2</span>Tamaño final de la piñata</h2>
+    <h2 class="step"><span class="num">2</span><span id="step2Label">Tamaño final de la piñata</span></h2>
 
-    <div class="field">
-      <label class="fl">Medida <span class="hint" id="sizeHint">— se aplica al alto si el diseño es vertical, o al ancho si es horizontal</span></label>
-      <div class="size-input">
-        <input type="number" id="sizeInput" value="65" min="10" max="300" step="0.5">
-        <span class="unit">cm</span>
-        <span class="orient-pill" id="orientPill">Sube una imagen primero</span>
+    <div id="sizeFields">
+      <div class="field">
+        <label class="fl">Medida <span class="hint" id="sizeHint">— se aplica al alto si el diseño es vertical, o al ancho si es horizontal</span></label>
+        <div class="size-input">
+          <input type="number" id="sizeInput" value="65" min="10" max="300" step="0.5">
+          <span class="unit">cm</span>
+          <span class="orient-pill" id="orientPill">Sube una imagen primero</span>
+        </div>
       </div>
-    </div>
 
-    <div class="field">
-      <label class="fl">Aplicar la medida a</label>
-      <div class="seg" id="dimSeg">
-        <button data-dim="auto" class="active">Automático</button>
-        <button data-dim="height">Alto</button>
-        <button data-dim="width">Ancho</button>
+      <div class="field">
+        <label class="fl">Aplicar la medida a</label>
+        <div class="seg" id="dimSeg">
+          <button data-dim="auto" class="active">Automático</button>
+          <button data-dim="height">Alto</button>
+          <button data-dim="width">Ancho</button>
+        </div>
       </div>
     </div>
 
@@ -328,9 +369,19 @@
   let img = null;          // loaded HTMLImageElement
   let imgTrimmedCanvas = null; // trimmed source canvas (natural res)
   let state = {
+    mode: 'image',
     paper: 'letter',
     dim: 'auto'
   };
+
+  const modeTabs   = document.getElementById('modeTabs');
+  const imageFields  = document.getElementById('imageFields');
+  const circleFields = document.getElementById('circleFields');
+  const sizeFields    = document.getElementById('sizeFields');
+  const step1Label   = document.getElementById('step1Label');
+  const step2Label   = document.getElementById('step2Label');
+  const radiusInput  = document.getElementById('radiusInput');
+  const circleStrokeInput = document.getElementById('circleStrokeInput');
 
   const dropzone   = document.getElementById('dropzone');
   const fileInput  = document.getElementById('fileInput');
@@ -355,6 +406,37 @@
   const resultStats  = document.getElementById('resultStats');
   const gridPreview   = document.getElementById('gridPreview');
   const gridCanvasWrap= document.getElementById('gridCanvasWrap');
+
+  // ---------- Mode tabs ----------
+  modeTabs.addEventListener('click', e => {
+    const btn = e.target.closest('button'); if (!btn) return;
+    [...modeTabs.children].forEach(b=>b.classList.remove('active'));
+    btn.classList.add('active');
+    state.mode = btn.dataset.mode;
+    applyMode();
+  });
+
+  function applyMode(){
+    const isImage = state.mode === 'image';
+    imageFields.style.display  = isImage ? 'block' : 'none';
+    circleFields.style.display = isImage ? 'none'  : 'block';
+    sizeFields.style.display   = isImage ? 'block' : 'none';
+    step1Label.textContent = isImage ? 'Imagen del diseño' : 'Medidas del círculo';
+    step2Label.textContent = isImage ? 'Tamaño final de la piñata' : 'Papel y opciones de impresión';
+    updateGenerateButtonState();
+    updatePreview();
+  }
+
+  function updateGenerateButtonState(){
+    if (state.mode === 'image'){
+      generateBtn.disabled = !imgTrimmedCanvas;
+      generateBtn.textContent = imgTrimmedCanvas ? 'Generar PDF' : 'Sube una imagen para continuar';
+    } else {
+      const r = parseFloat(radiusInput.value) || 0;
+      generateBtn.disabled = r <= 0;
+      generateBtn.textContent = 'Generar PDF';
+    }
+  }
 
   // ---------- File handling ----------
   dropzone.addEventListener('click', () => fileInput.click());
@@ -386,8 +468,7 @@
         previewRow.classList.add('show');
         changeFileBtn.style.display = 'inline-block';
         dropzone.style.display = 'none';
-        generateBtn.disabled = false;
-        generateBtn.textContent = 'Generar PDF';
+        updateGenerateButtonState();
         updatePreview();
       };
       image.src = e.target.result;
@@ -452,23 +533,36 @@
     inp.addEventListener('input', updatePreview);
   });
 
+  [radiusInput, circleStrokeInput].forEach(inp=>{
+    inp.addEventListener('input', () => { updateGenerateButtonState(); updatePreview(); });
+  });
+
   // ---------- Live preview / grid calc ----------
   function computeLayout(){
-    if (!imgTrimmedCanvas) return null;
-    const targetCm = parseFloat(sizeInput.value) || 0;
-    if (targetCm <= 0) return null;
+    let finalWcm, finalHcm, landscape, appliedTo;
 
-    const w = imgTrimmedCanvas.width, h = imgTrimmedCanvas.height;
-    const landscape = w >= h;
-    let finalWcm, finalHcm, appliedTo;
-    if (state.dim === 'height'){
-      finalHcm = targetCm; finalWcm = targetCm * (w/h); appliedTo = 'height';
-    } else if (state.dim === 'width'){
-      finalWcm = targetCm; finalHcm = targetCm * (h/w); appliedTo = 'width';
-    } else if (landscape){
-      finalWcm = targetCm; finalHcm = targetCm * (h/w); appliedTo = 'width';
+    if (state.mode === 'circle'){
+      const radius = parseFloat(radiusInput.value) || 0;
+      if (radius <= 0) return null;
+      finalWcm = finalHcm = radius * 2;
+      landscape = true;
+      appliedTo = 'radius';
     } else {
-      finalHcm = targetCm; finalWcm = targetCm * (w/h); appliedTo = 'height';
+      if (!imgTrimmedCanvas) return null;
+      const targetCm = parseFloat(sizeInput.value) || 0;
+      if (targetCm <= 0) return null;
+
+      const w = imgTrimmedCanvas.width, h = imgTrimmedCanvas.height;
+      landscape = w >= h;
+      if (state.dim === 'height'){
+        finalHcm = targetCm; finalWcm = targetCm * (w/h); appliedTo = 'height';
+      } else if (state.dim === 'width'){
+        finalWcm = targetCm; finalHcm = targetCm * (h/w); appliedTo = 'width';
+      } else if (landscape){
+        finalWcm = targetCm; finalHcm = targetCm * (h/w); appliedTo = 'width';
+      } else {
+        finalHcm = targetCm; finalWcm = targetCm * (w/h); appliedTo = 'height';
+      }
     }
 
     const page = PAGES[state.paper];
@@ -498,14 +592,23 @@
     if (!L){
       resultStats.classList.remove('show');
       gridPreview.classList.remove('show');
-      orientPill.textContent = imgTrimmedCanvas ? 'Ingresa un tamaño' : 'Sube una imagen primero';
+      if (state.mode === 'circle'){
+        orientPill.textContent = 'Ingresa un radio';
+      } else {
+        orientPill.textContent = imgTrimmedCanvas ? 'Ingresa un tamaño' : 'Sube una imagen primero';
+      }
       return;
     }
-    const dimLabel = L.appliedTo === 'height' ? 'al alto' : 'al ancho';
-    const modeLabel = state.dim === 'auto'
-      ? `${L.landscape ? '↔ Horizontal' : '↕ Vertical'} · aplicado ${dimLabel}`
-      : `Manual · aplicado ${dimLabel}`;
-    orientPill.textContent = modeLabel;
+
+    if (state.mode === 'circle'){
+      orientPill.textContent = `⚪ Círculo · radio ${radiusInput.value} cm`;
+    } else {
+      const dimLabel = L.appliedTo === 'height' ? 'al alto' : 'al ancho';
+      const modeLabel = state.dim === 'auto'
+        ? `${L.landscape ? '↔ Horizontal' : '↕ Vertical'} · aplicado ${dimLabel}`
+        : `Manual · aplicado ${dimLabel}`;
+      orientPill.textContent = modeLabel;
+    }
 
     document.getElementById('statSize').textContent = `${L.finalWcm.toFixed(1)}×${L.finalHcm.toFixed(1)} cm`;
     document.getElementById('statGrid').textContent = `${L.cols}×${L.rows}`;
@@ -530,13 +633,16 @@
   // ---------- PDF generation ----------
   generateBtn.addEventListener('click', async () => {
     const L = computeLayout();
-    if (!L){ alert('Sube una imagen y define un tamaño válido.'); return; }
+    if (!L){
+      alert(state.mode === 'circle' ? 'Ingresa un radio válido.' : 'Sube una imagen y define un tamaño válido.');
+      return;
+    }
 
     generateBtn.disabled = true;
     downloadWrap.classList.remove('show');
     progressBar.classList.add('show');
     progressFill.style.width = '0%';
-    statusEl.textContent = 'Preparando imagen a 300 DPI…';
+    statusEl.textContent = state.mode === 'circle' ? 'Dibujando el círculo a 300 DPI…' : 'Preparando imagen a 300 DPI…';
     await nextFrame();
 
     try {
@@ -544,15 +650,28 @@
       const targetHpx = Math.round(L.finalHcm/2.54 * DPI);
       const targetWpx = Math.round(L.finalWcm/2.54 * DPI);
 
-      // Render resized image onto a white background canvas
+      // Render the full-resolution source onto a white background canvas
       const full = document.createElement('canvas');
       full.width = targetWpx; full.height = targetHpx;
       const fctx = full.getContext('2d');
-      fctx.imageSmoothingEnabled = true;
-      fctx.imageSmoothingQuality = 'high';
       fctx.fillStyle = '#ffffff';
       fctx.fillRect(0,0,targetWpx,targetHpx);
-      fctx.drawImage(imgTrimmedCanvas, 0, 0, targetWpx, targetHpx);
+
+      if (state.mode === 'circle'){
+        const strokeMm = parseFloat(circleStrokeInput.value) || 3;
+        const strokePx = (strokeMm/10/2.54) * DPI;
+        const cx = targetWpx/2, cy = targetHpx/2;
+        const r = Math.min(targetWpx,targetHpx)/2 - strokePx/2 - 2;
+        fctx.strokeStyle = '#000000';
+        fctx.lineWidth = strokePx;
+        fctx.beginPath();
+        fctx.arc(cx, cy, Math.max(r,0), 0, Math.PI*2);
+        fctx.stroke();
+      } else {
+        fctx.imageSmoothingEnabled = true;
+        fctx.imageSmoothingQuality = 'high';
+        fctx.drawImage(imgTrimmedCanvas, 0, 0, targetWpx, targetHpx);
+      }
 
       statusEl.textContent = 'Generando páginas…';
       await nextFrame();
@@ -615,9 +734,10 @@
 
           // label
           const pageNum = row*L.cols + col + 1;
+          const sizeTag = state.mode === 'circle' ? `Círculo radio ${radiusInput.value} cm` : `Piñata ${sizeInput.value} cm`;
           pdf.setFontSize(6);
           pdf.setTextColor(130,130,130);
-          pdf.text(`Hoja ${pageNum}/${total}  |  Fila ${row+1}/${L.rows}  Col ${col+1}/${L.cols}  |  Piñata ${sizeInput.value} cm · Mundo Piñatas K&A`, L.M, 14);
+          pdf.text(`Hoja ${pageNum}/${total}  |  Fila ${row+1}/${L.rows}  Col ${col+1}/${L.cols}  |  ${sizeTag} · Mundo Piñatas K&A`, L.M, 14);
 
           done++;
           progressFill.style.width = Math.round((done/total)*90) + '%';
@@ -634,6 +754,12 @@
       pdf.text('Instrucciones · Mundo Piñatas K&A', L.M, L.M+16);
 
       pdf.setTextColor(20,20,20);
+      const assemblyExtra = state.mode === 'circle'
+        ? '  •  Recorta siguiendo el contorno del círculo dibujado (línea negra).'
+        : '';
+      const resultLine = state.mode === 'circle'
+        ? `  •  Círculo de ${(L.finalWcm/2).toFixed(1)} cm de radio (${L.finalWcm.toFixed(1)} cm de diámetro)`
+        : `  •  Tamaño: ${L.finalWcm.toFixed(1)} × ${L.finalHcm.toFixed(1)} cm`;
       const lines = [
         '',
         'IMPRESIÓN:',
@@ -645,17 +771,18 @@
         'ENSAMBLAJE:',
         `  •  El diseño ocupa ${total} hojas (${L.cols} columna${L.cols>1?'s':''} × ${L.rows} fila${L.rows>1?'s':''}).`,
         '  •  Recorta cada hoja siguiendo las marcas de corte grises en las esquinas.',
+        assemblyExtra,
         `  •  Hay un solape de ${overlapInput.value} mm entre hojas — úsalo para el pegado.`,
         '  •  Pega de izquierda a derecha, fila por fila (de arriba hacia abajo).',
         '  •  Las líneas punteadas grises marcan la zona de solape.',
         '  •  Verifica que el diseño continúe sin saltos antes de pegar cada hoja.',
         '',
         'RESULTADO FINAL:',
-        `  •  Tamaño: ${L.finalWcm.toFixed(1)} × ${L.finalHcm.toFixed(1)} cm`,
+        resultLine,
         '  •  Resolución: 300 DPI — alta calidad de impresión.',
         '',
         'Mundo Piñatas K&A · Cuernavaca, Morelos, México',
-      ];
+      ].filter(l => l !== '');
       let y = L.M + 44;
       pdf.setFontSize(10.5);
       lines.forEach(line=>{
@@ -670,8 +797,10 @@
       const blob = pdf.output('blob');
       const url = URL.createObjectURL(blob);
       downloadLink.href = url;
-      const safeSize = sizeInput.value.replace('.','_');
-      downloadLink.download = `plantilla_pinata_${safeSize}cm.pdf`;
+      const fileTag = state.mode === 'circle'
+        ? `circulo_r${radiusInput.value.replace('.','_')}cm`
+        : `pinata_${sizeInput.value.replace('.','_')}cm`;
+      downloadLink.download = `plantilla_${fileTag}.pdf`;
       downloadWrap.classList.add('show');
 
     } catch(err){
@@ -686,6 +815,9 @@
   function nextFrame(){
     return new Promise(res => requestAnimationFrame(()=>setTimeout(res,0)));
   }
+
+  // ---------- Init ----------
+  applyMode();
 
 })();
 </script>
