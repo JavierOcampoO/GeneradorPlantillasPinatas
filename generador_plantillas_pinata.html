@@ -1,0 +1,693 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Mundo Piñatas K&A · Generador de plantillas</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@500;700;800&family=Work+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+<style>
+  :root{
+    --paper:#FFF7EA;
+    --ink:#241B33;
+    --hotpink:#FF3E7F;
+    --hotpink-dark:#D81C5D;
+    --turquoise:#14B8AE;
+    --sun:#FFC93C;
+    --violet:#5B3E8E;
+    --line:#E7DCC8;
+    --ok:#1F9D63;
+  }
+  *{box-sizing:border-box;}
+  html,body{margin:0;padding:0;}
+  body{
+    background:
+      radial-gradient(circle at 8% 12%, rgba(255,201,60,.28), transparent 40%),
+      radial-gradient(circle at 92% 88%, rgba(20,184,174,.22), transparent 45%),
+      var(--paper);
+    color:var(--ink);
+    font-family:'Work Sans', sans-serif;
+    min-height:100vh;
+    padding:0 0 80px;
+  }
+  .wrap{max-width:920px; margin:0 auto; padding:36px 22px;}
+
+  /* Header */
+  header{
+    display:flex; align-items:center; gap:16px; margin-bottom:8px;
+  }
+  .logo-mark{
+    width:52px; height:52px; flex:none; border-radius:50%;
+    background:conic-gradient(from 200deg, var(--hotpink), var(--sun), var(--turquoise), var(--violet), var(--hotpink));
+    display:flex; align-items:center; justify-content:center;
+    box-shadow: 0 3px 0 rgba(36,27,51,.25);
+  }
+  .logo-mark span{
+    width:38px; height:38px; border-radius:50%; background:var(--paper);
+    display:flex; align-items:center; justify-content:center;
+    font-family:'Baloo 2'; font-weight:800; font-size:19px; color:var(--ink);
+  }
+  h1{
+    font-family:'Baloo 2', sans-serif; font-weight:800; font-size:26px; margin:0; line-height:1.1;
+    letter-spacing:-.01em;
+  }
+  header p{margin:2px 0 0; color:#6b6178; font-size:14px;}
+
+  .torn{
+    height:16px; margin:26px 0 30px;
+    background:
+      linear-gradient(135deg, var(--paper) 50%, transparent 50%) 0 0/14px 16px repeat-x,
+      linear-gradient(-135deg, var(--paper) 50%, transparent 50%) 0 0/14px 16px repeat-x;
+    background-color:var(--violet);
+    opacity:.9;
+  }
+
+  h2.step{
+    font-family:'Baloo 2'; font-weight:700; font-size:15px; letter-spacing:.02em;
+    color:var(--hotpink-dark); text-transform:uppercase; margin:0 0 10px;
+    display:flex; align-items:center; gap:8px;
+  }
+  h2.step .num{
+    width:24px; height:24px; border-radius:50%; background:var(--hotpink-dark); color:#fff;
+    font-family:'Baloo 2'; font-size:13px; display:flex; align-items:center; justify-content:center; flex:none;
+  }
+
+  section.card{
+    background:#fff; border:1px solid var(--line); border-radius:18px;
+    padding:26px; margin-bottom:22px;
+    box-shadow: 0 2px 0 rgba(36,27,51,.04);
+  }
+
+  /* Dropzone */
+  #dropzone{
+    border:2.5px dashed #D9C9E8; border-radius:14px; padding:34px 20px;
+    text-align:center; cursor:pointer; transition:.15s;
+    background:#FBF6FF;
+  }
+  #dropzone.drag{ border-color:var(--hotpink); background:#FFF0F5; }
+  #dropzone .icon{font-size:34px; display:block; margin-bottom:6px;}
+  #dropzone strong{color:var(--hotpink-dark);}
+  #dropzone small{display:block; color:#8b8195; margin-top:6px; font-size:12.5px;}
+  #fileInput{display:none;}
+
+  #previewRow{
+    display:none; gap:20px; align-items:flex-start; margin-top:18px;
+  }
+  #previewRow.show{display:flex;}
+  #thumbWrap{
+    flex:none; width:150px; height:150px; border-radius:12px; overflow:hidden;
+    background:
+      linear-gradient(45deg,#eee 25%,transparent 25%,transparent 75%,#eee 75%),
+      linear-gradient(45deg,#eee 25%,transparent 25%,transparent 75%,#eee 75%);
+    background-size:16px 16px; background-position:0 0,8px 8px;
+    border:1px solid var(--line);
+    display:flex; align-items:center; justify-content:center;
+  }
+  #thumbWrap img{max-width:100%; max-height:100%; display:block;}
+  #fileMeta{font-size:13.5px; color:#5a5265; line-height:1.7;}
+  #fileMeta b{color:var(--ink);}
+  #changeFile{
+    margin-top:8px; background:none; border:none; color:var(--hotpink-dark); font-weight:600;
+    font-size:13px; cursor:pointer; padding:0; text-decoration:underline;
+  }
+
+  /* Controls */
+  .field{margin-bottom:18px;}
+  .field:last-child{margin-bottom:0;}
+  label.fl{display:block; font-weight:600; font-size:14px; margin-bottom:6px;}
+  label.fl .hint{font-weight:400; color:#8b8195; font-size:12.5px;}
+
+  .size-input{
+    display:flex; align-items:center; gap:10px;
+  }
+  .size-input input[type=number]{
+    width:120px; font-size:22px; font-family:'Baloo 2'; font-weight:700;
+    padding:10px 12px; border-radius:10px; border:1.5px solid var(--line); color:var(--ink);
+    background:var(--paper);
+  }
+  .size-input input[type=number]:focus{outline:2px solid var(--hotpink); border-color:var(--hotpink);}
+  .size-input .unit{font-weight:600; color:#6b6178;}
+  .orient-pill{
+    margin-left:auto; font-size:12.5px; font-weight:600; padding:6px 12px; border-radius:999px;
+    background:#F1EAFB; color:var(--violet); display:flex; align-items:center; gap:6px;
+  }
+
+  .seg{display:flex; gap:8px; flex-wrap:wrap;}
+  .seg button{
+    flex:1; min-width:110px; padding:10px 12px; border-radius:10px; border:1.5px solid var(--line);
+    background:var(--paper); font-family:'Work Sans'; font-weight:600; font-size:13.5px; cursor:pointer; color:var(--ink);
+  }
+  .seg button.active{ background:var(--hotpink); border-color:var(--hotpink); color:#fff; }
+
+  details{margin-top:16px;}
+  summary{cursor:pointer; font-weight:600; font-size:13.5px; color:var(--violet); user-select:none;}
+  .adv-grid{
+    display:grid; grid-template-columns:1fr 1fr 1fr; gap:14px; margin-top:14px;
+  }
+  .adv-grid .field label.fl{font-size:12.5px; margin-bottom:4px;}
+  .adv-grid input{
+    width:100%; padding:8px 10px; border-radius:8px; border:1.5px solid var(--line); font-size:14px;
+    font-family:'Work Sans';
+  }
+
+  /* Results */
+  #resultStats{
+    display:none; grid-template-columns:repeat(4,1fr); gap:12px; margin-bottom:20px;
+  }
+  #resultStats.show{display:grid;}
+  .stat{
+    background:var(--paper); border:1px solid var(--line); border-radius:12px; padding:14px;
+    text-align:center;
+  }
+  .stat .v{font-family:'Baloo 2'; font-weight:800; font-size:22px; color:var(--hotpink-dark);}
+  .stat .l{font-size:11.5px; color:#7a7086; text-transform:uppercase; letter-spacing:.03em; margin-top:2px;}
+
+  #gridPreview{
+    display:none; margin-bottom:20px;
+  }
+  #gridPreview.show{display:block;}
+  #gridCanvasWrap{
+    display:grid; gap:3px; background:#D9C9E8; padding:3px; border-radius:8px; width:fit-content; margin:0 auto;
+  }
+  .gcell{
+    background:#fff; width:34px; height:44px; display:flex; align-items:center; justify-content:center;
+    font-size:9px; color:#a99bb8; font-family:'Work Sans'; position:relative;
+    border:1px dashed #e4d6f2;
+  }
+
+  button#generateBtn{
+    width:100%; padding:16px; border-radius:12px; border:none; cursor:pointer;
+    background:linear-gradient(135deg, var(--hotpink), var(--hotpink-dark));
+    color:#fff; font-family:'Baloo 2'; font-weight:700; font-size:17px;
+    box-shadow:0 3px 0 var(--hotpink-dark), 0 8px 18px rgba(216,28,93,.25);
+    transition:transform .08s;
+  }
+  button#generateBtn:disabled{ opacity:.45; cursor:not-allowed; box-shadow:none;}
+  button#generateBtn:not(:disabled):active{ transform:translateY(2px); box-shadow:0 1px 0 var(--hotpink-dark);}
+
+  #status{
+    margin-top:14px; font-size:13.5px; text-align:center; color:#6b6178; min-height:18px;
+  }
+  #progressBar{
+    height:6px; border-radius:4px; background:#F1EAFB; margin-top:10px; overflow:hidden; display:none;
+  }
+  #progressBar.show{display:block;}
+  #progressFill{height:100%; width:0%; background:linear-gradient(90deg,var(--turquoise),var(--hotpink)); transition:width .15s;}
+
+  #downloadWrap{display:none; margin-top:16px; text-align:center;}
+  #downloadWrap.show{display:block;}
+  #downloadLink{
+    display:inline-flex; align-items:center; gap:8px; background:var(--ok); color:#fff; text-decoration:none;
+    padding:12px 22px; border-radius:10px; font-weight:700; font-family:'Baloo 2'; font-size:15px;
+  }
+
+  footer{text-align:center; color:#a99bb8; font-size:12.5px; margin-top:30px;}
+  footer b{color:var(--violet);}
+
+  @media(max-width:520px){
+    .adv-grid{grid-template-columns:1fr 1fr;}
+    #resultStats{grid-template-columns:1fr 1fr;}
+    #previewRow{flex-direction:column;}
+  }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <header>
+    <div class="logo-mark"><span>MP</span></div>
+    <div>
+      <h1>Generador de plantillas para piñatas</h1>
+      <p>Sube tu diseño, dale un tamaño y descarga el PDF listo para imprimir y armar</p>
+    </div>
+  </header>
+
+  <div class="torn"></div>
+
+  <!-- STEP 1 -->
+  <section class="card">
+    <h2 class="step"><span class="num">1</span>Imagen del diseño</h2>
+
+    <div id="dropzone">
+      <span class="icon">🖼️</span>
+      <strong>Toca para elegir una imagen</strong> o arrástrala aquí
+      <small>JPG o PNG · con o sin transparencia</small>
+    </div>
+    <input type="file" id="fileInput" accept="image/png, image/jpeg">
+
+    <div id="previewRow">
+      <div id="thumbWrap"><img id="thumbImg" alt="Vista previa"></div>
+      <div id="fileMeta"></div>
+    </div>
+    <button id="changeFile" style="display:none;">Cambiar imagen</button>
+  </section>
+
+  <!-- STEP 2 -->
+  <section class="card">
+    <h2 class="step"><span class="num">2</span>Tamaño final de la piñata</h2>
+
+    <div class="field">
+      <label class="fl">Medida <span class="hint" id="sizeHint">— se aplica al alto si el diseño es vertical, o al ancho si es horizontal</span></label>
+      <div class="size-input">
+        <input type="number" id="sizeInput" value="65" min="10" max="300" step="0.5">
+        <span class="unit">cm</span>
+        <span class="orient-pill" id="orientPill">Sube una imagen primero</span>
+      </div>
+    </div>
+
+    <div class="field">
+      <label class="fl">Aplicar la medida a</label>
+      <div class="seg" id="dimSeg">
+        <button data-dim="auto" class="active">Automático</button>
+        <button data-dim="height">Alto</button>
+        <button data-dim="width">Ancho</button>
+      </div>
+    </div>
+
+    <div class="field">
+      <label class="fl">Papel de impresión</label>
+      <div class="seg" id="paperSeg">
+        <button data-paper="letter" class="active">Carta (Letter)</button>
+        <button data-paper="a4">A4</button>
+      </div>
+    </div>
+
+    <details>
+      <summary>Opciones avanzadas (márgenes, solape y marcas de corte)</summary>
+      <div class="adv-grid">
+        <div class="field">
+          <label class="fl">Margen (mm)</label>
+          <input type="number" id="marginInput" value="8" min="3" max="20" step="0.5">
+        </div>
+        <div class="field">
+          <label class="fl">Solape (mm)</label>
+          <input type="number" id="overlapInput" value="4" min="3" max="5" step="0.5">
+        </div>
+        <div class="field">
+          <label class="fl">Marca de corte (mm)</label>
+          <input type="number" id="cropInput" value="3" min="2" max="6" step="0.5">
+        </div>
+      </div>
+    </details>
+  </section>
+
+  <!-- STEP 3 -->
+  <section class="card">
+    <h2 class="step"><span class="num">3</span>Vista previa y descarga</h2>
+
+    <div id="resultStats">
+      <div class="stat"><div class="v" id="statSize">—</div><div class="l">Tamaño final</div></div>
+      <div class="stat"><div class="v" id="statGrid">—</div><div class="l">Hojas (col×fil)</div></div>
+      <div class="stat"><div class="v" id="statPages">—</div><div class="l">Páginas totales</div></div>
+      <div class="stat"><div class="v" id="statDpi">300</div><div class="l">DPI</div></div>
+    </div>
+
+    <div id="gridPreview">
+      <div id="gridCanvasWrap"></div>
+    </div>
+
+    <button id="generateBtn" disabled>Sube una imagen para continuar</button>
+    <div id="progressBar"><div id="progressFill"></div></div>
+    <div id="status"></div>
+    <div id="downloadWrap"><a id="downloadLink" href="#" download="plantilla_pinata.pdf">⬇ Descargar PDF</a></div>
+  </section>
+
+  <footer>Hecho para <b>Mundo Piñatas K&A</b> · Cuernavaca, Morelos · Todo se procesa en tu navegador, ninguna imagen se sube a internet.</footer>
+</div>
+
+<script>
+(function(){
+  const MM = 2.8346456693; // pt per mm
+  const CM = MM * 10;      // pt per cm
+  const PAGES = {
+    letter: {w: 612, h: 792, label:'Carta'},
+    a4:     {w: 595.28, h: 841.89, label:'A4'}
+  };
+
+  let img = null;          // loaded HTMLImageElement
+  let imgTrimmedCanvas = null; // trimmed source canvas (natural res)
+  let state = {
+    paper: 'letter',
+    dim: 'auto'
+  };
+
+  const dropzone   = document.getElementById('dropzone');
+  const fileInput  = document.getElementById('fileInput');
+  const previewRow = document.getElementById('previewRow');
+  const thumbImg   = document.getElementById('thumbImg');
+  const fileMeta   = document.getElementById('fileMeta');
+  const changeFileBtn = document.getElementById('changeFile');
+  const sizeInput  = document.getElementById('sizeInput');
+  const orientPill = document.getElementById('orientPill');
+  const paperSeg   = document.getElementById('paperSeg');
+  const dimSeg     = document.getElementById('dimSeg');
+  const sizeHint   = document.getElementById('sizeHint');
+  const marginInput  = document.getElementById('marginInput');
+  const overlapInput = document.getElementById('overlapInput');
+  const cropInput     = document.getElementById('cropInput');
+  const generateBtn  = document.getElementById('generateBtn');
+  const statusEl     = document.getElementById('status');
+  const progressBar  = document.getElementById('progressBar');
+  const progressFill = document.getElementById('progressFill');
+  const downloadWrap = document.getElementById('downloadWrap');
+  const downloadLink = document.getElementById('downloadLink');
+  const resultStats  = document.getElementById('resultStats');
+  const gridPreview   = document.getElementById('gridPreview');
+  const gridCanvasWrap= document.getElementById('gridCanvasWrap');
+
+  // ---------- File handling ----------
+  dropzone.addEventListener('click', () => fileInput.click());
+  dropzone.addEventListener('dragover', e => { e.preventDefault(); dropzone.classList.add('drag'); });
+  dropzone.addEventListener('dragleave', () => dropzone.classList.remove('drag'));
+  dropzone.addEventListener('drop', e => {
+    e.preventDefault(); dropzone.classList.remove('drag');
+    if (e.dataTransfer.files && e.dataTransfer.files[0]) handleFile(e.dataTransfer.files[0]);
+  });
+  fileInput.addEventListener('change', e => {
+    if (e.target.files && e.target.files[0]) handleFile(e.target.files[0]);
+  });
+  changeFileBtn.addEventListener('click', () => fileInput.click());
+
+  function handleFile(file){
+    if (!/^image\/(png|jpe?g)$/i.test(file.type)){
+      alert('Por favor sube un archivo JPG o PNG.');
+      return;
+    }
+    const reader = new FileReader();
+    reader.onload = e => {
+      const image = new Image();
+      image.onload = () => {
+        img = image;
+        thumbImg.src = e.target.result;
+        trimImage(image, file.type);
+        const kb = (file.size/1024).toFixed(0);
+        fileMeta.innerHTML = `<b>${file.name}</b><br>${image.naturalWidth}×${image.naturalHeight}px · ${kb} KB`;
+        previewRow.classList.add('show');
+        changeFileBtn.style.display = 'inline-block';
+        dropzone.style.display = 'none';
+        generateBtn.disabled = false;
+        generateBtn.textContent = 'Generar PDF';
+        updatePreview();
+      };
+      image.src = e.target.result;
+    };
+    reader.readAsDataURL(file);
+  }
+
+  // Trim fully-transparent edges (PNG only); keep full frame for JPG
+  function trimImage(image, mime){
+    const c = document.createElement('canvas');
+    c.width = image.naturalWidth; c.height = image.naturalHeight;
+    const ctx = c.getContext('2d');
+    ctx.drawImage(image, 0, 0);
+
+    if (mime !== 'image/png'){ imgTrimmedCanvas = c; updatePreview(); return; }
+
+    const {data, width, height} = ctx.getImageData(0,0,c.width,c.height);
+    let minX=width, minY=height, maxX=0, maxY=0, found=false;
+    // sample stride for speed on big images
+    const stride = Math.max(1, Math.floor(Math.sqrt((width*height)/2000000)));
+    for (let y=0; y<height; y+=stride){
+      for (let x=0; x<width; x+=stride){
+        const a = data[(y*width+x)*4+3];
+        if (a > 8){
+          found = true;
+          if (x<minX) minX=x; if (x>maxX) maxX=x;
+          if (y<minY) minY=y; if (y>maxY) maxY=y;
+        }
+      }
+    }
+    if (!found){ imgTrimmedCanvas = c; updatePreview(); return; }
+    // pad a touch to not clip anti-aliased edges lost by striding
+    const pad = stride*2;
+    minX = Math.max(0, minX-pad); minY = Math.max(0, minY-pad);
+    maxX = Math.min(width, maxX+pad); maxY = Math.min(height, maxY+pad);
+    const tw = maxX-minX, th = maxY-minY;
+    const c2 = document.createElement('canvas');
+    c2.width = tw; c2.height = th;
+    c2.getContext('2d').drawImage(c, minX, minY, tw, th, 0, 0, tw, th);
+    imgTrimmedCanvas = c2;
+    updatePreview();
+  }
+
+  // ---------- Paper selector ----------
+  paperSeg.addEventListener('click', e => {
+    const btn = e.target.closest('button'); if (!btn) return;
+    [...paperSeg.children].forEach(b=>b.classList.remove('active'));
+    btn.classList.add('active');
+    state.paper = btn.dataset.paper;
+    updatePreview();
+  });
+
+  dimSeg.addEventListener('click', e => {
+    const btn = e.target.closest('button'); if (!btn) return;
+    [...dimSeg.children].forEach(b=>b.classList.remove('active'));
+    btn.classList.add('active');
+    state.dim = btn.dataset.dim;
+    updatePreview();
+  });
+
+  [sizeInput, marginInput, overlapInput, cropInput].forEach(inp=>{
+    inp.addEventListener('input', updatePreview);
+  });
+
+  // ---------- Live preview / grid calc ----------
+  function computeLayout(){
+    if (!imgTrimmedCanvas) return null;
+    const targetCm = parseFloat(sizeInput.value) || 0;
+    if (targetCm <= 0) return null;
+
+    const w = imgTrimmedCanvas.width, h = imgTrimmedCanvas.height;
+    const landscape = w >= h;
+    let finalWcm, finalHcm, appliedTo;
+    if (state.dim === 'height'){
+      finalHcm = targetCm; finalWcm = targetCm * (w/h); appliedTo = 'height';
+    } else if (state.dim === 'width'){
+      finalWcm = targetCm; finalHcm = targetCm * (h/w); appliedTo = 'width';
+    } else if (landscape){
+      finalWcm = targetCm; finalHcm = targetCm * (h/w); appliedTo = 'width';
+    } else {
+      finalHcm = targetCm; finalWcm = targetCm * (w/h); appliedTo = 'height';
+    }
+
+    const page = PAGES[state.paper];
+    const marginMm  = parseFloat(marginInput.value)  || 8;
+    const overlapMm = parseFloat(overlapInput.value) || 4;
+    const cropMm    = parseFloat(cropInput.value)    || 3;
+
+    const M  = marginMm * MM;
+    const OL = overlapMm * MM;
+    const printW = page.w - 2*M;
+    const printH = page.h - 2*M;
+
+    const imgWpt = finalWcm * CM;
+    const imgHpt = finalHcm * CM;
+
+    const cols = Math.ceil(imgWpt / (printW - OL));
+    const rows = Math.ceil(imgHpt / (printH - OL));
+
+    return {
+      landscape, finalWcm, finalHcm, page, M, OL, cropMm, printW, printH,
+      imgWpt, imgHpt, cols, rows, totalPages: cols*rows, appliedTo
+    };
+  }
+
+  function updatePreview(){
+    const L = computeLayout();
+    if (!L){
+      resultStats.classList.remove('show');
+      gridPreview.classList.remove('show');
+      orientPill.textContent = imgTrimmedCanvas ? 'Ingresa un tamaño' : 'Sube una imagen primero';
+      return;
+    }
+    const dimLabel = L.appliedTo === 'height' ? 'al alto' : 'al ancho';
+    const modeLabel = state.dim === 'auto'
+      ? `${L.landscape ? '↔ Horizontal' : '↕ Vertical'} · aplicado ${dimLabel}`
+      : `Manual · aplicado ${dimLabel}`;
+    orientPill.textContent = modeLabel;
+
+    document.getElementById('statSize').textContent = `${L.finalWcm.toFixed(1)}×${L.finalHcm.toFixed(1)} cm`;
+    document.getElementById('statGrid').textContent = `${L.cols}×${L.rows}`;
+    document.getElementById('statPages').textContent = `${L.totalPages}`;
+    resultStats.classList.add('show');
+
+    // mini grid
+    gridCanvasWrap.innerHTML = '';
+    gridCanvasWrap.style.gridTemplateColumns = `repeat(${L.cols}, 34px)`;
+    let n = 1;
+    for (let r=0;r<L.rows;r++){
+      for (let c=0;c<L.cols;c++){
+        const cell = document.createElement('div');
+        cell.className = 'gcell';
+        cell.textContent = n++;
+        gridCanvasWrap.appendChild(cell);
+      }
+    }
+    gridPreview.classList.add('show');
+  }
+
+  // ---------- PDF generation ----------
+  generateBtn.addEventListener('click', async () => {
+    const L = computeLayout();
+    if (!L){ alert('Sube una imagen y define un tamaño válido.'); return; }
+
+    generateBtn.disabled = true;
+    downloadWrap.classList.remove('show');
+    progressBar.classList.add('show');
+    progressFill.style.width = '0%';
+    statusEl.textContent = 'Preparando imagen a 300 DPI…';
+    await nextFrame();
+
+    try {
+      const DPI = 300;
+      const targetHpx = Math.round(L.finalHcm/2.54 * DPI);
+      const targetWpx = Math.round(L.finalWcm/2.54 * DPI);
+
+      // Render resized image onto a white background canvas
+      const full = document.createElement('canvas');
+      full.width = targetWpx; full.height = targetHpx;
+      const fctx = full.getContext('2d');
+      fctx.imageSmoothingEnabled = true;
+      fctx.imageSmoothingQuality = 'high';
+      fctx.fillStyle = '#ffffff';
+      fctx.fillRect(0,0,targetWpx,targetHpx);
+      fctx.drawImage(imgTrimmedCanvas, 0, 0, targetWpx, targetHpx);
+
+      statusEl.textContent = 'Generando páginas…';
+      await nextFrame();
+
+      const { jsPDF } = window.jspdf;
+      const pdf = new jsPDF({unit:'pt', format:[L.page.w, L.page.h]});
+
+      const scaleX = targetWpx / L.imgWpt; // px per pt
+      const scaleY = targetHpx / L.imgHpt;
+      const CUT = L.cropMm * MM;
+      const total = L.cols * L.rows;
+      let done = 0;
+
+      for (let row=0; row<L.rows; row++){
+        for (let col=0; col<L.cols; col++){
+          const x0pt = col * (L.printW - L.OL);
+          const y0pt = row * (L.printH - L.OL);
+          const x1pt = Math.min(x0pt + L.printW, L.imgWpt);
+          const y1pt = Math.min(y0pt + L.printH, L.imgHpt);
+
+          const px0 = Math.round(x0pt*scaleX), py0 = Math.round(y0pt*scaleY);
+          const px1 = Math.round(x1pt*scaleX), py1 = Math.round(y1pt*scaleY);
+          const tileWpx = px1-px0, tileHpx = py1-py0;
+
+          const tileWpt = x1pt-x0pt, tileHpt = y1pt-y0pt;
+
+          const tileCanvas = document.createElement('canvas');
+          tileCanvas.width = tileWpx; tileCanvas.height = tileHpx;
+          tileCanvas.getContext('2d').drawImage(full, px0, py0, tileWpx, tileHpx, 0, 0, tileWpx, tileHpx);
+          const jpegData = tileCanvas.toDataURL('image/jpeg', 0.95);
+
+          if (done > 0) pdf.addPage([L.page.w, L.page.h]);
+
+          const topY = L.page.h - L.M - tileHpt;
+          pdf.addImage(jpegData, 'JPEG', L.M, topY, tileWpt, tileHpt);
+
+          // crop marks
+          pdf.setDrawColor(140,140,140);
+          pdf.setLineWidth(0.5);
+          const corners = [
+            [L.M, L.page.h - L.M],
+            [L.M+tileWpt, L.page.h - L.M],
+            [L.M, L.page.h - L.M - tileHpt],
+            [L.M+tileWpt, L.page.h - L.M - tileHpt],
+          ];
+          corners.forEach(([cx,cy])=>{
+            pdf.line(cx-CUT, cy, cx-2, cy);
+            pdf.line(cx+2, cy, cx+CUT, cy);
+            pdf.line(cx, cy-CUT, cx, cy-2);
+            pdf.line(cx, cy+2, cx, cy+CUT);
+          });
+
+          // overlap guides (dashed)
+          pdf.setDrawColor(180,180,180);
+          pdf.setLineWidth(0.4);
+          pdf.setLineDashPattern([3,3], 0);
+          if (col>0) pdf.line(L.M+L.OL, L.page.h-L.M, L.M+L.OL, L.page.h-L.M-tileHpt);
+          if (row>0) pdf.line(L.M, L.page.h-L.M-L.OL, L.M+tileWpt, L.page.h-L.M-L.OL);
+          pdf.setLineDashPattern([], 0);
+
+          // label
+          const pageNum = row*L.cols + col + 1;
+          pdf.setFontSize(6);
+          pdf.setTextColor(130,130,130);
+          pdf.text(`Hoja ${pageNum}/${total}  |  Fila ${row+1}/${L.rows}  Col ${col+1}/${L.cols}  |  Piñata ${sizeInput.value} cm · Mundo Piñatas K&A`, L.M, 14);
+
+          done++;
+          progressFill.style.width = Math.round((done/total)*90) + '%';
+          statusEl.textContent = `Generando páginas… ${done}/${total}`;
+          await nextFrame();
+        }
+      }
+
+      // instructions page
+      pdf.addPage([L.page.w, L.page.h]);
+      pdf.setTextColor(216,28,93);
+      pdf.setFontSize(16);
+      pdf.setFont(undefined, 'bold');
+      pdf.text('Instrucciones · Mundo Piñatas K&A', L.M, L.M+16);
+
+      pdf.setTextColor(20,20,20);
+      const lines = [
+        '',
+        'IMPRESIÓN:',
+        '  •  Imprimir al 100% de escala (NO ajustar a la página).',
+        '  •  Seleccionar "Tamaño real" o "Escala 100%" en el diálogo de impresión.',
+        '  •  Desactivar "Ajustar al área imprimible".',
+        `  •  Papel: ${L.page.label}  ·  Calidad: Alta.`,
+        '',
+        'ENSAMBLAJE:',
+        `  •  El diseño ocupa ${total} hojas (${L.cols} columna${L.cols>1?'s':''} × ${L.rows} fila${L.rows>1?'s':''}).`,
+        '  •  Recorta cada hoja siguiendo las marcas de corte grises en las esquinas.',
+        `  •  Hay un solape de ${overlapInput.value} mm entre hojas — úsalo para el pegado.`,
+        '  •  Pega de izquierda a derecha, fila por fila (de arriba hacia abajo).',
+        '  •  Las líneas punteadas grises marcan la zona de solape.',
+        '  •  Verifica que el diseño continúe sin saltos antes de pegar cada hoja.',
+        '',
+        'RESULTADO FINAL:',
+        `  •  Tamaño: ${L.finalWcm.toFixed(1)} × ${L.finalHcm.toFixed(1)} cm`,
+        '  •  Resolución: 300 DPI — alta calidad de impresión.',
+        '',
+        'Mundo Piñatas K&A · Cuernavaca, Morelos, México',
+      ];
+      let y = L.M + 44;
+      pdf.setFontSize(10.5);
+      lines.forEach(line=>{
+        pdf.setFont(undefined, (line.endsWith(':') && !line.startsWith(' ')) ? 'bold' : 'normal');
+        pdf.text(line, L.M, y);
+        y += 15;
+      });
+
+      progressFill.style.width = '100%';
+      statusEl.textContent = `✅ Listo — ${total+1} páginas en total (${total} de diseño + 1 de instrucciones).`;
+
+      const blob = pdf.output('blob');
+      const url = URL.createObjectURL(blob);
+      downloadLink.href = url;
+      const safeSize = sizeInput.value.replace('.','_');
+      downloadLink.download = `plantilla_pinata_${safeSize}cm.pdf`;
+      downloadWrap.classList.add('show');
+
+    } catch(err){
+      console.error(err);
+      statusEl.textContent = '⚠️ Ocurrió un error generando el PDF: ' + err.message;
+    } finally {
+      generateBtn.disabled = false;
+      setTimeout(()=>progressBar.classList.remove('show'), 800);
+    }
+  });
+
+  function nextFrame(){
+    return new Promise(res => requestAnimationFrame(()=>setTimeout(res,0)));
+  }
+
+})();
+</script>
+</body>
+</html>
