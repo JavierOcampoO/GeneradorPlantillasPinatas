@@ -1,3 +1,6 @@
+
+
+Generador plantillas pinata · HTML
 <!doctype html>
 <html lang="es">
 <head>
@@ -32,7 +35,7 @@
     padding:0 0 80px;
   }
   .wrap{max-width:920px; margin:0 auto; padding:36px 22px;}
-
+ 
   /* Header */
   header{
     display:flex; align-items:center; gap:16px; margin-bottom:8px;
@@ -53,7 +56,7 @@
     letter-spacing:-.01em;
   }
   header p{margin:2px 0 0; color:#6b6178; font-size:14px;}
-
+ 
   .torn{
     height:16px; margin:26px 0 30px;
     background:
@@ -62,7 +65,7 @@
     background-color:var(--violet);
     opacity:.9;
   }
-
+ 
   /* Tabs */
   .tabbar{
     display:flex; gap:10px; margin-bottom:24px;
@@ -77,7 +80,7 @@
     background:linear-gradient(135deg, var(--hotpink), var(--hotpink-dark)); color:#fff; border-color:transparent;
     box-shadow:0 3px 0 var(--hotpink-dark);
   }
-
+ 
   h2.step{
     font-family:'Baloo 2'; font-weight:700; font-size:15px; letter-spacing:.02em;
     color:var(--hotpink-dark); text-transform:uppercase; margin:0 0 10px;
@@ -87,13 +90,13 @@
     width:24px; height:24px; border-radius:50%; background:var(--hotpink-dark); color:#fff;
     font-family:'Baloo 2'; font-size:13px; display:flex; align-items:center; justify-content:center; flex:none;
   }
-
+ 
   section.card{
     background:#fff; border:1px solid var(--line); border-radius:18px;
     padding:26px; margin-bottom:22px;
     box-shadow: 0 2px 0 rgba(36,27,51,.04);
   }
-
+ 
   /* Dropzone */
   #dropzone{
     border:2.5px dashed #D9C9E8; border-radius:14px; padding:34px 20px;
@@ -105,7 +108,7 @@
   #dropzone strong{color:var(--hotpink-dark);}
   #dropzone small{display:block; color:#8b8195; margin-top:6px; font-size:12.5px;}
   #fileInput{display:none;}
-
+ 
   #previewRow{
     display:none; gap:20px; align-items:flex-start; margin-top:18px;
   }
@@ -126,7 +129,7 @@
     margin-top:8px; background:none; border:none; color:var(--hotpink-dark); font-weight:600;
     font-size:13px; cursor:pointer; padding:0; text-decoration:underline;
   }
-
+ 
   /* Layer separation panel */
   #layersToggleWrap{
     margin-top:16px; padding-top:16px; border-top:1px dashed var(--line);
@@ -150,13 +153,13 @@
   }
   .layer-row .layer-meta{ font-size:11px; color:#9a90a6; flex:none; width:44px; text-align:right;}
   .layer-row input[type=checkbox]{ width:17px; height:17px; accent-color:var(--turquoise); flex:none; }
-
+ 
   /* Controls */
   .field{margin-bottom:18px;}
   .field:last-child{margin-bottom:0;}
   label.fl{display:block; font-weight:600; font-size:14px; margin-bottom:6px;}
   label.fl .hint{font-weight:400; color:#8b8195; font-size:12.5px;}
-
+ 
   .size-input{
     display:flex; align-items:center; gap:10px;
   }
@@ -171,14 +174,14 @@
     margin-left:auto; font-size:12.5px; font-weight:600; padding:6px 12px; border-radius:999px;
     background:#F1EAFB; color:var(--violet); display:flex; align-items:center; gap:6px;
   }
-
+ 
   .seg{display:flex; gap:8px; flex-wrap:wrap;}
   .seg button{
     flex:1; min-width:110px; padding:10px 12px; border-radius:10px; border:1.5px solid var(--line);
     background:var(--paper); font-family:'Work Sans'; font-weight:600; font-size:13.5px; cursor:pointer; color:var(--ink);
   }
   .seg button.active{ background:var(--hotpink); border-color:var(--hotpink); color:#fff; }
-
+ 
   details{margin-top:16px;}
   summary{cursor:pointer; font-weight:600; font-size:13.5px; color:var(--violet); user-select:none;}
   .adv-grid{
@@ -189,7 +192,7 @@
     width:100%; padding:8px 10px; border-radius:8px; border:1.5px solid var(--line); font-size:14px;
     font-family:'Work Sans';
   }
-
+ 
   /* Results */
   #resultStats{
     display:none; grid-template-columns:repeat(4,1fr); gap:12px; margin-bottom:20px;
@@ -201,7 +204,7 @@
   }
   .stat .v{font-family:'Baloo 2'; font-weight:800; font-size:22px; color:var(--hotpink-dark);}
   .stat .l{font-size:11.5px; color:#7a7086; text-transform:uppercase; letter-spacing:.03em; margin-top:2px;}
-
+ 
   #gridPreview{
     display:none; margin-bottom:20px;
   }
@@ -214,7 +217,7 @@
     font-size:9px; color:#a99bb8; font-family:'Work Sans'; position:relative;
     border:1px dashed #e4d6f2;
   }
-
+ 
   button#generateBtn{
     width:100%; padding:16px; border-radius:12px; border:none; cursor:pointer;
     background:linear-gradient(135deg, var(--hotpink), var(--hotpink-dark));
@@ -224,7 +227,7 @@
   }
   button#generateBtn:disabled{ opacity:.45; cursor:not-allowed; box-shadow:none;}
   button#generateBtn:not(:disabled):active{ transform:translateY(2px); box-shadow:0 1px 0 var(--hotpink-dark);}
-
+ 
   #status{
     margin-top:14px; font-size:13.5px; text-align:center; color:#6b6178; min-height:18px;
   }
@@ -233,17 +236,17 @@
   }
   #progressBar.show{display:block;}
   #progressFill{height:100%; width:0%; background:linear-gradient(90deg,var(--turquoise),var(--hotpink)); transition:width .15s;}
-
+ 
   #downloadWrap{display:none; margin-top:16px; text-align:center;}
   #downloadWrap.show{display:block;}
   #downloadLink{
     display:inline-flex; align-items:center; gap:8px; background:var(--ok); color:#fff; text-decoration:none;
     padding:12px 22px; border-radius:10px; font-weight:700; font-family:'Baloo 2'; font-size:15px;
   }
-
+ 
   footer{text-align:center; color:#a99bb8; font-size:12.5px; margin-top:30px;}
   footer b{color:var(--violet);}
-
+ 
   @media(max-width:520px){
     .adv-grid{grid-template-columns:1fr 1fr;}
     #resultStats{grid-template-columns:1fr 1fr;}
@@ -253,7 +256,7 @@
 </head>
 <body>
 <div class="wrap">
-
+ 
   <header>
     <div class="logo-mark"><span>MP</span></div>
     <div>
@@ -261,18 +264,18 @@
       <p>Sube tu diseño, dale un tamaño y descarga el PDF listo para imprimir y armar</p>
     </div>
   </header>
-
+ 
   <div class="torn"></div>
-
+ 
   <div class="tabbar" id="modeTabs">
     <button data-mode="image" class="active">🖼️ Plantilla de imagen</button>
     <button data-mode="circle">⚪ Plantilla círculo</button>
   </div>
-
+ 
   <!-- STEP 1 -->
   <section class="card">
     <h2 class="step"><span class="num">1</span><span id="step1Label">Imagen del diseño</span></h2>
-
+ 
     <div id="imageFields">
       <div id="dropzone">
         <span class="icon">🖼️</span>
@@ -280,19 +283,19 @@
         <small>JPG o PNG · con o sin transparencia</small>
       </div>
       <input type="file" id="fileInput" accept="image/png, image/jpeg">
-
+ 
       <div id="previewRow">
         <div id="thumbWrap"><img id="thumbImg" alt="Vista previa"></div>
         <div id="fileMeta"></div>
       </div>
       <button id="changeFile" style="display:none;">Cambiar imagen</button>
-
+ 
       <div id="layersToggleWrap" style="display:none;">
         <label class="checklabel">
           <input type="checkbox" id="layersEnabled">
           Separar en capas para recortar de colores
         </label>
-
+ 
         <div id="layersPanel" style="display:none;">
           <div class="field">
             <label class="fl">Número de capas <span class="hint">— colores distintos a separar</span></label>
@@ -316,7 +319,7 @@
         </div>
       </div>
     </div>
-
+ 
     <div id="circleFields" style="display:none;">
       <div class="field">
         <label class="fl">Radio del círculo</label>
@@ -334,11 +337,11 @@
       </div>
     </div>
   </section>
-
+ 
   <!-- STEP 2 -->
   <section class="card">
     <h2 class="step"><span class="num">2</span><span id="step2Label">Tamaño final de la piñata</span></h2>
-
+ 
     <div id="sizeFields">
       <div class="field">
         <label class="fl">Medida <span class="hint" id="sizeHint">— se aplica al alto si el diseño es vertical, o al ancho si es horizontal</span></label>
@@ -348,7 +351,7 @@
           <span class="orient-pill" id="orientPill">Sube una imagen primero</span>
         </div>
       </div>
-
+ 
       <div class="field">
         <label class="fl">Aplicar la medida a</label>
         <div class="seg" id="dimSeg">
@@ -358,7 +361,7 @@
         </div>
       </div>
     </div>
-
+ 
     <div class="field">
       <label class="fl">Papel de impresión</label>
       <div class="seg" id="paperSeg">
@@ -366,7 +369,7 @@
         <button data-paper="a4">A4</button>
       </div>
     </div>
-
+ 
     <details>
       <summary>Opciones avanzadas (márgenes, solape y marcas de corte)</summary>
       <div class="adv-grid">
@@ -385,31 +388,31 @@
       </div>
     </details>
   </section>
-
+ 
   <!-- STEP 3 -->
   <section class="card">
     <h2 class="step"><span class="num">3</span>Vista previa y descarga</h2>
-
+ 
     <div id="resultStats">
       <div class="stat"><div class="v" id="statSize">—</div><div class="l">Tamaño final</div></div>
       <div class="stat"><div class="v" id="statGrid">—</div><div class="l">Hojas (col×fil)</div></div>
       <div class="stat"><div class="v" id="statPages">—</div><div class="l">Páginas totales</div></div>
       <div class="stat"><div class="v" id="statDpi">300</div><div class="l">DPI</div></div>
     </div>
-
+ 
     <div id="gridPreview">
       <div id="gridCanvasWrap"></div>
     </div>
-
+ 
     <button id="generateBtn" disabled>Sube una imagen para continuar</button>
     <div id="progressBar"><div id="progressFill"></div></div>
     <div id="status"></div>
     <div id="downloadWrap"><a id="downloadLink" href="#" download="plantilla_pinata.pdf">⬇ Descargar PDF</a></div>
   </section>
-
+ 
   <footer>Hecho para <b>Mundo Piñatas K&A</b> · Cuernavaca, Morelos · Todo se procesa en tu navegador, ninguna imagen se sube a internet.</footer>
 </div>
-
+ 
 <script>
 (function(){
   const MM = 2.8346456693; // pt per mm
@@ -418,7 +421,7 @@
     letter: {w: 612, h: 792, label:'Carta'},
     a4:     {w: 595.28, h: 841.89, label:'A4'}
   };
-
+ 
   let img = null;          // loaded HTMLImageElement
   let imgTrimmedCanvas = null; // trimmed source canvas (natural res)
   let state = {
@@ -429,7 +432,7 @@
     layersWorkW: 0,
     layersWorkH: 0
   };
-
+ 
   const modeTabs   = document.getElementById('modeTabs');
   const imageFields  = document.getElementById('imageFields');
   const circleFields = document.getElementById('circleFields');
@@ -438,7 +441,7 @@
   const step2Label   = document.getElementById('step2Label');
   const radiusInput  = document.getElementById('radiusInput');
   const circleStrokeInput = document.getElementById('circleStrokeInput');
-
+ 
   const layersToggleWrap = document.getElementById('layersToggleWrap');
   const layersEnabledChk = document.getElementById('layersEnabled');
   const layersPanel      = document.getElementById('layersPanel');
@@ -447,7 +450,7 @@
   const layersStrokeInput= document.getElementById('layersStrokeInput');
   const layersList       = document.getElementById('layersList');
   const layersStatus     = document.getElementById('layersStatus');
-
+ 
   const dropzone   = document.getElementById('dropzone');
   const fileInput  = document.getElementById('fileInput');
   const previewRow = document.getElementById('previewRow');
@@ -471,7 +474,7 @@
   const resultStats  = document.getElementById('resultStats');
   const gridPreview   = document.getElementById('gridPreview');
   const gridCanvasWrap= document.getElementById('gridCanvasWrap');
-
+ 
   // ---------- Mode tabs ----------
   modeTabs.addEventListener('click', e => {
     const btn = e.target.closest('button'); if (!btn) return;
@@ -480,7 +483,7 @@
     state.mode = btn.dataset.mode;
     applyMode();
   });
-
+ 
   function applyMode(){
     const isImage = state.mode === 'image';
     imageFields.style.display  = isImage ? 'block' : 'none';
@@ -491,7 +494,7 @@
     updateGenerateButtonState();
     updatePreview();
   }
-
+ 
   function updateGenerateButtonState(){
     if (state.mode === 'image'){
       generateBtn.disabled = !imgTrimmedCanvas;
@@ -502,7 +505,7 @@
       generateBtn.textContent = 'Generar PDF';
     }
   }
-
+ 
   // ---------- File handling ----------
   dropzone.addEventListener('click', () => fileInput.click());
   dropzone.addEventListener('dragover', e => { e.preventDefault(); dropzone.classList.add('drag'); });
@@ -515,7 +518,7 @@
     if (e.target.files && e.target.files[0]) handleFile(e.target.files[0]);
   });
   changeFileBtn.addEventListener('click', () => fileInput.click());
-
+ 
   function handleFile(file){
     if (!/^image\/(png|jpe?g)$/i.test(file.type)){
       alert('Por favor sube un archivo JPG o PNG.');
@@ -542,16 +545,16 @@
     };
     reader.readAsDataURL(file);
   }
-
+ 
   // Trim fully-transparent edges (PNG only); keep full frame for JPG
   function trimImage(image, mime){
     const c = document.createElement('canvas');
     c.width = image.naturalWidth; c.height = image.naturalHeight;
     const ctx = c.getContext('2d');
     ctx.drawImage(image, 0, 0);
-
+ 
     if (mime !== 'image/png'){ imgTrimmedCanvas = c; updatePreview(); return; }
-
+ 
     const {data, width, height} = ctx.getImageData(0,0,c.width,c.height);
     let minX=width, minY=height, maxX=0, maxY=0, found=false;
     // sample stride for speed on big images
@@ -578,7 +581,7 @@
     imgTrimmedCanvas = c2;
     updatePreview();
   }
-
+ 
   // ---------- Layer separation ----------
   function resetLayersState(){
     layersEnabledChk.checked = false;
@@ -587,19 +590,19 @@
     layersList.innerHTML = '';
     layersStatus.textContent = '';
   }
-
+ 
   layersEnabledChk.addEventListener('change', () => {
     layersPanel.style.display = layersEnabledChk.checked ? 'block' : 'none';
     if (layersEnabledChk.checked && imgTrimmedCanvas) runLayerDetection();
   });
-
+ 
   layersCountSlider.addEventListener('input', () => {
     layersCountVal.textContent = layersCountSlider.value;
   });
   layersCountSlider.addEventListener('change', () => {
     if (layersEnabledChk.checked && imgTrimmedCanvas) runLayerDetection();
   });
-
+ 
   async function runLayerDetection(){
     layersStatus.textContent = 'Detectando capas de color…';
     layersList.innerHTML = '';
@@ -619,7 +622,7 @@
       layersStatus.textContent = '⚠️ No se pudieron detectar las capas: ' + err.message;
     }
   }
-
+ 
   function renderLayersList(){
     layersList.innerHTML = '';
     state.layers.forEach((ly, i) => {
@@ -645,13 +648,13 @@
       });
     });
   }
-
+ 
   // ---- Color clustering + contour tracing (runs on a downscaled working canvas) ----
   function dist2(a,b){
     const dr=a[0]-b[0], dg=a[1]-b[1], db=a[2]-b[2];
     return dr*dr+dg*dg+db*db;
   }
-
+ 
   function kmeansPlusPlusInit(samples, k){
     const centroids = [samples[Math.floor(Math.random()*samples.length)].slice()];
     while (centroids.length < k){
@@ -668,7 +671,7 @@
     }
     return centroids;
   }
-
+ 
   function connectedComponents(mask, w, h, minSize){
     const visited = new Uint8Array(w*h);
     const comps = [];
@@ -695,7 +698,7 @@
     }
     return comps;
   }
-
+ 
   // Moore-Neighbor boundary tracing
   function traceContour(mask, w, h, sx, sy){
     const get = (x,y) => (x<0||y<0||x>=w||y>=h) ? 0 : mask[y*w+x];
@@ -722,7 +725,7 @@
     }
     return points;
   }
-
+ 
   function perpDist(pt,a,b){
     const dx=b.x-a.x, dy=b.y-a.y;
     const len = Math.hypot(dx,dy) || 1e-6;
@@ -743,7 +746,27 @@
     }
     return [a,b];
   }
-
+  // traceContour returns a CLOSED loop (first point === last point), which breaks plain
+  // Douglas-Peucker (the two "endpoints" it anchors on are identical, so every distance
+  // reads as 0 and the whole contour collapses to 2 points). Split the loop at its widest
+  // point into two open chains, simplify each with the normal algorithm, then merge.
+  function rdpSimplifyClosed(pts, eps){
+    let p = pts;
+    if (p.length>1 && p[0].x===p[p.length-1].x && p[0].y===p[p.length-1].y) p = p.slice(0,-1);
+    if (p.length < 3) return p;
+    let maxD=-1, splitIdx=1;
+    for (let i=1; i<p.length; i++){
+      const dx=p[i].x-p[0].x, dy=p[i].y-p[0].y;
+      const d = dx*dx+dy*dy;
+      if (d > maxD){ maxD=d; splitIdx=i; }
+    }
+    const half1 = p.slice(0, splitIdx+1);
+    const half2 = p.slice(splitIdx).concat([p[0]]);
+    const s1 = rdpSimplify(half1, eps);
+    const s2 = rdpSimplify(half2, eps);
+    return s1.slice(0,-1).concat(s2);
+  }
+ 
   // ---- Binary morphology helpers (used to tell true background apart from enclosed same-color shapes) ----
   function binaryErode(mask, w, h, r){
     const out = new Uint8Array(w*h);
@@ -804,17 +827,17 @@
     }
     return visited;
   }
-
+ 
   // Background = pixels close to the border color AND reachable from the border
   // without crossing a "channel" narrower than OPEN_R pixels. This keeps same-colored
   // but fully-enclosed shapes (e.g. a white robe on a white background) as real content.
   function computeBackgroundMask(data, ww, wh, hasAlpha){
     const bgMask = new Uint8Array(ww*wh); // 1 = background
-
+ 
     if (hasAlpha){
       for (let p=0; p<ww*wh; p++){ if (data[p*4+3] < 128) bgMask[p] = 1; }
     }
-
+ 
     // border-color candidate mask (opaque pixels close to the estimated border color)
     let sr=0,sg=0,sb=0,n=0;
     for (let x=0; x<ww; x++){ addBorder(x,0); addBorder(x,wh-1); }
@@ -822,23 +845,23 @@
     function addBorder(x,y){ const i=(y*ww+x)*4; sr+=data[i]; sg+=data[i+1]; sb+=data[i+2]; n++; }
     const bg = [sr/n, sg/n, sb/n];
     const THRESH2 = 34*34;
-
+ 
     const close = new Uint8Array(ww*wh);
     for (let p=0; p<ww*wh; p++){
       const i=p*4;
       const dr=data[i]-bg[0], dg=data[i+1]-bg[1], db=data[i+2]-bg[2];
       close[p] = (dr*dr+dg*dg+db*db) < THRESH2 ? 1 : 0;
     }
-
+ 
     const OPEN_R = 3;
     const eroded = binaryErode(close, ww, wh, OPEN_R);
     const coreBg = floodFromBorder(eroded, ww, wh);
     const dilatedCore = binaryDilate(coreBg, ww, wh, OPEN_R);
     for (let p=0; p<ww*wh; p++){ if (dilatedCore[p] && close[p]) bgMask[p] = 1; }
-
+ 
     return bgMask;
   }
-
+ 
   function detectLayers(sourceCanvas, k){
     const WORK_MAX = 640;
     const scale = Math.min(1, WORK_MAX / Math.max(sourceCanvas.width, sourceCanvas.height));
@@ -849,17 +872,17 @@
     const wctx = work.getContext('2d');
     wctx.drawImage(sourceCanvas, 0, 0, ww, wh);
     const { data } = wctx.getImageData(0, 0, ww, wh);
-
+ 
     let hasAlpha = false;
     for (let p=3; p<data.length; p+=4*37){ if (data[p] < 250){ hasAlpha = true; break; } }
-
+ 
     const bgMask = computeBackgroundMask(data, ww, wh, hasAlpha);
     function isBackground(i){ return bgMask[(i/4)|0] === 1; }
-
+ 
     const contentIdx = [];
     for (let p=0; p<ww*wh; p++){ if (!isBackground(p*4)) contentIdx.push(p); }
     if (!contentIdx.length) return { layers: [], workW: ww, workH: wh };
-
+ 
     const sampleCount = Math.min(4000, contentIdx.length);
     const samples = [];
     for (let s=0; s<sampleCount; s++){
@@ -879,7 +902,7 @@
         ? [sums[ci][0]/sums[ci][3], sums[ci][1]/sums[ci][3], sums[ci][2]/sums[ci][3]]
         : c);
     }
-
+ 
     const labels = new Int16Array(ww*wh).fill(-1);
     for (const p of contentIdx){
       const i = p*4;
@@ -888,7 +911,7 @@
       centroids.forEach((c,ci)=>{ const d=dist2(px,c); if (d<bd){ bd=d; best=ci; } });
       labels[p] = best;
     }
-
+ 
     const minBlobPixels = Math.max(10, Math.round(ww*wh*0.0012));
     const layers = [];
     for (let ki=0; ki<centroids.length; ki++){
@@ -896,12 +919,12 @@
       for (let p=0; p<ww*wh; p++) mask[p] = labels[p]===ki ? 1 : 0;
       const comps = connectedComponents(mask, ww, wh, minBlobPixels);
       if (!comps.length) continue;
-
+ 
       const contours = [];
       let minX=ww, minY=wh, maxX=0, maxY=0;
       comps.forEach(comp=>{
         const raw = traceContour(mask, ww, wh, comp.startX, comp.startY);
-        const simplified = rdpSimplify(raw, 1.1);
+        const simplified = rdpSimplifyClosed(raw, 1.1);
         if (simplified.length < 3) return;
         contours.push(simplified);
         simplified.forEach(pt=>{
@@ -910,7 +933,7 @@
         });
       });
       if (!contours.length) continue;
-
+ 
       const c = centroids[ki];
       layers.push({
         id: ki,
@@ -930,7 +953,7 @@
     state.paper = btn.dataset.paper;
     updatePreview();
   });
-
+ 
   dimSeg.addEventListener('click', e => {
     const btn = e.target.closest('button'); if (!btn) return;
     [...dimSeg.children].forEach(b=>b.classList.remove('active'));
@@ -938,19 +961,19 @@
     state.dim = btn.dataset.dim;
     updatePreview();
   });
-
+ 
   [sizeInput, marginInput, overlapInput, cropInput].forEach(inp=>{
     inp.addEventListener('input', updatePreview);
   });
-
+ 
   [radiusInput, circleStrokeInput].forEach(inp=>{
     inp.addEventListener('input', () => { updateGenerateButtonState(); updatePreview(); });
   });
-
+ 
   // ---------- Live preview / grid calc ----------
   function computeLayout(){
     let finalWcm, finalHcm, landscape, appliedTo;
-
+ 
     if (state.mode === 'circle'){
       const radius = parseFloat(radiusInput.value) || 0;
       if (radius <= 0) return null;
@@ -961,7 +984,7 @@
       if (!imgTrimmedCanvas) return null;
       const targetCm = parseFloat(sizeInput.value) || 0;
       if (targetCm <= 0) return null;
-
+ 
       const w = imgTrimmedCanvas.width, h = imgTrimmedCanvas.height;
       landscape = w >= h;
       if (state.dim === 'height'){
@@ -974,29 +997,29 @@
         finalHcm = targetCm; finalWcm = targetCm * (w/h); appliedTo = 'height';
       }
     }
-
+ 
     const page = PAGES[state.paper];
     const marginMm  = parseFloat(marginInput.value)  || 8;
     const overlapMm = parseFloat(overlapInput.value) || 4;
     const cropMm    = parseFloat(cropInput.value)    || 3;
-
+ 
     const M  = marginMm * MM;
     const OL = overlapMm * MM;
     const printW = page.w - 2*M;
     const printH = page.h - 2*M;
-
+ 
     const imgWpt = finalWcm * CM;
     const imgHpt = finalHcm * CM;
-
+ 
     const cols = Math.ceil(imgWpt / (printW - OL));
     const rows = Math.ceil(imgHpt / (printH - OL));
-
+ 
     return {
       landscape, finalWcm, finalHcm, page, M, OL, cropMm, printW, printH,
       imgWpt, imgHpt, cols, rows, totalPages: cols*rows, appliedTo
     };
   }
-
+ 
   function updatePreview(){
     const L = computeLayout();
     if (!L){
@@ -1009,7 +1032,7 @@
       }
       return;
     }
-
+ 
     if (state.mode === 'circle'){
       orientPill.textContent = `⚪ Círculo · radio ${radiusInput.value} cm`;
     } else {
@@ -1019,12 +1042,12 @@
         : `Manual · aplicado ${dimLabel}`;
       orientPill.textContent = modeLabel;
     }
-
+ 
     document.getElementById('statSize').textContent = `${L.finalWcm.toFixed(1)}×${L.finalHcm.toFixed(1)} cm`;
     document.getElementById('statGrid').textContent = `${L.cols}×${L.rows}`;
     document.getElementById('statPages').textContent = `${L.totalPages}`;
     resultStats.classList.add('show');
-
+ 
     // mini grid
     gridCanvasWrap.innerHTML = '';
     gridCanvasWrap.style.gridTemplateColumns = `repeat(${L.cols}, 34px)`;
@@ -1039,23 +1062,23 @@
     }
     gridPreview.classList.add('show');
   }
-
+ 
   // ---------- Layered PDF (color separation) ----------
   async function generateLayeredPdf(L){
     const DPI = 300;
     const { jsPDF } = window.jspdf;
     const pdf = new jsPDF({unit:'pt', format:[L.page.w, L.page.h]});
     const CUT = L.cropMm * MM;
-
+ 
     const activeLayers = state.layers.filter(ly => ly.included && ly.contours.length);
     if (!activeLayers.length) throw new Error('No hay capas activas para generar.');
-
+ 
     const cmPerWorkPxX = L.finalWcm / state.layersWorkW;
     const cmPerWorkPxY = L.finalHcm / state.layersWorkH;
     const strokeMm = parseFloat(layersStrokeInput.value) || 3;
     const strokePx = (strokeMm/10/2.54) * DPI;
     const padPx = strokePx + 6;
-
+ 
     const prepared = activeLayers.map(ly => {
       const bw = Math.max(1e-3, (ly.bbox.maxX - ly.bbox.minX) * cmPerWorkPxX);
       const bh = Math.max(1e-3, (ly.bbox.maxY - ly.bbox.minY) * cmPerWorkPxY);
@@ -1071,16 +1094,16 @@
       const rows = Math.ceil((physHcm*CM) / (L.printH - L.OL));
       return { layer: ly, wpx, hpx, scaleX, scaleY, physWcm, physHcm, cols, rows, pages: cols*rows };
     });
-
+ 
     const totalPages = prepared.reduce((s,p)=>s+p.pages, 0);
-
+ 
     // ---- Legend page (page 1) ----
     pdf.setTextColor(216,28,93);
     pdf.setFont(undefined,'bold'); pdf.setFontSize(16);
     pdf.text('Capas de colores · Mundo Piñatas K&A', L.M, L.M+16);
     pdf.setFont(undefined,'normal'); pdf.setFontSize(10.5); pdf.setTextColor(90,90,90);
     pdf.text(`Diseño total: ${L.finalWcm.toFixed(1)} × ${L.finalHcm.toFixed(1)} cm  ·  ${prepared.length} capas  ·  ${totalPages} hojas de recorte`, L.M, L.M+34);
-
+ 
     let ly_y = L.M + 62;
     let runningPage = 2;
     prepared.forEach((p, idx) => {
@@ -1097,7 +1120,7 @@
       ly_y += 34;
       runningPage += p.pages;
     });
-
+ 
     // ---- Tiles per layer ----
     let done = 0;
     for (const p of prepared){
@@ -1119,10 +1142,10 @@
         cctx.closePath();
       });
       cctx.stroke();
-
+ 
       const scaleXpt = p.wpx / (p.physWcm*CM);
       const scaleYpt = p.hpx / (p.physHcm*CM);
-
+ 
       for (let row=0; row<p.rows; row++){
         for (let col=0; col<p.cols; col++){
           const x0pt = col*(L.printW - L.OL);
@@ -1132,17 +1155,17 @@
           const px0 = Math.round(x0pt*scaleXpt), py0 = Math.round(y0pt*scaleYpt);
           const px1 = Math.round(x1pt*scaleXpt), py1 = Math.round(y1pt*scaleYpt);
           const tw = px1-px0, th = py1-py0;
-
+ 
           const tileCanvas = document.createElement('canvas');
           tileCanvas.width=tw; tileCanvas.height=th;
           tileCanvas.getContext('2d').drawImage(canvas, px0,py0,tw,th, 0,0,tw,th);
           const jpg = tileCanvas.toDataURL('image/jpeg', 0.95);
-
+ 
           pdf.addPage([L.page.w, L.page.h]);
           const tileWpt = x1pt-x0pt, tileHpt = y1pt-y0pt;
           const topY = L.page.h - L.M - tileHpt;
           pdf.addImage(jpg, 'JPEG', L.M, topY, tileWpt, tileHpt);
-
+ 
           pdf.setDrawColor(140,140,140); pdf.setLineWidth(0.5);
           const corners=[[L.M,L.page.h-L.M],[L.M+tileWpt,L.page.h-L.M],[L.M,L.page.h-L.M-tileHpt],[L.M+tileWpt,L.page.h-L.M-tileHpt]];
           corners.forEach(([cx,cy])=>{
@@ -1153,11 +1176,11 @@
           if (col>0) pdf.line(L.M+L.OL, L.page.h-L.M, L.M+L.OL, L.page.h-L.M-tileHpt);
           if (row>0) pdf.line(L.M, L.page.h-L.M-L.OL, L.M+tileWpt, L.page.h-L.M-L.OL);
           pdf.setLineDashPattern([],0);
-
+ 
           const pageNumInLayer = row*p.cols+col+1;
           pdf.setFontSize(6); pdf.setTextColor(130,130,130);
           pdf.text(`Capa: ${ly.name}  |  Hoja ${pageNumInLayer}/${p.pages}  |  Fila ${row+1}/${p.rows} Col ${col+1}/${p.cols}  ·  Mundo Piñatas K&A`, L.M, 14);
-
+ 
           done++;
           progressFill.style.width = Math.round((done/totalPages)*90) + '%';
           statusEl.textContent = `Generando capa "${ly.name}"… ${done}/${totalPages}`;
@@ -1165,7 +1188,7 @@
         }
       }
     }
-
+ 
     // ---- Instructions page ----
     pdf.addPage([L.page.w, L.page.h]);
     pdf.setTextColor(216,28,93); pdf.setFont(undefined,'bold'); pdf.setFontSize(16);
@@ -1193,17 +1216,17 @@
       pdf.text(line, L.M, y);
       y += 15;
     });
-
+ 
     progressFill.style.width = '100%';
     statusEl.textContent = `✅ Listo — ${totalPages+2} páginas en total (1 índice + ${totalPages} de recorte + 1 de instrucciones).`;
-
+ 
     const blob = pdf.output('blob');
     const url = URL.createObjectURL(blob);
     downloadLink.href = url;
     downloadLink.download = `plantilla_capas_${sizeInput.value.replace('.','_')}cm.pdf`;
     downloadWrap.classList.add('show');
   }
-
+ 
   // ---------- PDF generation ----------
   generateBtn.addEventListener('click', async () => {
     const L = computeLayout();
@@ -1211,37 +1234,37 @@
       alert(state.mode === 'circle' ? 'Ingresa un radio válido.' : 'Sube una imagen y define un tamaño válido.');
       return;
     }
-
+ 
     const useLayers = state.mode === 'image' && layersEnabledChk.checked;
     if (useLayers && !state.layers.filter(l=>l.included && l.contours.length).length){
       alert('Detecta al menos una capa activa antes de generar (o desactiva la separación en capas).');
       return;
     }
-
+ 
     generateBtn.disabled = true;
     downloadWrap.classList.remove('show');
     progressBar.classList.add('show');
     progressFill.style.width = '0%';
     statusEl.textContent = useLayers ? 'Preparando capas de color…' : (state.mode === 'circle' ? 'Dibujando el círculo a 300 DPI…' : 'Preparando imagen a 300 DPI…');
     await nextFrame();
-
+ 
     try {
       if (useLayers){
         await generateLayeredPdf(L);
         return;
       }
-
+ 
       const DPI = 300;
       const targetHpx = Math.round(L.finalHcm/2.54 * DPI);
       const targetWpx = Math.round(L.finalWcm/2.54 * DPI);
-
+ 
       // Render the full-resolution source onto a white background canvas
       const full = document.createElement('canvas');
       full.width = targetWpx; full.height = targetHpx;
       const fctx = full.getContext('2d');
       fctx.fillStyle = '#ffffff';
       fctx.fillRect(0,0,targetWpx,targetHpx);
-
+ 
       if (state.mode === 'circle'){
         const strokeMm = parseFloat(circleStrokeInput.value) || 3;
         const strokePx = (strokeMm/10/2.54) * DPI;
@@ -1257,42 +1280,42 @@
         fctx.imageSmoothingQuality = 'high';
         fctx.drawImage(imgTrimmedCanvas, 0, 0, targetWpx, targetHpx);
       }
-
+ 
       statusEl.textContent = 'Generando páginas…';
       await nextFrame();
-
+ 
       const { jsPDF } = window.jspdf;
       const pdf = new jsPDF({unit:'pt', format:[L.page.w, L.page.h]});
-
+ 
       const scaleX = targetWpx / L.imgWpt; // px per pt
       const scaleY = targetHpx / L.imgHpt;
       const CUT = L.cropMm * MM;
       const total = L.cols * L.rows;
       let done = 0;
-
+ 
       for (let row=0; row<L.rows; row++){
         for (let col=0; col<L.cols; col++){
           const x0pt = col * (L.printW - L.OL);
           const y0pt = row * (L.printH - L.OL);
           const x1pt = Math.min(x0pt + L.printW, L.imgWpt);
           const y1pt = Math.min(y0pt + L.printH, L.imgHpt);
-
+ 
           const px0 = Math.round(x0pt*scaleX), py0 = Math.round(y0pt*scaleY);
           const px1 = Math.round(x1pt*scaleX), py1 = Math.round(y1pt*scaleY);
           const tileWpx = px1-px0, tileHpx = py1-py0;
-
+ 
           const tileWpt = x1pt-x0pt, tileHpt = y1pt-y0pt;
-
+ 
           const tileCanvas = document.createElement('canvas');
           tileCanvas.width = tileWpx; tileCanvas.height = tileHpx;
           tileCanvas.getContext('2d').drawImage(full, px0, py0, tileWpx, tileHpx, 0, 0, tileWpx, tileHpx);
           const jpegData = tileCanvas.toDataURL('image/jpeg', 0.95);
-
+ 
           if (done > 0) pdf.addPage([L.page.w, L.page.h]);
-
+ 
           const topY = L.page.h - L.M - tileHpt;
           pdf.addImage(jpegData, 'JPEG', L.M, topY, tileWpt, tileHpt);
-
+ 
           // crop marks
           pdf.setDrawColor(140,140,140);
           pdf.setLineWidth(0.5);
@@ -1308,7 +1331,7 @@
             pdf.line(cx, cy-CUT, cx, cy-2);
             pdf.line(cx, cy+2, cx, cy+CUT);
           });
-
+ 
           // overlap guides (dashed)
           pdf.setDrawColor(180,180,180);
           pdf.setLineWidth(0.4);
@@ -1316,28 +1339,28 @@
           if (col>0) pdf.line(L.M+L.OL, L.page.h-L.M, L.M+L.OL, L.page.h-L.M-tileHpt);
           if (row>0) pdf.line(L.M, L.page.h-L.M-L.OL, L.M+tileWpt, L.page.h-L.M-L.OL);
           pdf.setLineDashPattern([], 0);
-
+ 
           // label
           const pageNum = row*L.cols + col + 1;
           const sizeTag = state.mode === 'circle' ? `Círculo radio ${radiusInput.value} cm` : `Piñata ${sizeInput.value} cm`;
           pdf.setFontSize(6);
           pdf.setTextColor(130,130,130);
           pdf.text(`Hoja ${pageNum}/${total}  |  Fila ${row+1}/${L.rows}  Col ${col+1}/${L.cols}  |  ${sizeTag} · Mundo Piñatas K&A`, L.M, 14);
-
+ 
           done++;
           progressFill.style.width = Math.round((done/total)*90) + '%';
           statusEl.textContent = `Generando páginas… ${done}/${total}`;
           await nextFrame();
         }
       }
-
+ 
       // instructions page
       pdf.addPage([L.page.w, L.page.h]);
       pdf.setTextColor(216,28,93);
       pdf.setFontSize(16);
       pdf.setFont(undefined, 'bold');
       pdf.text('Instrucciones · Mundo Piñatas K&A', L.M, L.M+16);
-
+ 
       pdf.setTextColor(20,20,20);
       const assemblyExtra = state.mode === 'circle'
         ? '  •  Recorta siguiendo el contorno del círculo dibujado (línea negra).'
@@ -1375,10 +1398,10 @@
         pdf.text(line, L.M, y);
         y += 15;
       });
-
+ 
       progressFill.style.width = '100%';
       statusEl.textContent = `✅ Listo — ${total+1} páginas en total (${total} de diseño + 1 de instrucciones).`;
-
+ 
       const blob = pdf.output('blob');
       const url = URL.createObjectURL(blob);
       downloadLink.href = url;
@@ -1387,7 +1410,7 @@
         : `pinata_${sizeInput.value.replace('.','_')}cm`;
       downloadLink.download = `plantilla_${fileTag}.pdf`;
       downloadWrap.classList.add('show');
-
+ 
     } catch(err){
       console.error(err);
       statusEl.textContent = '⚠️ Ocurrió un error generando el PDF: ' + err.message;
@@ -1396,14 +1419,14 @@
       setTimeout(()=>progressBar.classList.remove('show'), 800);
     }
   });
-
+ 
   function nextFrame(){
     return new Promise(res => requestAnimationFrame(()=>setTimeout(res,0)));
   }
-
+ 
   // ---------- Init ----------
   applyMode();
-
+ 
 })();
 </script>
 </body>
