@@ -127,6 +127,30 @@
     font-size:13px; cursor:pointer; padding:0; text-decoration:underline;
   }
 
+  /* Layer separation panel */
+  #layersToggleWrap{
+    margin-top:16px; padding-top:16px; border-top:1px dashed var(--line);
+  }
+  #layersToggleWrap label.checklabel{
+    display:flex; align-items:center; gap:9px; cursor:pointer; font-weight:600; font-size:14px;
+  }
+  #layersToggleWrap input[type=checkbox]{ width:18px; height:18px; accent-color:var(--hotpink); }
+  #layersPanel{ margin-top:14px; }
+  input[type=range]{ accent-color:var(--hotpink); }
+  .layer-row{
+    display:flex; align-items:center; gap:10px; padding:9px 10px; border:1px solid var(--line);
+    border-radius:10px; margin-bottom:8px; background:var(--paper);
+  }
+  .layer-swatch{
+    width:26px; height:26px; border-radius:7px; flex:none; border:1px solid rgba(0,0,0,.2);
+  }
+  .layer-row input[type=text]{
+    flex:1; border:1px solid var(--line); border-radius:8px; padding:7px 9px; font-size:13.5px;
+    font-family:'Work Sans'; background:#fff;
+  }
+  .layer-row .layer-meta{ font-size:11px; color:#9a90a6; flex:none; width:44px; text-align:right;}
+  .layer-row input[type=checkbox]{ width:17px; height:17px; accent-color:var(--turquoise); flex:none; }
+
   /* Controls */
   .field{margin-bottom:18px;}
   .field:last-child{margin-bottom:0;}
@@ -262,6 +286,35 @@
         <div id="fileMeta"></div>
       </div>
       <button id="changeFile" style="display:none;">Cambiar imagen</button>
+
+      <div id="layersToggleWrap" style="display:none;">
+        <label class="checklabel">
+          <input type="checkbox" id="layersEnabled">
+          Separar en capas para recortar de colores
+        </label>
+
+        <div id="layersPanel" style="display:none;">
+          <div class="field">
+            <label class="fl">Número de capas <span class="hint">— colores distintos a separar</span></label>
+            <div class="size-input">
+              <input type="range" id="layersCountSlider" min="2" max="10" value="5" style="flex:1;">
+              <span class="unit" id="layersCountVal">5</span>
+            </div>
+          </div>
+          <div class="field">
+            <label class="fl">Grosor del contorno <span class="hint">— línea de corte, sin relleno</span></label>
+            <div class="size-input">
+              <input type="number" id="layersStrokeInput" value="3" min="0.5" max="15" step="0.5">
+              <span class="unit">mm</span>
+            </div>
+          </div>
+          <div class="field">
+            <label class="fl">Capas detectadas <span class="hint">— nómbralas y desactiva las que no necesites</span></label>
+            <div id="layersList"></div>
+            <div id="layersStatus" style="font-size:12.5px;color:#8b8195;"></div>
+          </div>
+        </div>
+      </div>
     </div>
 
     <div id="circleFields" style="display:none;">
@@ -371,7 +424,10 @@
   let state = {
     mode: 'image',
     paper: 'letter',
-    dim: 'auto'
+    dim: 'auto',
+    layers: [],
+    layersWorkW: 0,
+    layersWorkH: 0
   };
 
   const modeTabs   = document.getElementById('modeTabs');
@@ -382,6 +438,15 @@
   const step2Label   = document.getElementById('step2Label');
   const radiusInput  = document.getElementById('radiusInput');
   const circleStrokeInput = document.getElementById('circleStrokeInput');
+
+  const layersToggleWrap = document.getElementById('layersToggleWrap');
+  const layersEnabledChk = document.getElementById('layersEnabled');
+  const layersPanel      = document.getElementById('layersPanel');
+  const layersCountSlider= document.getElementById('layersCountSlider');
+  const layersCountVal   = document.getElementById('layersCountVal');
+  const layersStrokeInput= document.getElementById('layersStrokeInput');
+  const layersList       = document.getElementById('layersList');
+  const layersStatus     = document.getElementById('layersStatus');
 
   const dropzone   = document.getElementById('dropzone');
   const fileInput  = document.getElementById('fileInput');
@@ -468,6 +533,8 @@
         previewRow.classList.add('show');
         changeFileBtn.style.display = 'inline-block';
         dropzone.style.display = 'none';
+        layersToggleWrap.style.display = 'block';
+        resetLayersState();
         updateGenerateButtonState();
         updatePreview();
       };
@@ -512,7 +579,350 @@
     updatePreview();
   }
 
-  // ---------- Paper selector ----------
+  // ---------- Layer separation ----------
+  function resetLayersState(){
+    layersEnabledChk.checked = false;
+    layersPanel.style.display = 'none';
+    state.layers = [];
+    layersList.innerHTML = '';
+    layersStatus.textContent = '';
+  }
+
+  layersEnabledChk.addEventListener('change', () => {
+    layersPanel.style.display = layersEnabledChk.checked ? 'block' : 'none';
+    if (layersEnabledChk.checked && imgTrimmedCanvas) runLayerDetection();
+  });
+
+  layersCountSlider.addEventListener('input', () => {
+    layersCountVal.textContent = layersCountSlider.value;
+  });
+  layersCountSlider.addEventListener('change', () => {
+    if (layersEnabledChk.checked && imgTrimmedCanvas) runLayerDetection();
+  });
+
+  async function runLayerDetection(){
+    layersStatus.textContent = 'Detectando capas de color…';
+    layersList.innerHTML = '';
+    await nextFrame();
+    try {
+      const k = parseInt(layersCountSlider.value, 10) || 5;
+      const result = detectLayers(imgTrimmedCanvas, k);
+      state.layers = result.layers;
+      state.layersWorkW = result.workW;
+      state.layersWorkH = result.workH;
+      renderLayersList();
+      layersStatus.textContent = state.layers.length
+        ? `${state.layers.length} capa${state.layers.length>1?'s':''} detectada${state.layers.length>1?'s':''}.`
+        : 'No se detectaron zonas de color separables en esta imagen.';
+    } catch(err){
+      console.error(err);
+      layersStatus.textContent = '⚠️ No se pudieron detectar las capas: ' + err.message;
+    }
+  }
+
+  function renderLayersList(){
+    layersList.innerHTML = '';
+    state.layers.forEach((ly, i) => {
+      const row = document.createElement('div');
+      row.className = 'layer-row';
+      const [r,g,b] = ly.color;
+      row.innerHTML = `
+        <div class="layer-swatch" style="background: rgb(${r},${g},${b});"></div>
+        <input type="text" value="${ly.name}" data-idx="${i}" class="layer-name-input">
+        <span class="layer-meta">${ly.contours.length} pieza${ly.contours.length>1?'s':''}</span>
+        <input type="checkbox" ${ly.included ? 'checked' : ''} data-idx="${i}" class="layer-include-input">
+      `;
+      layersList.appendChild(row);
+    });
+    layersList.querySelectorAll('.layer-name-input').forEach(inp=>{
+      inp.addEventListener('input', e => {
+        state.layers[+e.target.dataset.idx].name = e.target.value || `Capa ${+e.target.dataset.idx+1}`;
+      });
+    });
+    layersList.querySelectorAll('.layer-include-input').forEach(inp=>{
+      inp.addEventListener('change', e => {
+        state.layers[+e.target.dataset.idx].included = e.target.checked;
+      });
+    });
+  }
+
+  // ---- Color clustering + contour tracing (runs on a downscaled working canvas) ----
+  function dist2(a,b){
+    const dr=a[0]-b[0], dg=a[1]-b[1], db=a[2]-b[2];
+    return dr*dr+dg*dg+db*db;
+  }
+
+  function kmeansPlusPlusInit(samples, k){
+    const centroids = [samples[Math.floor(Math.random()*samples.length)].slice()];
+    while (centroids.length < k){
+      const dists = samples.map(s=>{
+        let best = Infinity;
+        for (const c of centroids){ const d = dist2(s,c); if (d<best) best=d; }
+        return best;
+      });
+      const total = dists.reduce((a,b)=>a+b,0);
+      if (total <= 0){ centroids.push(samples[Math.floor(Math.random()*samples.length)].slice()); continue; }
+      let r = Math.random()*total, idx=0;
+      for (; idx<dists.length; idx++){ r -= dists[idx]; if (r<=0) break; }
+      centroids.push(samples[Math.min(idx, samples.length-1)].slice());
+    }
+    return centroids;
+  }
+
+  function connectedComponents(mask, w, h, minSize){
+    const visited = new Uint8Array(w*h);
+    const comps = [];
+    for (let y=0; y<h; y++){
+      for (let x=0; x<w; x++){
+        const p = y*w+x;
+        if (!mask[p] || visited[p]) continue;
+        let count=0;
+        const startX=x, startY=y;
+        const stack=[p]; visited[p]=1;
+        while (stack.length){
+          const cp = stack.pop();
+          count++;
+          const cx = cp % w, cy = (cp / w) | 0;
+          const nb = [[cx+1,cy],[cx-1,cy],[cx,cy+1],[cx,cy-1]];
+          for (const [nx,ny] of nb){
+            if (nx<0||ny<0||nx>=w||ny>=h) continue;
+            const np = ny*w+nx;
+            if (mask[np] && !visited[np]){ visited[np]=1; stack.push(np); }
+          }
+        }
+        if (count >= minSize) comps.push({startX, startY, count});
+      }
+    }
+    return comps;
+  }
+
+  // Moore-Neighbor boundary tracing
+  function traceContour(mask, w, h, sx, sy){
+    const get = (x,y) => (x<0||y<0||x>=w||y>=h) ? 0 : mask[y*w+x];
+    const dirs = [[1,0],[1,1],[0,1],[-1,1],[-1,0],[-1,-1],[0,-1],[1,-1]];
+    const points = [{x:sx, y:sy}];
+    let cx=sx, cy=sy, backtrack=4;
+    let guard = w*h*4;
+    while (guard-- > 0){
+      let found = false;
+      for (let i=0; i<8; i++){
+        const di = (backtrack + 1 + i) % 8;
+        const [dx,dy] = dirs[di];
+        const nx=cx+dx, ny=cy+dy;
+        if (get(nx,ny)){
+          cx=nx; cy=ny;
+          backtrack = (di+4)%8;
+          points.push({x:cx,y:cy});
+          found = true;
+          break;
+        }
+      }
+      if (!found) break;
+      if (cx===sx && cy===sy && points.length>2) break;
+    }
+    return points;
+  }
+
+  function perpDist(pt,a,b){
+    const dx=b.x-a.x, dy=b.y-a.y;
+    const len = Math.hypot(dx,dy) || 1e-6;
+    return Math.abs((pt.x-a.x)*dy - (pt.y-a.y)*dx)/len;
+  }
+  function rdpSimplify(pts, eps){
+    if (pts.length < 3) return pts;
+    let dmax=0, index=0;
+    const a=pts[0], b=pts[pts.length-1];
+    for (let i=1; i<pts.length-1; i++){
+      const d = perpDist(pts[i], a, b);
+      if (d > dmax){ dmax=d; index=i; }
+    }
+    if (dmax > eps){
+      const left = rdpSimplify(pts.slice(0, index+1), eps);
+      const right = rdpSimplify(pts.slice(index), eps);
+      return left.slice(0,-1).concat(right);
+    }
+    return [a,b];
+  }
+
+  // ---- Binary morphology helpers (used to tell true background apart from enclosed same-color shapes) ----
+  function binaryErode(mask, w, h, r){
+    const out = new Uint8Array(w*h);
+    for (let y=0; y<h; y++){
+      for (let x=0; x<w; x++){
+        let allTrue = true;
+        for (let dy=-r; dy<=r && allTrue; dy++){
+          const ny = y+dy;
+          for (let dx=-r; dx<=r; dx++){
+            const nx = x+dx;
+            const v = (nx<0||ny<0||nx>=w||ny>=h) ? 1 : mask[ny*w+nx];
+            if (!v){ allTrue = false; break; }
+          }
+        }
+        out[y*w+x] = allTrue ? 1 : 0;
+      }
+    }
+    return out;
+  }
+  function binaryDilate(mask, w, h, r){
+    const out = new Uint8Array(w*h);
+    for (let y=0; y<h; y++){
+      for (let x=0; x<w; x++){
+        let any = false;
+        for (let dy=-r; dy<=r && !any; dy++){
+          const ny = y+dy;
+          if (ny<0||ny>=h) continue;
+          for (let dx=-r; dx<=r; dx++){
+            const nx = x+dx;
+            if (nx<0||nx>=w) continue;
+            if (mask[ny*w+nx]){ any = true; break; }
+          }
+        }
+        out[y*w+x] = any ? 1 : 0;
+      }
+    }
+    return out;
+  }
+  // Flood fill starting only from border cells, moving through cells where mask===1
+  function floodFromBorder(mask, w, h){
+    const visited = new Uint8Array(w*h);
+    const stack = [];
+    function seed(x,y){
+      const p=y*w+x;
+      if (mask[p] && !visited[p]){ visited[p]=1; stack.push(p); }
+    }
+    for (let x=0; x<w; x++){ seed(x,0); seed(x,h-1); }
+    for (let y=0; y<h; y++){ seed(0,y); seed(w-1,y); }
+    while (stack.length){
+      const p = stack.pop();
+      const cx = p % w, cy = (p / w) | 0;
+      const nb = [[cx+1,cy],[cx-1,cy],[cx,cy+1],[cx,cy-1]];
+      for (const [nx,ny] of nb){
+        if (nx<0||ny<0||nx>=w||ny>=h) continue;
+        const np = ny*w+nx;
+        if (mask[np] && !visited[np]){ visited[np]=1; stack.push(np); }
+      }
+    }
+    return visited;
+  }
+
+  // Background = pixels close to the border color AND reachable from the border
+  // without crossing a "channel" narrower than OPEN_R pixels. This keeps same-colored
+  // but fully-enclosed shapes (e.g. a white robe on a white background) as real content.
+  function computeBackgroundMask(data, ww, wh, hasAlpha){
+    const bgMask = new Uint8Array(ww*wh); // 1 = background
+
+    if (hasAlpha){
+      for (let p=0; p<ww*wh; p++){ if (data[p*4+3] < 128) bgMask[p] = 1; }
+    }
+
+    // border-color candidate mask (opaque pixels close to the estimated border color)
+    let sr=0,sg=0,sb=0,n=0;
+    for (let x=0; x<ww; x++){ addBorder(x,0); addBorder(x,wh-1); }
+    for (let y=0; y<wh; y++){ addBorder(0,y); addBorder(ww-1,y); }
+    function addBorder(x,y){ const i=(y*ww+x)*4; sr+=data[i]; sg+=data[i+1]; sb+=data[i+2]; n++; }
+    const bg = [sr/n, sg/n, sb/n];
+    const THRESH2 = 34*34;
+
+    const close = new Uint8Array(ww*wh);
+    for (let p=0; p<ww*wh; p++){
+      const i=p*4;
+      const dr=data[i]-bg[0], dg=data[i+1]-bg[1], db=data[i+2]-bg[2];
+      close[p] = (dr*dr+dg*dg+db*db) < THRESH2 ? 1 : 0;
+    }
+
+    const OPEN_R = 3;
+    const eroded = binaryErode(close, ww, wh, OPEN_R);
+    const coreBg = floodFromBorder(eroded, ww, wh);
+    const dilatedCore = binaryDilate(coreBg, ww, wh, OPEN_R);
+    for (let p=0; p<ww*wh; p++){ if (dilatedCore[p] && close[p]) bgMask[p] = 1; }
+
+    return bgMask;
+  }
+
+  function detectLayers(sourceCanvas, k){
+    const WORK_MAX = 640;
+    const scale = Math.min(1, WORK_MAX / Math.max(sourceCanvas.width, sourceCanvas.height));
+    const ww = Math.max(1, Math.round(sourceCanvas.width*scale));
+    const wh = Math.max(1, Math.round(sourceCanvas.height*scale));
+    const work = document.createElement('canvas');
+    work.width=ww; work.height=wh;
+    const wctx = work.getContext('2d');
+    wctx.drawImage(sourceCanvas, 0, 0, ww, wh);
+    const { data } = wctx.getImageData(0, 0, ww, wh);
+
+    let hasAlpha = false;
+    for (let p=3; p<data.length; p+=4*37){ if (data[p] < 250){ hasAlpha = true; break; } }
+
+    const bgMask = computeBackgroundMask(data, ww, wh, hasAlpha);
+    function isBackground(i){ return bgMask[(i/4)|0] === 1; }
+
+    const contentIdx = [];
+    for (let p=0; p<ww*wh; p++){ if (!isBackground(p*4)) contentIdx.push(p); }
+    if (!contentIdx.length) return { layers: [], workW: ww, workH: wh };
+
+    const sampleCount = Math.min(4000, contentIdx.length);
+    const samples = [];
+    for (let s=0; s<sampleCount; s++){
+      const p = contentIdx[Math.floor(Math.random()*contentIdx.length)];
+      const i = p*4;
+      samples.push([data[i], data[i+1], data[i+2]]);
+    }
+    let centroids = kmeansPlusPlusInit(samples, Math.min(k, samples.length));
+    for (let iter=0; iter<10; iter++){
+      const sums = centroids.map(()=>[0,0,0,0]);
+      for (const s of samples){
+        let best=0, bd=Infinity;
+        centroids.forEach((c,ci)=>{ const d=dist2(s,c); if (d<bd){ bd=d; best=ci; } });
+        sums[best][0]+=s[0]; sums[best][1]+=s[1]; sums[best][2]+=s[2]; sums[best][3]++;
+      }
+      centroids = centroids.map((c,ci)=> sums[ci][3]>0
+        ? [sums[ci][0]/sums[ci][3], sums[ci][1]/sums[ci][3], sums[ci][2]/sums[ci][3]]
+        : c);
+    }
+
+    const labels = new Int16Array(ww*wh).fill(-1);
+    for (const p of contentIdx){
+      const i = p*4;
+      const px = [data[i], data[i+1], data[i+2]];
+      let best=0, bd=Infinity;
+      centroids.forEach((c,ci)=>{ const d=dist2(px,c); if (d<bd){ bd=d; best=ci; } });
+      labels[p] = best;
+    }
+
+    const minBlobPixels = Math.max(10, Math.round(ww*wh*0.0012));
+    const layers = [];
+    for (let ki=0; ki<centroids.length; ki++){
+      const mask = new Uint8Array(ww*wh);
+      for (let p=0; p<ww*wh; p++) mask[p] = labels[p]===ki ? 1 : 0;
+      const comps = connectedComponents(mask, ww, wh, minBlobPixels);
+      if (!comps.length) continue;
+
+      const contours = [];
+      let minX=ww, minY=wh, maxX=0, maxY=0;
+      comps.forEach(comp=>{
+        const raw = traceContour(mask, ww, wh, comp.startX, comp.startY);
+        const simplified = rdpSimplify(raw, 1.1);
+        if (simplified.length < 3) return;
+        contours.push(simplified);
+        simplified.forEach(pt=>{
+          if (pt.x<minX) minX=pt.x; if (pt.x>maxX) maxX=pt.x;
+          if (pt.y<minY) minY=pt.y; if (pt.y>maxY) maxY=pt.y;
+        });
+      });
+      if (!contours.length) continue;
+
+      const c = centroids[ki];
+      layers.push({
+        id: ki,
+        color: [Math.round(c[0]), Math.round(c[1]), Math.round(c[2])],
+        contours,
+        bbox: {minX, minY, maxX, maxY},
+        name: `Capa ${layers.length+1}`,
+        included: true
+      });
+    }
+    return { layers, workW: ww, workH: wh };
+  }
   paperSeg.addEventListener('click', e => {
     const btn = e.target.closest('button'); if (!btn) return;
     [...paperSeg.children].forEach(b=>b.classList.remove('active'));
@@ -630,6 +1040,170 @@
     gridPreview.classList.add('show');
   }
 
+  // ---------- Layered PDF (color separation) ----------
+  async function generateLayeredPdf(L){
+    const DPI = 300;
+    const { jsPDF } = window.jspdf;
+    const pdf = new jsPDF({unit:'pt', format:[L.page.w, L.page.h]});
+    const CUT = L.cropMm * MM;
+
+    const activeLayers = state.layers.filter(ly => ly.included && ly.contours.length);
+    if (!activeLayers.length) throw new Error('No hay capas activas para generar.');
+
+    const cmPerWorkPxX = L.finalWcm / state.layersWorkW;
+    const cmPerWorkPxY = L.finalHcm / state.layersWorkH;
+    const strokeMm = parseFloat(layersStrokeInput.value) || 3;
+    const strokePx = (strokeMm/10/2.54) * DPI;
+    const padPx = strokePx + 6;
+
+    const prepared = activeLayers.map(ly => {
+      const bw = Math.max(1e-3, (ly.bbox.maxX - ly.bbox.minX) * cmPerWorkPxX);
+      const bh = Math.max(1e-3, (ly.bbox.maxY - ly.bbox.minY) * cmPerWorkPxY);
+      const innerWpx = Math.max(1, Math.round(bw/2.54*DPI));
+      const innerHpx = Math.max(1, Math.round(bh/2.54*DPI));
+      const wpx = innerWpx + padPx*2;
+      const hpx = innerHpx + padPx*2;
+      const scaleX = innerWpx / Math.max(1, (ly.bbox.maxX - ly.bbox.minX));
+      const scaleY = innerHpx / Math.max(1, (ly.bbox.maxY - ly.bbox.minY));
+      const physWcm = wpx/DPI*2.54;
+      const physHcm = hpx/DPI*2.54;
+      const cols = Math.ceil((physWcm*CM) / (L.printW - L.OL));
+      const rows = Math.ceil((physHcm*CM) / (L.printH - L.OL));
+      return { layer: ly, wpx, hpx, scaleX, scaleY, physWcm, physHcm, cols, rows, pages: cols*rows };
+    });
+
+    const totalPages = prepared.reduce((s,p)=>s+p.pages, 0);
+
+    // ---- Legend page (page 1) ----
+    pdf.setTextColor(216,28,93);
+    pdf.setFont(undefined,'bold'); pdf.setFontSize(16);
+    pdf.text('Capas de colores · Mundo Piñatas K&A', L.M, L.M+16);
+    pdf.setFont(undefined,'normal'); pdf.setFontSize(10.5); pdf.setTextColor(90,90,90);
+    pdf.text(`Diseño total: ${L.finalWcm.toFixed(1)} × ${L.finalHcm.toFixed(1)} cm  ·  ${prepared.length} capas  ·  ${totalPages} hojas de recorte`, L.M, L.M+34);
+
+    let ly_y = L.M + 62;
+    let runningPage = 2;
+    prepared.forEach((p, idx) => {
+      const [r,g,b] = p.layer.color;
+      pdf.setFillColor(r,g,b);
+      pdf.rect(L.M, ly_y-11, 16, 16, 'F');
+      pdf.setDrawColor(60,60,60); pdf.setLineWidth(0.6);
+      pdf.rect(L.M, ly_y-11, 16, 16);
+      pdf.setTextColor(20,20,20); pdf.setFont(undefined,'bold'); pdf.setFontSize(11);
+      pdf.text(`${idx+1}. ${p.layer.name}`, L.M+24, ly_y);
+      pdf.setFont(undefined,'normal'); pdf.setFontSize(9.5); pdf.setTextColor(110,110,110);
+      const pageRange = p.pages>1 ? `hojas ${runningPage}-${runningPage+p.pages-1}` : `hoja ${runningPage}`;
+      pdf.text(`${p.physWcm.toFixed(1)}×${p.physHcm.toFixed(1)} cm · ${pageRange}`, L.M+24, ly_y+13);
+      ly_y += 34;
+      runningPage += p.pages;
+    });
+
+    // ---- Tiles per layer ----
+    let done = 0;
+    for (const p of prepared){
+      const ly = p.layer;
+      const canvas = document.createElement('canvas');
+      canvas.width = p.wpx; canvas.height = p.hpx;
+      const cctx = canvas.getContext('2d');
+      cctx.fillStyle = '#ffffff'; cctx.fillRect(0,0,p.wpx,p.hpx);
+      cctx.strokeStyle = '#000000';
+      cctx.lineWidth = strokePx;
+      cctx.lineJoin = 'round';
+      cctx.beginPath();
+      ly.contours.forEach(contour=>{
+        contour.forEach((pt,i)=>{
+          const px = padPx + (pt.x - ly.bbox.minX)*p.scaleX;
+          const py = padPx + (pt.y - ly.bbox.minY)*p.scaleY;
+          if (i===0) cctx.moveTo(px,py); else cctx.lineTo(px,py);
+        });
+        cctx.closePath();
+      });
+      cctx.stroke();
+
+      const scaleXpt = p.wpx / (p.physWcm*CM);
+      const scaleYpt = p.hpx / (p.physHcm*CM);
+
+      for (let row=0; row<p.rows; row++){
+        for (let col=0; col<p.cols; col++){
+          const x0pt = col*(L.printW - L.OL);
+          const y0pt = row*(L.printH - L.OL);
+          const x1pt = Math.min(x0pt+L.printW, p.physWcm*CM);
+          const y1pt = Math.min(y0pt+L.printH, p.physHcm*CM);
+          const px0 = Math.round(x0pt*scaleXpt), py0 = Math.round(y0pt*scaleYpt);
+          const px1 = Math.round(x1pt*scaleXpt), py1 = Math.round(y1pt*scaleYpt);
+          const tw = px1-px0, th = py1-py0;
+
+          const tileCanvas = document.createElement('canvas');
+          tileCanvas.width=tw; tileCanvas.height=th;
+          tileCanvas.getContext('2d').drawImage(canvas, px0,py0,tw,th, 0,0,tw,th);
+          const jpg = tileCanvas.toDataURL('image/jpeg', 0.95);
+
+          pdf.addPage([L.page.w, L.page.h]);
+          const tileWpt = x1pt-x0pt, tileHpt = y1pt-y0pt;
+          const topY = L.page.h - L.M - tileHpt;
+          pdf.addImage(jpg, 'JPEG', L.M, topY, tileWpt, tileHpt);
+
+          pdf.setDrawColor(140,140,140); pdf.setLineWidth(0.5);
+          const corners=[[L.M,L.page.h-L.M],[L.M+tileWpt,L.page.h-L.M],[L.M,L.page.h-L.M-tileHpt],[L.M+tileWpt,L.page.h-L.M-tileHpt]];
+          corners.forEach(([cx,cy])=>{
+            pdf.line(cx-CUT,cy,cx-2,cy); pdf.line(cx+2,cy,cx+CUT,cy);
+            pdf.line(cx,cy-CUT,cx,cy-2); pdf.line(cx,cy+2,cx,cy+CUT);
+          });
+          pdf.setDrawColor(180,180,180); pdf.setLineWidth(0.4); pdf.setLineDashPattern([3,3],0);
+          if (col>0) pdf.line(L.M+L.OL, L.page.h-L.M, L.M+L.OL, L.page.h-L.M-tileHpt);
+          if (row>0) pdf.line(L.M, L.page.h-L.M-L.OL, L.M+tileWpt, L.page.h-L.M-L.OL);
+          pdf.setLineDashPattern([],0);
+
+          const pageNumInLayer = row*p.cols+col+1;
+          pdf.setFontSize(6); pdf.setTextColor(130,130,130);
+          pdf.text(`Capa: ${ly.name}  |  Hoja ${pageNumInLayer}/${p.pages}  |  Fila ${row+1}/${p.rows} Col ${col+1}/${p.cols}  ·  Mundo Piñatas K&A`, L.M, 14);
+
+          done++;
+          progressFill.style.width = Math.round((done/totalPages)*90) + '%';
+          statusEl.textContent = `Generando capa "${ly.name}"… ${done}/${totalPages}`;
+          await nextFrame();
+        }
+      }
+    }
+
+    // ---- Instructions page ----
+    pdf.addPage([L.page.w, L.page.h]);
+    pdf.setTextColor(216,28,93); pdf.setFont(undefined,'bold'); pdf.setFontSize(16);
+    pdf.text('Instrucciones · Mundo Piñatas K&A', L.M, L.M+16);
+    pdf.setTextColor(20,20,20);
+    const lines = [
+      '', 'IMPRESIÓN:',
+      '  •  Imprimir al 100% de escala (NO ajustar a la página).',
+      '  •  Seleccionar "Tamaño real" o "Escala 100%" en el diálogo de impresión.',
+      '  •  Desactivar "Ajustar al área imprimible".',
+      `  •  Papel: ${L.page.label}  ·  Calidad: Alta.`,
+      '', 'RECORTE POR CAPAS:',
+      '  •  Cada capa es una sección de color: recórtala de papel de ese tono.',
+      '  •  Consulta la página 1 (índice) para ver cuántas hojas ocupa cada capa.',
+      '  •  Si una capa tiene varias hojas, únelas primero con el mismo solape y marcas de corte que una plantilla normal.',
+      '  •  Pega cada pieza terminada sobre el cascarón en la posición que ocupa dentro del diseño original.',
+      '',
+      `Diseño total: ${L.finalWcm.toFixed(1)} × ${L.finalHcm.toFixed(1)} cm  ·  Resolución 300 DPI.`,
+      '', 'Mundo Piñatas K&A · Cuernavaca, Morelos, México',
+    ].filter(l => l !== '');
+    let y = L.M + 44;
+    pdf.setFontSize(10.5);
+    lines.forEach(line=>{
+      pdf.setFont(undefined, (line.endsWith(':') && !line.startsWith(' ')) ? 'bold' : 'normal');
+      pdf.text(line, L.M, y);
+      y += 15;
+    });
+
+    progressFill.style.width = '100%';
+    statusEl.textContent = `✅ Listo — ${totalPages+2} páginas en total (1 índice + ${totalPages} de recorte + 1 de instrucciones).`;
+
+    const blob = pdf.output('blob');
+    const url = URL.createObjectURL(blob);
+    downloadLink.href = url;
+    downloadLink.download = `plantilla_capas_${sizeInput.value.replace('.','_')}cm.pdf`;
+    downloadWrap.classList.add('show');
+  }
+
   // ---------- PDF generation ----------
   generateBtn.addEventListener('click', async () => {
     const L = computeLayout();
@@ -638,14 +1212,25 @@
       return;
     }
 
+    const useLayers = state.mode === 'image' && layersEnabledChk.checked;
+    if (useLayers && !state.layers.filter(l=>l.included && l.contours.length).length){
+      alert('Detecta al menos una capa activa antes de generar (o desactiva la separación en capas).');
+      return;
+    }
+
     generateBtn.disabled = true;
     downloadWrap.classList.remove('show');
     progressBar.classList.add('show');
     progressFill.style.width = '0%';
-    statusEl.textContent = state.mode === 'circle' ? 'Dibujando el círculo a 300 DPI…' : 'Preparando imagen a 300 DPI…';
+    statusEl.textContent = useLayers ? 'Preparando capas de color…' : (state.mode === 'circle' ? 'Dibujando el círculo a 300 DPI…' : 'Preparando imagen a 300 DPI…');
     await nextFrame();
 
     try {
+      if (useLayers){
+        await generateLayeredPdf(L);
+        return;
+      }
+
       const DPI = 300;
       const targetHpx = Math.round(L.finalHcm/2.54 * DPI);
       const targetWpx = Math.round(L.finalWcm/2.54 * DPI);
