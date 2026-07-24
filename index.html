@@ -1,6 +1,3 @@
-
-
-Generador plantillas pinata · HTML
 <!doctype html>
 <html lang="es">
 <head>
@@ -35,28 +32,26 @@ Generador plantillas pinata · HTML
     padding:0 0 80px;
   }
   .wrap{max-width:920px; margin:0 auto; padding:36px 22px;}
- 
+
   /* Header */
   header{
     display:flex; align-items:center; gap:16px; margin-bottom:8px;
   }
   .logo-mark{
     width:52px; height:52px; flex:none; border-radius:50%;
-    background:conic-gradient(from 200deg, var(--hotpink), var(--sun), var(--turquoise), var(--violet), var(--hotpink));
-    display:flex; align-items:center; justify-content:center;
+    overflow:hidden;
     box-shadow: 0 3px 0 rgba(36,27,51,.25);
+    border:2px solid #fff;
   }
-  .logo-mark span{
-    width:38px; height:38px; border-radius:50%; background:var(--paper);
-    display:flex; align-items:center; justify-content:center;
-    font-family:'Baloo 2'; font-weight:800; font-size:19px; color:var(--ink);
+  .logo-mark img{
+    width:100%; height:100%; object-fit:cover; display:block;
   }
   h1{
     font-family:'Baloo 2', sans-serif; font-weight:800; font-size:26px; margin:0; line-height:1.1;
     letter-spacing:-.01em;
   }
   header p{margin:2px 0 0; color:#6b6178; font-size:14px;}
- 
+
   .torn{
     height:16px; margin:26px 0 30px;
     background:
@@ -65,7 +60,7 @@ Generador plantillas pinata · HTML
     background-color:var(--violet);
     opacity:.9;
   }
- 
+
   /* Tabs */
   .tabbar{
     display:flex; gap:10px; margin-bottom:24px;
@@ -80,7 +75,7 @@ Generador plantillas pinata · HTML
     background:linear-gradient(135deg, var(--hotpink), var(--hotpink-dark)); color:#fff; border-color:transparent;
     box-shadow:0 3px 0 var(--hotpink-dark);
   }
- 
+
   h2.step{
     font-family:'Baloo 2'; font-weight:700; font-size:15px; letter-spacing:.02em;
     color:var(--hotpink-dark); text-transform:uppercase; margin:0 0 10px;
@@ -90,13 +85,13 @@ Generador plantillas pinata · HTML
     width:24px; height:24px; border-radius:50%; background:var(--hotpink-dark); color:#fff;
     font-family:'Baloo 2'; font-size:13px; display:flex; align-items:center; justify-content:center; flex:none;
   }
- 
+
   section.card{
     background:#fff; border:1px solid var(--line); border-radius:18px;
     padding:26px; margin-bottom:22px;
     box-shadow: 0 2px 0 rgba(36,27,51,.04);
   }
- 
+
   /* Dropzone */
   #dropzone{
     border:2.5px dashed #D9C9E8; border-radius:14px; padding:34px 20px;
@@ -108,7 +103,7 @@ Generador plantillas pinata · HTML
   #dropzone strong{color:var(--hotpink-dark);}
   #dropzone small{display:block; color:#8b8195; margin-top:6px; font-size:12.5px;}
   #fileInput{display:none;}
- 
+
   #previewRow{
     display:none; gap:20px; align-items:flex-start; margin-top:18px;
   }
@@ -129,7 +124,7 @@ Generador plantillas pinata · HTML
     margin-top:8px; background:none; border:none; color:var(--hotpink-dark); font-weight:600;
     font-size:13px; cursor:pointer; padding:0; text-decoration:underline;
   }
- 
+
   /* Layer separation panel */
   #layersToggleWrap{
     margin-top:16px; padding-top:16px; border-top:1px dashed var(--line);
@@ -153,13 +148,13 @@ Generador plantillas pinata · HTML
   }
   .layer-row .layer-meta{ font-size:11px; color:#9a90a6; flex:none; width:44px; text-align:right;}
   .layer-row input[type=checkbox]{ width:17px; height:17px; accent-color:var(--turquoise); flex:none; }
- 
+
   /* Controls */
   .field{margin-bottom:18px;}
   .field:last-child{margin-bottom:0;}
   label.fl{display:block; font-weight:600; font-size:14px; margin-bottom:6px;}
   label.fl .hint{font-weight:400; color:#8b8195; font-size:12.5px;}
- 
+
   .size-input{
     display:flex; align-items:center; gap:10px;
   }
@@ -174,14 +169,14 @@ Generador plantillas pinata · HTML
     margin-left:auto; font-size:12.5px; font-weight:600; padding:6px 12px; border-radius:999px;
     background:#F1EAFB; color:var(--violet); display:flex; align-items:center; gap:6px;
   }
- 
+
   .seg{display:flex; gap:8px; flex-wrap:wrap;}
   .seg button{
     flex:1; min-width:110px; padding:10px 12px; border-radius:10px; border:1.5px solid var(--line);
     background:var(--paper); font-family:'Work Sans'; font-weight:600; font-size:13.5px; cursor:pointer; color:var(--ink);
   }
   .seg button.active{ background:var(--hotpink); border-color:var(--hotpink); color:#fff; }
- 
+
   details{margin-top:16px;}
   summary{cursor:pointer; font-weight:600; font-size:13.5px; color:var(--violet); user-select:none;}
   .adv-grid{
@@ -192,7 +187,7 @@ Generador plantillas pinata · HTML
     width:100%; padding:8px 10px; border-radius:8px; border:1.5px solid var(--line); font-size:14px;
     font-family:'Work Sans';
   }
- 
+
   /* Results */
   #resultStats{
     display:none; grid-template-columns:repeat(4,1fr); gap:12px; margin-bottom:20px;
@@ -204,7 +199,7 @@ Generador plantillas pinata · HTML
   }
   .stat .v{font-family:'Baloo 2'; font-weight:800; font-size:22px; color:var(--hotpink-dark);}
   .stat .l{font-size:11.5px; color:#7a7086; text-transform:uppercase; letter-spacing:.03em; margin-top:2px;}
- 
+
   #gridPreview{
     display:none; margin-bottom:20px;
   }
@@ -217,7 +212,7 @@ Generador plantillas pinata · HTML
     font-size:9px; color:#a99bb8; font-family:'Work Sans'; position:relative;
     border:1px dashed #e4d6f2;
   }
- 
+
   button#generateBtn{
     width:100%; padding:16px; border-radius:12px; border:none; cursor:pointer;
     background:linear-gradient(135deg, var(--hotpink), var(--hotpink-dark));
@@ -227,7 +222,7 @@ Generador plantillas pinata · HTML
   }
   button#generateBtn:disabled{ opacity:.45; cursor:not-allowed; box-shadow:none;}
   button#generateBtn:not(:disabled):active{ transform:translateY(2px); box-shadow:0 1px 0 var(--hotpink-dark);}
- 
+
   #status{
     margin-top:14px; font-size:13.5px; text-align:center; color:#6b6178; min-height:18px;
   }
@@ -236,17 +231,17 @@ Generador plantillas pinata · HTML
   }
   #progressBar.show{display:block;}
   #progressFill{height:100%; width:0%; background:linear-gradient(90deg,var(--turquoise),var(--hotpink)); transition:width .15s;}
- 
+
   #downloadWrap{display:none; margin-top:16px; text-align:center;}
   #downloadWrap.show{display:block;}
   #downloadLink{
     display:inline-flex; align-items:center; gap:8px; background:var(--ok); color:#fff; text-decoration:none;
     padding:12px 22px; border-radius:10px; font-weight:700; font-family:'Baloo 2'; font-size:15px;
   }
- 
+
   footer{text-align:center; color:#a99bb8; font-size:12.5px; margin-top:30px;}
   footer b{color:var(--violet);}
- 
+
   @media(max-width:520px){
     .adv-grid{grid-template-columns:1fr 1fr;}
     #resultStats{grid-template-columns:1fr 1fr;}
@@ -256,26 +251,26 @@ Generador plantillas pinata · HTML
 </head>
 <body>
 <div class="wrap">
- 
+
   <header>
-    <div class="logo-mark"><span>MP</span></div>
+    <div class="logo-mark"><img src="data:image/jpeg;base64,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" alt="Mundo Piñatas K&A"></div>
     <div>
       <h1>Generador de plantillas para piñatas</h1>
       <p>Sube tu diseño, dale un tamaño y descarga el PDF listo para imprimir y armar</p>
     </div>
   </header>
- 
+
   <div class="torn"></div>
- 
+
   <div class="tabbar" id="modeTabs">
     <button data-mode="image" class="active">🖼️ Plantilla de imagen</button>
     <button data-mode="circle">⚪ Plantilla círculo</button>
   </div>
- 
+
   <!-- STEP 1 -->
   <section class="card">
     <h2 class="step"><span class="num">1</span><span id="step1Label">Imagen del diseño</span></h2>
- 
+
     <div id="imageFields">
       <div id="dropzone">
         <span class="icon">🖼️</span>
@@ -283,19 +278,19 @@ Generador plantillas pinata · HTML
         <small>JPG o PNG · con o sin transparencia</small>
       </div>
       <input type="file" id="fileInput" accept="image/png, image/jpeg">
- 
+
       <div id="previewRow">
         <div id="thumbWrap"><img id="thumbImg" alt="Vista previa"></div>
         <div id="fileMeta"></div>
       </div>
       <button id="changeFile" style="display:none;">Cambiar imagen</button>
- 
+
       <div id="layersToggleWrap" style="display:none;">
         <label class="checklabel">
           <input type="checkbox" id="layersEnabled">
           Separar en capas para recortar de colores
         </label>
- 
+
         <div id="layersPanel" style="display:none;">
           <div class="field">
             <label class="fl">Número de capas <span class="hint">— colores distintos a separar</span></label>
@@ -319,7 +314,7 @@ Generador plantillas pinata · HTML
         </div>
       </div>
     </div>
- 
+
     <div id="circleFields" style="display:none;">
       <div class="field">
         <label class="fl">Radio del círculo</label>
@@ -337,11 +332,11 @@ Generador plantillas pinata · HTML
       </div>
     </div>
   </section>
- 
+
   <!-- STEP 2 -->
   <section class="card">
     <h2 class="step"><span class="num">2</span><span id="step2Label">Tamaño final de la piñata</span></h2>
- 
+
     <div id="sizeFields">
       <div class="field">
         <label class="fl">Medida <span class="hint" id="sizeHint">— se aplica al alto si el diseño es vertical, o al ancho si es horizontal</span></label>
@@ -351,7 +346,7 @@ Generador plantillas pinata · HTML
           <span class="orient-pill" id="orientPill">Sube una imagen primero</span>
         </div>
       </div>
- 
+
       <div class="field">
         <label class="fl">Aplicar la medida a</label>
         <div class="seg" id="dimSeg">
@@ -361,7 +356,7 @@ Generador plantillas pinata · HTML
         </div>
       </div>
     </div>
- 
+
     <div class="field">
       <label class="fl">Papel de impresión</label>
       <div class="seg" id="paperSeg">
@@ -369,7 +364,7 @@ Generador plantillas pinata · HTML
         <button data-paper="a4">A4</button>
       </div>
     </div>
- 
+
     <details>
       <summary>Opciones avanzadas (márgenes, solape y marcas de corte)</summary>
       <div class="adv-grid">
@@ -388,31 +383,31 @@ Generador plantillas pinata · HTML
       </div>
     </details>
   </section>
- 
+
   <!-- STEP 3 -->
   <section class="card">
     <h2 class="step"><span class="num">3</span>Vista previa y descarga</h2>
- 
+
     <div id="resultStats">
       <div class="stat"><div class="v" id="statSize">—</div><div class="l">Tamaño final</div></div>
       <div class="stat"><div class="v" id="statGrid">—</div><div class="l">Hojas (col×fil)</div></div>
       <div class="stat"><div class="v" id="statPages">—</div><div class="l">Páginas totales</div></div>
       <div class="stat"><div class="v" id="statDpi">300</div><div class="l">DPI</div></div>
     </div>
- 
+
     <div id="gridPreview">
       <div id="gridCanvasWrap"></div>
     </div>
- 
+
     <button id="generateBtn" disabled>Sube una imagen para continuar</button>
     <div id="progressBar"><div id="progressFill"></div></div>
     <div id="status"></div>
     <div id="downloadWrap"><a id="downloadLink" href="#" download="plantilla_pinata.pdf">⬇ Descargar PDF</a></div>
   </section>
- 
+
   <footer>Hecho para <b>Mundo Piñatas K&A</b> · Cuernavaca, Morelos · Todo se procesa en tu navegador, ninguna imagen se sube a internet.</footer>
 </div>
- 
+
 <script>
 (function(){
   const MM = 2.8346456693; // pt per mm
@@ -421,7 +416,7 @@ Generador plantillas pinata · HTML
     letter: {w: 612, h: 792, label:'Carta'},
     a4:     {w: 595.28, h: 841.89, label:'A4'}
   };
- 
+
   let img = null;          // loaded HTMLImageElement
   let imgTrimmedCanvas = null; // trimmed source canvas (natural res)
   let state = {
@@ -432,7 +427,7 @@ Generador plantillas pinata · HTML
     layersWorkW: 0,
     layersWorkH: 0
   };
- 
+
   const modeTabs   = document.getElementById('modeTabs');
   const imageFields  = document.getElementById('imageFields');
   const circleFields = document.getElementById('circleFields');
@@ -441,7 +436,7 @@ Generador plantillas pinata · HTML
   const step2Label   = document.getElementById('step2Label');
   const radiusInput  = document.getElementById('radiusInput');
   const circleStrokeInput = document.getElementById('circleStrokeInput');
- 
+
   const layersToggleWrap = document.getElementById('layersToggleWrap');
   const layersEnabledChk = document.getElementById('layersEnabled');
   const layersPanel      = document.getElementById('layersPanel');
@@ -450,7 +445,7 @@ Generador plantillas pinata · HTML
   const layersStrokeInput= document.getElementById('layersStrokeInput');
   const layersList       = document.getElementById('layersList');
   const layersStatus     = document.getElementById('layersStatus');
- 
+
   const dropzone   = document.getElementById('dropzone');
   const fileInput  = document.getElementById('fileInput');
   const previewRow = document.getElementById('previewRow');
@@ -474,7 +469,7 @@ Generador plantillas pinata · HTML
   const resultStats  = document.getElementById('resultStats');
   const gridPreview   = document.getElementById('gridPreview');
   const gridCanvasWrap= document.getElementById('gridCanvasWrap');
- 
+
   // ---------- Mode tabs ----------
   modeTabs.addEventListener('click', e => {
     const btn = e.target.closest('button'); if (!btn) return;
@@ -483,7 +478,7 @@ Generador plantillas pinata · HTML
     state.mode = btn.dataset.mode;
     applyMode();
   });
- 
+
   function applyMode(){
     const isImage = state.mode === 'image';
     imageFields.style.display  = isImage ? 'block' : 'none';
@@ -494,7 +489,7 @@ Generador plantillas pinata · HTML
     updateGenerateButtonState();
     updatePreview();
   }
- 
+
   function updateGenerateButtonState(){
     if (state.mode === 'image'){
       generateBtn.disabled = !imgTrimmedCanvas;
@@ -505,7 +500,7 @@ Generador plantillas pinata · HTML
       generateBtn.textContent = 'Generar PDF';
     }
   }
- 
+
   // ---------- File handling ----------
   dropzone.addEventListener('click', () => fileInput.click());
   dropzone.addEventListener('dragover', e => { e.preventDefault(); dropzone.classList.add('drag'); });
@@ -518,7 +513,7 @@ Generador plantillas pinata · HTML
     if (e.target.files && e.target.files[0]) handleFile(e.target.files[0]);
   });
   changeFileBtn.addEventListener('click', () => fileInput.click());
- 
+
   function handleFile(file){
     if (!/^image\/(png|jpe?g)$/i.test(file.type)){
       alert('Por favor sube un archivo JPG o PNG.');
@@ -545,16 +540,16 @@ Generador plantillas pinata · HTML
     };
     reader.readAsDataURL(file);
   }
- 
+
   // Trim fully-transparent edges (PNG only); keep full frame for JPG
   function trimImage(image, mime){
     const c = document.createElement('canvas');
     c.width = image.naturalWidth; c.height = image.naturalHeight;
     const ctx = c.getContext('2d');
     ctx.drawImage(image, 0, 0);
- 
+
     if (mime !== 'image/png'){ imgTrimmedCanvas = c; updatePreview(); return; }
- 
+
     const {data, width, height} = ctx.getImageData(0,0,c.width,c.height);
     let minX=width, minY=height, maxX=0, maxY=0, found=false;
     // sample stride for speed on big images
@@ -581,7 +576,7 @@ Generador plantillas pinata · HTML
     imgTrimmedCanvas = c2;
     updatePreview();
   }
- 
+
   // ---------- Layer separation ----------
   function resetLayersState(){
     layersEnabledChk.checked = false;
@@ -590,19 +585,19 @@ Generador plantillas pinata · HTML
     layersList.innerHTML = '';
     layersStatus.textContent = '';
   }
- 
+
   layersEnabledChk.addEventListener('change', () => {
     layersPanel.style.display = layersEnabledChk.checked ? 'block' : 'none';
     if (layersEnabledChk.checked && imgTrimmedCanvas) runLayerDetection();
   });
- 
+
   layersCountSlider.addEventListener('input', () => {
     layersCountVal.textContent = layersCountSlider.value;
   });
   layersCountSlider.addEventListener('change', () => {
     if (layersEnabledChk.checked && imgTrimmedCanvas) runLayerDetection();
   });
- 
+
   async function runLayerDetection(){
     layersStatus.textContent = 'Detectando capas de color…';
     layersList.innerHTML = '';
@@ -622,7 +617,7 @@ Generador plantillas pinata · HTML
       layersStatus.textContent = '⚠️ No se pudieron detectar las capas: ' + err.message;
     }
   }
- 
+
   function renderLayersList(){
     layersList.innerHTML = '';
     state.layers.forEach((ly, i) => {
@@ -648,13 +643,13 @@ Generador plantillas pinata · HTML
       });
     });
   }
- 
+
   // ---- Color clustering + contour tracing (runs on a downscaled working canvas) ----
   function dist2(a,b){
     const dr=a[0]-b[0], dg=a[1]-b[1], db=a[2]-b[2];
     return dr*dr+dg*dg+db*db;
   }
- 
+
   function kmeansPlusPlusInit(samples, k){
     const centroids = [samples[Math.floor(Math.random()*samples.length)].slice()];
     while (centroids.length < k){
@@ -671,7 +666,7 @@ Generador plantillas pinata · HTML
     }
     return centroids;
   }
- 
+
   function connectedComponents(mask, w, h, minSize){
     const visited = new Uint8Array(w*h);
     const comps = [];
@@ -698,7 +693,7 @@ Generador plantillas pinata · HTML
     }
     return comps;
   }
- 
+
   // Moore-Neighbor boundary tracing
   function traceContour(mask, w, h, sx, sy){
     const get = (x,y) => (x<0||y<0||x>=w||y>=h) ? 0 : mask[y*w+x];
@@ -725,7 +720,7 @@ Generador plantillas pinata · HTML
     }
     return points;
   }
- 
+
   function perpDist(pt,a,b){
     const dx=b.x-a.x, dy=b.y-a.y;
     const len = Math.hypot(dx,dy) || 1e-6;
@@ -766,7 +761,7 @@ Generador plantillas pinata · HTML
     const s2 = rdpSimplify(half2, eps);
     return s1.slice(0,-1).concat(s2);
   }
- 
+
   // ---- Binary morphology helpers (used to tell true background apart from enclosed same-color shapes) ----
   function binaryErode(mask, w, h, r){
     const out = new Uint8Array(w*h);
@@ -827,17 +822,17 @@ Generador plantillas pinata · HTML
     }
     return visited;
   }
- 
+
   // Background = pixels close to the border color AND reachable from the border
   // without crossing a "channel" narrower than OPEN_R pixels. This keeps same-colored
   // but fully-enclosed shapes (e.g. a white robe on a white background) as real content.
   function computeBackgroundMask(data, ww, wh, hasAlpha){
     const bgMask = new Uint8Array(ww*wh); // 1 = background
- 
+
     if (hasAlpha){
       for (let p=0; p<ww*wh; p++){ if (data[p*4+3] < 128) bgMask[p] = 1; }
     }
- 
+
     // border-color candidate mask (opaque pixels close to the estimated border color)
     let sr=0,sg=0,sb=0,n=0;
     for (let x=0; x<ww; x++){ addBorder(x,0); addBorder(x,wh-1); }
@@ -845,23 +840,23 @@ Generador plantillas pinata · HTML
     function addBorder(x,y){ const i=(y*ww+x)*4; sr+=data[i]; sg+=data[i+1]; sb+=data[i+2]; n++; }
     const bg = [sr/n, sg/n, sb/n];
     const THRESH2 = 34*34;
- 
+
     const close = new Uint8Array(ww*wh);
     for (let p=0; p<ww*wh; p++){
       const i=p*4;
       const dr=data[i]-bg[0], dg=data[i+1]-bg[1], db=data[i+2]-bg[2];
       close[p] = (dr*dr+dg*dg+db*db) < THRESH2 ? 1 : 0;
     }
- 
+
     const OPEN_R = 3;
     const eroded = binaryErode(close, ww, wh, OPEN_R);
     const coreBg = floodFromBorder(eroded, ww, wh);
     const dilatedCore = binaryDilate(coreBg, ww, wh, OPEN_R);
     for (let p=0; p<ww*wh; p++){ if (dilatedCore[p] && close[p]) bgMask[p] = 1; }
- 
+
     return bgMask;
   }
- 
+
   function detectLayers(sourceCanvas, k){
     const WORK_MAX = 640;
     const scale = Math.min(1, WORK_MAX / Math.max(sourceCanvas.width, sourceCanvas.height));
@@ -872,17 +867,17 @@ Generador plantillas pinata · HTML
     const wctx = work.getContext('2d');
     wctx.drawImage(sourceCanvas, 0, 0, ww, wh);
     const { data } = wctx.getImageData(0, 0, ww, wh);
- 
+
     let hasAlpha = false;
     for (let p=3; p<data.length; p+=4*37){ if (data[p] < 250){ hasAlpha = true; break; } }
- 
+
     const bgMask = computeBackgroundMask(data, ww, wh, hasAlpha);
     function isBackground(i){ return bgMask[(i/4)|0] === 1; }
- 
+
     const contentIdx = [];
     for (let p=0; p<ww*wh; p++){ if (!isBackground(p*4)) contentIdx.push(p); }
     if (!contentIdx.length) return { layers: [], workW: ww, workH: wh };
- 
+
     const sampleCount = Math.min(4000, contentIdx.length);
     const samples = [];
     for (let s=0; s<sampleCount; s++){
@@ -902,7 +897,7 @@ Generador plantillas pinata · HTML
         ? [sums[ci][0]/sums[ci][3], sums[ci][1]/sums[ci][3], sums[ci][2]/sums[ci][3]]
         : c);
     }
- 
+
     const labels = new Int16Array(ww*wh).fill(-1);
     for (const p of contentIdx){
       const i = p*4;
@@ -911,7 +906,7 @@ Generador plantillas pinata · HTML
       centroids.forEach((c,ci)=>{ const d=dist2(px,c); if (d<bd){ bd=d; best=ci; } });
       labels[p] = best;
     }
- 
+
     const minBlobPixels = Math.max(10, Math.round(ww*wh*0.0012));
     const layers = [];
     for (let ki=0; ki<centroids.length; ki++){
@@ -919,7 +914,7 @@ Generador plantillas pinata · HTML
       for (let p=0; p<ww*wh; p++) mask[p] = labels[p]===ki ? 1 : 0;
       const comps = connectedComponents(mask, ww, wh, minBlobPixels);
       if (!comps.length) continue;
- 
+
       const contours = [];
       let minX=ww, minY=wh, maxX=0, maxY=0;
       comps.forEach(comp=>{
@@ -933,7 +928,7 @@ Generador plantillas pinata · HTML
         });
       });
       if (!contours.length) continue;
- 
+
       const c = centroids[ki];
       layers.push({
         id: ki,
@@ -953,7 +948,7 @@ Generador plantillas pinata · HTML
     state.paper = btn.dataset.paper;
     updatePreview();
   });
- 
+
   dimSeg.addEventListener('click', e => {
     const btn = e.target.closest('button'); if (!btn) return;
     [...dimSeg.children].forEach(b=>b.classList.remove('active'));
@@ -961,19 +956,19 @@ Generador plantillas pinata · HTML
     state.dim = btn.dataset.dim;
     updatePreview();
   });
- 
+
   [sizeInput, marginInput, overlapInput, cropInput].forEach(inp=>{
     inp.addEventListener('input', updatePreview);
   });
- 
+
   [radiusInput, circleStrokeInput].forEach(inp=>{
     inp.addEventListener('input', () => { updateGenerateButtonState(); updatePreview(); });
   });
- 
+
   // ---------- Live preview / grid calc ----------
   function computeLayout(){
     let finalWcm, finalHcm, landscape, appliedTo;
- 
+
     if (state.mode === 'circle'){
       const radius = parseFloat(radiusInput.value) || 0;
       if (radius <= 0) return null;
@@ -984,7 +979,7 @@ Generador plantillas pinata · HTML
       if (!imgTrimmedCanvas) return null;
       const targetCm = parseFloat(sizeInput.value) || 0;
       if (targetCm <= 0) return null;
- 
+
       const w = imgTrimmedCanvas.width, h = imgTrimmedCanvas.height;
       landscape = w >= h;
       if (state.dim === 'height'){
@@ -997,29 +992,29 @@ Generador plantillas pinata · HTML
         finalHcm = targetCm; finalWcm = targetCm * (w/h); appliedTo = 'height';
       }
     }
- 
+
     const page = PAGES[state.paper];
     const marginMm  = parseFloat(marginInput.value)  || 8;
     const overlapMm = parseFloat(overlapInput.value) || 4;
     const cropMm    = parseFloat(cropInput.value)    || 3;
- 
+
     const M  = marginMm * MM;
     const OL = overlapMm * MM;
     const printW = page.w - 2*M;
     const printH = page.h - 2*M;
- 
+
     const imgWpt = finalWcm * CM;
     const imgHpt = finalHcm * CM;
- 
+
     const cols = Math.ceil(imgWpt / (printW - OL));
     const rows = Math.ceil(imgHpt / (printH - OL));
- 
+
     return {
       landscape, finalWcm, finalHcm, page, M, OL, cropMm, printW, printH,
       imgWpt, imgHpt, cols, rows, totalPages: cols*rows, appliedTo
     };
   }
- 
+
   function updatePreview(){
     const L = computeLayout();
     if (!L){
@@ -1032,7 +1027,7 @@ Generador plantillas pinata · HTML
       }
       return;
     }
- 
+
     if (state.mode === 'circle'){
       orientPill.textContent = `⚪ Círculo · radio ${radiusInput.value} cm`;
     } else {
@@ -1042,12 +1037,12 @@ Generador plantillas pinata · HTML
         : `Manual · aplicado ${dimLabel}`;
       orientPill.textContent = modeLabel;
     }
- 
+
     document.getElementById('statSize').textContent = `${L.finalWcm.toFixed(1)}×${L.finalHcm.toFixed(1)} cm`;
     document.getElementById('statGrid').textContent = `${L.cols}×${L.rows}`;
     document.getElementById('statPages').textContent = `${L.totalPages}`;
     resultStats.classList.add('show');
- 
+
     // mini grid
     gridCanvasWrap.innerHTML = '';
     gridCanvasWrap.style.gridTemplateColumns = `repeat(${L.cols}, 34px)`;
@@ -1062,23 +1057,23 @@ Generador plantillas pinata · HTML
     }
     gridPreview.classList.add('show');
   }
- 
+
   // ---------- Layered PDF (color separation) ----------
   async function generateLayeredPdf(L){
     const DPI = 300;
     const { jsPDF } = window.jspdf;
     const pdf = new jsPDF({unit:'pt', format:[L.page.w, L.page.h]});
     const CUT = L.cropMm * MM;
- 
+
     const activeLayers = state.layers.filter(ly => ly.included && ly.contours.length);
     if (!activeLayers.length) throw new Error('No hay capas activas para generar.');
- 
+
     const cmPerWorkPxX = L.finalWcm / state.layersWorkW;
     const cmPerWorkPxY = L.finalHcm / state.layersWorkH;
     const strokeMm = parseFloat(layersStrokeInput.value) || 3;
     const strokePx = (strokeMm/10/2.54) * DPI;
     const padPx = strokePx + 6;
- 
+
     const prepared = activeLayers.map(ly => {
       const bw = Math.max(1e-3, (ly.bbox.maxX - ly.bbox.minX) * cmPerWorkPxX);
       const bh = Math.max(1e-3, (ly.bbox.maxY - ly.bbox.minY) * cmPerWorkPxY);
@@ -1094,16 +1089,16 @@ Generador plantillas pinata · HTML
       const rows = Math.ceil((physHcm*CM) / (L.printH - L.OL));
       return { layer: ly, wpx, hpx, scaleX, scaleY, physWcm, physHcm, cols, rows, pages: cols*rows };
     });
- 
+
     const totalPages = prepared.reduce((s,p)=>s+p.pages, 0);
- 
+
     // ---- Legend page (page 1) ----
     pdf.setTextColor(216,28,93);
     pdf.setFont(undefined,'bold'); pdf.setFontSize(16);
     pdf.text('Capas de colores · Mundo Piñatas K&A', L.M, L.M+16);
     pdf.setFont(undefined,'normal'); pdf.setFontSize(10.5); pdf.setTextColor(90,90,90);
     pdf.text(`Diseño total: ${L.finalWcm.toFixed(1)} × ${L.finalHcm.toFixed(1)} cm  ·  ${prepared.length} capas  ·  ${totalPages} hojas de recorte`, L.M, L.M+34);
- 
+
     let ly_y = L.M + 62;
     let runningPage = 2;
     prepared.forEach((p, idx) => {
@@ -1120,7 +1115,7 @@ Generador plantillas pinata · HTML
       ly_y += 34;
       runningPage += p.pages;
     });
- 
+
     // ---- Tiles per layer ----
     let done = 0;
     for (const p of prepared){
@@ -1142,10 +1137,10 @@ Generador plantillas pinata · HTML
         cctx.closePath();
       });
       cctx.stroke();
- 
+
       const scaleXpt = p.wpx / (p.physWcm*CM);
       const scaleYpt = p.hpx / (p.physHcm*CM);
- 
+
       for (let row=0; row<p.rows; row++){
         for (let col=0; col<p.cols; col++){
           const x0pt = col*(L.printW - L.OL);
@@ -1155,17 +1150,17 @@ Generador plantillas pinata · HTML
           const px0 = Math.round(x0pt*scaleXpt), py0 = Math.round(y0pt*scaleYpt);
           const px1 = Math.round(x1pt*scaleXpt), py1 = Math.round(y1pt*scaleYpt);
           const tw = px1-px0, th = py1-py0;
- 
+
           const tileCanvas = document.createElement('canvas');
           tileCanvas.width=tw; tileCanvas.height=th;
           tileCanvas.getContext('2d').drawImage(canvas, px0,py0,tw,th, 0,0,tw,th);
           const jpg = tileCanvas.toDataURL('image/jpeg', 0.95);
- 
+
           pdf.addPage([L.page.w, L.page.h]);
           const tileWpt = x1pt-x0pt, tileHpt = y1pt-y0pt;
           const topY = L.page.h - L.M - tileHpt;
           pdf.addImage(jpg, 'JPEG', L.M, topY, tileWpt, tileHpt);
- 
+
           pdf.setDrawColor(140,140,140); pdf.setLineWidth(0.5);
           const corners=[[L.M,L.page.h-L.M],[L.M+tileWpt,L.page.h-L.M],[L.M,L.page.h-L.M-tileHpt],[L.M+tileWpt,L.page.h-L.M-tileHpt]];
           corners.forEach(([cx,cy])=>{
@@ -1176,11 +1171,11 @@ Generador plantillas pinata · HTML
           if (col>0) pdf.line(L.M+L.OL, L.page.h-L.M, L.M+L.OL, L.page.h-L.M-tileHpt);
           if (row>0) pdf.line(L.M, L.page.h-L.M-L.OL, L.M+tileWpt, L.page.h-L.M-L.OL);
           pdf.setLineDashPattern([],0);
- 
+
           const pageNumInLayer = row*p.cols+col+1;
           pdf.setFontSize(6); pdf.setTextColor(130,130,130);
           pdf.text(`Capa: ${ly.name}  |  Hoja ${pageNumInLayer}/${p.pages}  |  Fila ${row+1}/${p.rows} Col ${col+1}/${p.cols}  ·  Mundo Piñatas K&A`, L.M, 14);
- 
+
           done++;
           progressFill.style.width = Math.round((done/totalPages)*90) + '%';
           statusEl.textContent = `Generando capa "${ly.name}"… ${done}/${totalPages}`;
@@ -1188,7 +1183,7 @@ Generador plantillas pinata · HTML
         }
       }
     }
- 
+
     // ---- Instructions page ----
     pdf.addPage([L.page.w, L.page.h]);
     pdf.setTextColor(216,28,93); pdf.setFont(undefined,'bold'); pdf.setFontSize(16);
@@ -1216,17 +1211,17 @@ Generador plantillas pinata · HTML
       pdf.text(line, L.M, y);
       y += 15;
     });
- 
+
     progressFill.style.width = '100%';
     statusEl.textContent = `✅ Listo — ${totalPages+2} páginas en total (1 índice + ${totalPages} de recorte + 1 de instrucciones).`;
- 
+
     const blob = pdf.output('blob');
     const url = URL.createObjectURL(blob);
     downloadLink.href = url;
     downloadLink.download = `plantilla_capas_${sizeInput.value.replace('.','_')}cm.pdf`;
     downloadWrap.classList.add('show');
   }
- 
+
   // ---------- PDF generation ----------
   generateBtn.addEventListener('click', async () => {
     const L = computeLayout();
@@ -1234,37 +1229,37 @@ Generador plantillas pinata · HTML
       alert(state.mode === 'circle' ? 'Ingresa un radio válido.' : 'Sube una imagen y define un tamaño válido.');
       return;
     }
- 
+
     const useLayers = state.mode === 'image' && layersEnabledChk.checked;
     if (useLayers && !state.layers.filter(l=>l.included && l.contours.length).length){
       alert('Detecta al menos una capa activa antes de generar (o desactiva la separación en capas).');
       return;
     }
- 
+
     generateBtn.disabled = true;
     downloadWrap.classList.remove('show');
     progressBar.classList.add('show');
     progressFill.style.width = '0%';
     statusEl.textContent = useLayers ? 'Preparando capas de color…' : (state.mode === 'circle' ? 'Dibujando el círculo a 300 DPI…' : 'Preparando imagen a 300 DPI…');
     await nextFrame();
- 
+
     try {
       if (useLayers){
         await generateLayeredPdf(L);
         return;
       }
- 
+
       const DPI = 300;
       const targetHpx = Math.round(L.finalHcm/2.54 * DPI);
       const targetWpx = Math.round(L.finalWcm/2.54 * DPI);
- 
+
       // Render the full-resolution source onto a white background canvas
       const full = document.createElement('canvas');
       full.width = targetWpx; full.height = targetHpx;
       const fctx = full.getContext('2d');
       fctx.fillStyle = '#ffffff';
       fctx.fillRect(0,0,targetWpx,targetHpx);
- 
+
       if (state.mode === 'circle'){
         const strokeMm = parseFloat(circleStrokeInput.value) || 3;
         const strokePx = (strokeMm/10/2.54) * DPI;
@@ -1280,42 +1275,42 @@ Generador plantillas pinata · HTML
         fctx.imageSmoothingQuality = 'high';
         fctx.drawImage(imgTrimmedCanvas, 0, 0, targetWpx, targetHpx);
       }
- 
+
       statusEl.textContent = 'Generando páginas…';
       await nextFrame();
- 
+
       const { jsPDF } = window.jspdf;
       const pdf = new jsPDF({unit:'pt', format:[L.page.w, L.page.h]});
- 
+
       const scaleX = targetWpx / L.imgWpt; // px per pt
       const scaleY = targetHpx / L.imgHpt;
       const CUT = L.cropMm * MM;
       const total = L.cols * L.rows;
       let done = 0;
- 
+
       for (let row=0; row<L.rows; row++){
         for (let col=0; col<L.cols; col++){
           const x0pt = col * (L.printW - L.OL);
           const y0pt = row * (L.printH - L.OL);
           const x1pt = Math.min(x0pt + L.printW, L.imgWpt);
           const y1pt = Math.min(y0pt + L.printH, L.imgHpt);
- 
+
           const px0 = Math.round(x0pt*scaleX), py0 = Math.round(y0pt*scaleY);
           const px1 = Math.round(x1pt*scaleX), py1 = Math.round(y1pt*scaleY);
           const tileWpx = px1-px0, tileHpx = py1-py0;
- 
+
           const tileWpt = x1pt-x0pt, tileHpt = y1pt-y0pt;
- 
+
           const tileCanvas = document.createElement('canvas');
           tileCanvas.width = tileWpx; tileCanvas.height = tileHpx;
           tileCanvas.getContext('2d').drawImage(full, px0, py0, tileWpx, tileHpx, 0, 0, tileWpx, tileHpx);
           const jpegData = tileCanvas.toDataURL('image/jpeg', 0.95);
- 
+
           if (done > 0) pdf.addPage([L.page.w, L.page.h]);
- 
+
           const topY = L.page.h - L.M - tileHpt;
           pdf.addImage(jpegData, 'JPEG', L.M, topY, tileWpt, tileHpt);
- 
+
           // crop marks
           pdf.setDrawColor(140,140,140);
           pdf.setLineWidth(0.5);
@@ -1331,7 +1326,7 @@ Generador plantillas pinata · HTML
             pdf.line(cx, cy-CUT, cx, cy-2);
             pdf.line(cx, cy+2, cx, cy+CUT);
           });
- 
+
           // overlap guides (dashed)
           pdf.setDrawColor(180,180,180);
           pdf.setLineWidth(0.4);
@@ -1339,28 +1334,28 @@ Generador plantillas pinata · HTML
           if (col>0) pdf.line(L.M+L.OL, L.page.h-L.M, L.M+L.OL, L.page.h-L.M-tileHpt);
           if (row>0) pdf.line(L.M, L.page.h-L.M-L.OL, L.M+tileWpt, L.page.h-L.M-L.OL);
           pdf.setLineDashPattern([], 0);
- 
+
           // label
           const pageNum = row*L.cols + col + 1;
           const sizeTag = state.mode === 'circle' ? `Círculo radio ${radiusInput.value} cm` : `Piñata ${sizeInput.value} cm`;
           pdf.setFontSize(6);
           pdf.setTextColor(130,130,130);
           pdf.text(`Hoja ${pageNum}/${total}  |  Fila ${row+1}/${L.rows}  Col ${col+1}/${L.cols}  |  ${sizeTag} · Mundo Piñatas K&A`, L.M, 14);
- 
+
           done++;
           progressFill.style.width = Math.round((done/total)*90) + '%';
           statusEl.textContent = `Generando páginas… ${done}/${total}`;
           await nextFrame();
         }
       }
- 
+
       // instructions page
       pdf.addPage([L.page.w, L.page.h]);
       pdf.setTextColor(216,28,93);
       pdf.setFontSize(16);
       pdf.setFont(undefined, 'bold');
       pdf.text('Instrucciones · Mundo Piñatas K&A', L.M, L.M+16);
- 
+
       pdf.setTextColor(20,20,20);
       const assemblyExtra = state.mode === 'circle'
         ? '  •  Recorta siguiendo el contorno del círculo dibujado (línea negra).'
@@ -1398,10 +1393,10 @@ Generador plantillas pinata · HTML
         pdf.text(line, L.M, y);
         y += 15;
       });
- 
+
       progressFill.style.width = '100%';
       statusEl.textContent = `✅ Listo — ${total+1} páginas en total (${total} de diseño + 1 de instrucciones).`;
- 
+
       const blob = pdf.output('blob');
       const url = URL.createObjectURL(blob);
       downloadLink.href = url;
@@ -1410,7 +1405,7 @@ Generador plantillas pinata · HTML
         : `pinata_${sizeInput.value.replace('.','_')}cm`;
       downloadLink.download = `plantilla_${fileTag}.pdf`;
       downloadWrap.classList.add('show');
- 
+
     } catch(err){
       console.error(err);
       statusEl.textContent = '⚠️ Ocurrió un error generando el PDF: ' + err.message;
@@ -1419,14 +1414,14 @@ Generador plantillas pinata · HTML
       setTimeout(()=>progressBar.classList.remove('show'), 800);
     }
   });
- 
+
   function nextFrame(){
     return new Promise(res => requestAnimationFrame(()=>setTimeout(res,0)));
   }
- 
+
   // ---------- Init ----------
   applyMode();
- 
+
 })();
 </script>
 </body>
