@@ -312,6 +312,31 @@
             <div id="layersStatus" style="font-size:12.5px;color:#8b8195;"></div>
           </div>
         </div>
+
+        <label class="checklabel" style="margin-top:14px;">
+          <input type="checkbox" id="linesEnabled">
+          Marcar todos los bordes y líneas del diseño
+        </label>
+
+        <div id="linesPanel" style="display:none; margin-top:10px;">
+          <div class="field">
+            <label class="fl">Sensibilidad de bordes <span class="hint">— más bajo captura también detalles finos, más alto solo líneas fuertes</span></label>
+            <div class="size-input">
+              <input type="range" id="linesThresholdSlider" min="10" max="80" value="35" style="flex:1;">
+              <span class="unit" id="linesThresholdVal">35</span>
+            </div>
+          </div>
+          <div class="field">
+            <label class="fl">Grosor de línea</label>
+            <div class="size-input">
+              <input type="number" id="linesStrokeInput" value="1.5" min="0.5" max="8" step="0.5">
+              <span class="unit">mm</span>
+            </div>
+          </div>
+          <div class="field" style="font-size:12.5px; color:#8b8195;">
+            Se agrega como una pieza extra ("Contornos") del tamaño completo del diseño, junto a las demás capas si también las separaste.
+          </div>
+        </div>
       </div>
     </div>
 
@@ -445,6 +470,12 @@
   const layersStrokeInput= document.getElementById('layersStrokeInput');
   const layersList       = document.getElementById('layersList');
   const layersStatus     = document.getElementById('layersStatus');
+
+  const linesEnabledChk    = document.getElementById('linesEnabled');
+  const linesPanel         = document.getElementById('linesPanel');
+  const linesThresholdSlider = document.getElementById('linesThresholdSlider');
+  const linesThresholdVal    = document.getElementById('linesThresholdVal');
+  const linesStrokeInput     = document.getElementById('linesStrokeInput');
 
   const dropzone   = document.getElementById('dropzone');
   const fileInput  = document.getElementById('fileInput');
@@ -584,7 +615,16 @@
     state.layers = [];
     layersList.innerHTML = '';
     layersStatus.textContent = '';
+    linesEnabledChk.checked = false;
+    linesPanel.style.display = 'none';
   }
+
+  linesEnabledChk.addEventListener('change', () => {
+    linesPanel.style.display = linesEnabledChk.checked ? 'block' : 'none';
+  });
+  linesThresholdSlider.addEventListener('input', () => {
+    linesThresholdVal.textContent = linesThresholdSlider.value;
+  });
 
   layersEnabledChk.addEventListener('change', () => {
     layersPanel.style.display = layersEnabledChk.checked ? 'block' : 'none';
@@ -857,6 +897,49 @@
     return bgMask;
   }
 
+  // ---- Edge / line detection (Sobel) — used by the "Marcar todos los bordes y líneas" option ----
+  function detectEdgeMask(sourceCanvas, thresholdPct){
+    const WORK_MAX = 900;
+    const scale = Math.min(1, WORK_MAX / Math.max(sourceCanvas.width, sourceCanvas.height));
+    const ww = Math.max(1, Math.round(sourceCanvas.width*scale));
+    const wh = Math.max(1, Math.round(sourceCanvas.height*scale));
+    const work = document.createElement('canvas');
+    work.width=ww; work.height=wh;
+    const wctx = work.getContext('2d');
+    wctx.drawImage(sourceCanvas, 0, 0, ww, wh);
+    const { data } = wctx.getImageData(0, 0, ww, wh);
+
+    const gray = new Float32Array(ww*wh);
+    for (let p=0; p<ww*wh; p++){
+      const i = p*4;
+      gray[p] = 0.299*data[i] + 0.587*data[i+1] + 0.114*data[i+2];
+    }
+
+    const gx = [-1,0,1,-2,0,2,-1,0,1];
+    const gy = [-1,-2,-1,0,0,0,1,2,1];
+    const mag = new Float32Array(ww*wh);
+    let maxMag = 1;
+    for (let y=1; y<wh-1; y++){
+      for (let x=1; x<ww-1; x++){
+        let sx=0, sy=0, k=0;
+        for (let dy=-1; dy<=1; dy++){
+          for (let dx=-1; dx<=1; dx++){
+            const v = gray[(y+dy)*ww + (x+dx)];
+            sx += v*gx[k]; sy += v*gy[k]; k++;
+          }
+        }
+        const m = Math.sqrt(sx*sx + sy*sy);
+        mag[y*ww+x] = m;
+        if (m > maxMag) maxMag = m;
+      }
+    }
+
+    const thresh = (thresholdPct/100) * maxMag;
+    const mask = new Uint8Array(ww*wh);
+    for (let p=0; p<ww*wh; p++) mask[p] = mag[p] > thresh ? 1 : 0;
+    return { mask, ww, wh };
+  }
+
   function detectLayers(sourceCanvas, k){
     const WORK_MAX = 640;
     const scale = Math.min(1, WORK_MAX / Math.max(sourceCanvas.width, sourceCanvas.height));
@@ -1066,10 +1149,11 @@
     const CUT = L.cropMm * MM;
 
     const activeLayers = state.layers.filter(ly => ly.included && ly.contours.length);
-    if (!activeLayers.length) throw new Error('No hay capas activas para generar.');
+    const useLines = linesEnabledChk.checked;
+    if (!activeLayers.length && !useLines) throw new Error('No hay capas ni contornos activos para generar.');
 
-    const cmPerWorkPxX = L.finalWcm / state.layersWorkW;
-    const cmPerWorkPxY = L.finalHcm / state.layersWorkH;
+    const cmPerWorkPxX = state.layersWorkW ? L.finalWcm / state.layersWorkW : 0;
+    const cmPerWorkPxY = state.layersWorkH ? L.finalHcm / state.layersWorkH : 0;
     const strokeMm = parseFloat(layersStrokeInput.value) || 3;
     const strokePx = (strokeMm/10/2.54) * DPI;
     const padPx = strokePx + 6;
@@ -1087,17 +1171,52 @@
       const physHcm = hpx/DPI*2.54;
       const cols = Math.ceil((physWcm*CM) / (L.printW - L.OL));
       const rows = Math.ceil((physHcm*CM) / (L.printH - L.OL));
-      return { layer: ly, wpx, hpx, scaleX, scaleY, physWcm, physHcm, cols, rows, pages: cols*rows };
+      return { kind:'contours', layer: ly, wpx, hpx, scaleX, scaleY, physWcm, physHcm, cols, rows, pages: cols*rows };
     });
+
+    if (useLines){
+      statusEl.textContent = 'Detectando bordes y líneas…';
+      await nextFrame();
+      const thresholdPct = parseFloat(linesThresholdSlider.value) || 35;
+      const { mask, ww: eww, wh: ewh } = detectEdgeMask(imgTrimmedCanvas, thresholdPct);
+      const targetWpxFull = Math.round(L.finalWcm/2.54*DPI);
+      const targetHpxFull = Math.round(L.finalHcm/2.54*DPI);
+      const linesStrokeMm = parseFloat(linesStrokeInput.value) || 1.5;
+      const strokePxPrint = (linesStrokeMm/10/2.54) * DPI;
+      const strokePxWork = Math.max(1, Math.round((strokePxPrint * (eww/targetWpxFull)) / 2));
+      const dilated = binaryDilate(mask, eww, ewh, strokePxWork);
+
+      const rasterCanvas = document.createElement('canvas');
+      rasterCanvas.width = eww; rasterCanvas.height = ewh;
+      const rctx = rasterCanvas.getContext('2d');
+      rctx.fillStyle = '#ffffff'; rctx.fillRect(0,0,eww,ewh);
+      const imgData = rctx.getImageData(0,0,eww,ewh);
+      for (let p=0; p<eww*ewh; p++){
+        if (dilated[p]){ const i=p*4; imgData.data[i]=15; imgData.data[i+1]=15; imgData.data[i+2]=15; imgData.data[i+3]=255; }
+      }
+      rctx.putImageData(imgData, 0, 0);
+
+      prepared.push({
+        kind: 'raster',
+        layer: { name: 'Contornos', color: [20,20,20] },
+        raster: rasterCanvas,
+        wpx: targetWpxFull, hpx: targetHpxFull,
+        physWcm: L.finalWcm, physHcm: L.finalHcm,
+        cols: L.cols, rows: L.rows, pages: L.cols*L.rows
+      });
+    }
 
     const totalPages = prepared.reduce((s,p)=>s+p.pages, 0);
 
     // ---- Legend page (page 1) ----
+    const legendTitle = activeLayers.length && useLines ? 'Capas y contornos · Mundo Piñatas K&A'
+      : useLines ? 'Contornos · Mundo Piñatas K&A'
+      : 'Capas de colores · Mundo Piñatas K&A';
     pdf.setTextColor(216,28,93);
     pdf.setFont(undefined,'bold'); pdf.setFontSize(16);
-    pdf.text('Capas de colores · Mundo Piñatas K&A', L.M, L.M+16);
+    pdf.text(legendTitle, L.M, L.M+16);
     pdf.setFont(undefined,'normal'); pdf.setFontSize(10.5); pdf.setTextColor(90,90,90);
-    pdf.text(`Diseño total: ${L.finalWcm.toFixed(1)} × ${L.finalHcm.toFixed(1)} cm  ·  ${prepared.length} capas  ·  ${totalPages} hojas de recorte`, L.M, L.M+34);
+    pdf.text(`Diseño total: ${L.finalWcm.toFixed(1)} × ${L.finalHcm.toFixed(1)} cm  ·  ${prepared.length} pieza${prepared.length>1?'s':''}  ·  ${totalPages} hojas de recorte`, L.M, L.M+34);
 
     let ly_y = L.M + 62;
     let runningPage = 2;
@@ -1124,19 +1243,26 @@
       canvas.width = p.wpx; canvas.height = p.hpx;
       const cctx = canvas.getContext('2d');
       cctx.fillStyle = '#ffffff'; cctx.fillRect(0,0,p.wpx,p.hpx);
-      cctx.strokeStyle = '#000000';
-      cctx.lineWidth = strokePx;
-      cctx.lineJoin = 'round';
-      cctx.beginPath();
-      ly.contours.forEach(contour=>{
-        contour.forEach((pt,i)=>{
-          const px = padPx + (pt.x - ly.bbox.minX)*p.scaleX;
-          const py = padPx + (pt.y - ly.bbox.minY)*p.scaleY;
-          if (i===0) cctx.moveTo(px,py); else cctx.lineTo(px,py);
+
+      if (p.kind === 'raster'){
+        cctx.imageSmoothingEnabled = true;
+        cctx.imageSmoothingQuality = 'high';
+        cctx.drawImage(p.raster, 0, 0, p.wpx, p.hpx);
+      } else {
+        cctx.strokeStyle = '#000000';
+        cctx.lineWidth = strokePx;
+        cctx.lineJoin = 'round';
+        cctx.beginPath();
+        ly.contours.forEach(contour=>{
+          contour.forEach((pt,i)=>{
+            const px = padPx + (pt.x - ly.bbox.minX)*p.scaleX;
+            const py = padPx + (pt.y - ly.bbox.minY)*p.scaleY;
+            if (i===0) cctx.moveTo(px,py); else cctx.lineTo(px,py);
+          });
+          cctx.closePath();
         });
-        cctx.closePath();
-      });
-      cctx.stroke();
+        cctx.stroke();
+      }
 
       const scaleXpt = p.wpx / (p.physWcm*CM);
       const scaleYpt = p.hpx / (p.physHcm*CM);
@@ -1218,7 +1344,10 @@
     const blob = pdf.output('blob');
     const url = URL.createObjectURL(blob);
     downloadLink.href = url;
-    downloadLink.download = `plantilla_capas_${sizeInput.value.replace('.','_')}cm.pdf`;
+    const tagParts = [];
+    if (activeLayers.length) tagParts.push('capas');
+    if (useLines) tagParts.push('contornos');
+    downloadLink.download = `plantilla_${tagParts.join('_')}_${sizeInput.value.replace('.','_')}cm.pdf`;
     downloadWrap.classList.add('show');
   }
 
@@ -1231,7 +1360,9 @@
     }
 
     const useLayers = state.mode === 'image' && layersEnabledChk.checked;
-    if (useLayers && !state.layers.filter(l=>l.included && l.contours.length).length){
+    const useLines  = state.mode === 'image' && linesEnabledChk.checked;
+    const usePieces = useLayers || useLines;
+    if (useLayers && !state.layers.filter(l=>l.included && l.contours.length).length && !useLines){
       alert('Detecta al menos una capa activa antes de generar (o desactiva la separación en capas).');
       return;
     }
@@ -1240,11 +1371,11 @@
     downloadWrap.classList.remove('show');
     progressBar.classList.add('show');
     progressFill.style.width = '0%';
-    statusEl.textContent = useLayers ? 'Preparando capas de color…' : (state.mode === 'circle' ? 'Dibujando el círculo a 300 DPI…' : 'Preparando imagen a 300 DPI…');
+    statusEl.textContent = usePieces ? 'Preparando piezas de recorte…' : (state.mode === 'circle' ? 'Dibujando el círculo a 300 DPI…' : 'Preparando imagen a 300 DPI…');
     await nextFrame();
 
     try {
-      if (useLayers){
+      if (usePieces){
         await generateLayeredPdf(L);
         return;
       }
