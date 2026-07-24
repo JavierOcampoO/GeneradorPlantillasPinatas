@@ -342,10 +342,17 @@
 
     <div id="circleFields" style="display:none;">
       <div class="field">
-        <label class="fl">Radio del círculo</label>
+        <label class="fl">Medida del círculo</label>
         <div class="size-input">
-          <input type="number" id="radiusInput" value="30" min="2" max="150" step="0.5">
+          <input type="number" id="radiusInput" value="30" min="1" max="300" step="0.5">
           <span class="unit">cm</span>
+        </div>
+      </div>
+      <div class="field">
+        <label class="fl">Esa medida es el</label>
+        <div class="seg" id="circleDimSeg">
+          <button data-circledim="radius" class="active">Radio</button>
+          <button data-circledim="diameter">Diámetro</button>
         </div>
       </div>
       <div class="field">
@@ -448,6 +455,7 @@
     mode: 'image',
     paper: 'letter',
     dim: 'auto',
+    circleDim: 'radius',
     layers: [],
     layersWorkW: 0,
     layersWorkH: 0
@@ -460,6 +468,7 @@
   const step1Label   = document.getElementById('step1Label');
   const step2Label   = document.getElementById('step2Label');
   const radiusInput  = document.getElementById('radiusInput');
+  const circleDimSeg = document.getElementById('circleDimSeg');
   const circleStrokeInput = document.getElementById('circleStrokeInput');
 
   const layersToggleWrap = document.getElementById('layersToggleWrap');
@@ -1048,12 +1057,28 @@
     inp.addEventListener('input', () => { updateGenerateButtonState(); updatePreview(); });
   });
 
+  circleDimSeg.addEventListener('click', e => {
+    const btn = e.target.closest('button'); if (!btn) return;
+    [...circleDimSeg.children].forEach(b=>b.classList.remove('active'));
+    btn.classList.add('active');
+    state.circleDim = btn.dataset.circledim;
+    updatePreview();
+  });
+
+  function getCircleRadiusCm(){
+    const v = parseFloat(radiusInput.value) || 0;
+    return state.circleDim === 'diameter' ? v/2 : v;
+  }
+  function circleMeasureLabel(){
+    return `${state.circleDim === 'diameter' ? 'diámetro' : 'radio'} ${radiusInput.value} cm`;
+  }
+
   // ---------- Live preview / grid calc ----------
   function computeLayout(){
     let finalWcm, finalHcm, landscape, appliedTo;
 
     if (state.mode === 'circle'){
-      const radius = parseFloat(radiusInput.value) || 0;
+      const radius = getCircleRadiusCm();
       if (radius <= 0) return null;
       finalWcm = finalHcm = radius * 2;
       landscape = true;
@@ -1112,7 +1137,7 @@
     }
 
     if (state.mode === 'circle'){
-      orientPill.textContent = `⚪ Círculo · radio ${radiusInput.value} cm`;
+      orientPill.textContent = `⚪ Círculo · ${circleMeasureLabel()}`;
     } else {
       const dimLabel = L.appliedTo === 'height' ? 'al alto' : 'al ancho';
       const modeLabel = state.dim === 'auto'
@@ -1468,7 +1493,7 @@
 
           // label
           const pageNum = row*L.cols + col + 1;
-          const sizeTag = state.mode === 'circle' ? `Círculo radio ${radiusInput.value} cm` : `Piñata ${sizeInput.value} cm`;
+          const sizeTag = state.mode === 'circle' ? `Círculo ${circleMeasureLabel()}` : `Piñata ${sizeInput.value} cm`;
           pdf.setFontSize(6);
           pdf.setTextColor(130,130,130);
           pdf.text(`Hoja ${pageNum}/${total}  |  Fila ${row+1}/${L.rows}  Col ${col+1}/${L.cols}  |  ${sizeTag} · Mundo Piñatas K&A`, L.M, 14);
@@ -1532,7 +1557,7 @@
       const url = URL.createObjectURL(blob);
       downloadLink.href = url;
       const fileTag = state.mode === 'circle'
-        ? `circulo_r${radiusInput.value.replace('.','_')}cm`
+        ? `circulo_r${getCircleRadiusCm().toFixed(1).replace('.','_')}cm`
         : `pinata_${sizeInput.value.replace('.','_')}cm`;
       downloadLink.download = `plantilla_${fileTag}.pdf`;
       downloadWrap.classList.add('show');
