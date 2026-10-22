@@ -444,6 +444,7 @@
 (function(){
   const MM = 2.8346456693; // pt per mm
   const CM = MM * 10;      // pt per cm
+  const PRINT_DPI = 300;
   const PAGES = {
     letter: {w: 612, h: 792, label:'Carta'},
     a4:     {w: 595.28, h: 841.89, label:'A4'}
@@ -567,7 +568,11 @@
         thumbImg.src = e.target.result;
         trimImage(image, file.type);
         const kb = (file.size/1024).toFixed(0);
-        fileMeta.innerHTML = `<b>${file.name}</b><br>${image.naturalWidth}×${image.naturalHeight}px · ${kb} KB`;
+        fileMeta.textContent = '';
+        const nameEl = document.createElement('b');
+        nameEl.textContent = file.name;
+        fileMeta.append(nameEl, document.createElement('br'),
+          `${image.naturalWidth}×${image.naturalHeight}px · ${kb} KB`);
         previewRow.classList.add('show');
         changeFileBtn.style.display = 'inline-block';
         dropzone.style.display = 'none';
@@ -582,11 +587,18 @@
   }
 
   // Trim fully-transparent edges (PNG only); keep full frame for JPG
+  // Phones (iOS Safari especially) refuse canvases above ~16.7M pixels, so very
+  // large uploads are scaled down to stay under that limit.
+  const MAX_CANVAS_PIXELS = 16000000;
   function trimImage(image, mime){
     const c = document.createElement('canvas');
-    c.width = image.naturalWidth; c.height = image.naturalHeight;
+    const area = image.naturalWidth * image.naturalHeight;
+    const s = area > MAX_CANVAS_PIXELS ? Math.sqrt(MAX_CANVAS_PIXELS / area) : 1;
+    c.width = Math.max(1, Math.floor(image.naturalWidth * s));
+    c.height = Math.max(1, Math.floor(image.naturalHeight * s));
     const ctx = c.getContext('2d');
-    ctx.drawImage(image, 0, 0);
+    ctx.imageSmoothingQuality = 'high';
+    ctx.drawImage(image, 0, 0, c.width, c.height);
 
     if (mime !== 'image/png'){ imgTrimmedCanvas = c; updatePreview(); return; }
 
@@ -675,10 +687,11 @@
       const [r,g,b] = ly.color;
       row.innerHTML = `
         <div class="layer-swatch" style="background: rgb(${r},${g},${b});"></div>
-        <input type="text" value="${ly.name}" data-idx="${i}" class="layer-name-input">
+        <input type="text" data-idx="${i}" class="layer-name-input">
         <span class="layer-meta">${ly.contours.length} pieza${ly.contours.length>1?'s':''}</span>
         <input type="checkbox" ${ly.included ? 'checked' : ''} data-idx="${i}" class="layer-include-input">
       `;
+      row.querySelector('.layer-name-input').value = ly.name;
       layersList.appendChild(row);
     });
     layersList.querySelectorAll('.layer-name-input').forEach(inp=>{
@@ -1114,8 +1127,8 @@
     const imgWpt = finalWcm * CM;
     const imgHpt = finalHcm * CM;
 
-    const cols = Math.ceil(imgWpt / (printW - OL));
-    const rows = Math.ceil(imgHpt / (printH - OL));
+    const cols = tileCount(imgWpt, printW, OL);
+    const rows = tileCount(imgHpt, printH, OL);
 
     return {
       landscape, finalWcm, finalHcm, page, M, OL, cropMm, printW, printH,
@@ -1166,12 +1179,98 @@
     gridPreview.classList.add('show');
   }
 
+  // ---------- Shared tiling helpers ----------
+  // n sheets that each print `printLen` and overlap by `OL` cover n*(printLen-OL)+OL,
+  // so this is the fewest sheets that cover `lenPt` (no sheet made only of overlap).
+  function tileCount(lenPt, printLen, OL){
+    return Math.max(1, Math.ceil((lenPt - OL) / (printLen - OL)));
+  }
+
+  // Cut marks at the 4 corners of the printed tile, plus a dashed overlap guide on
+  // EVERY side that is shared with a neighbouring sheet. jsPDF measures y from the
+  // top of the page, so the tile occupies [x, x+w] × [y, y+h].
+  function drawTileMarks(pdf, L, x, y, w, h, row, col, rows, cols){
+    const CUT = L.cropMm * MM, OL = L.OL;
+    pdf.setDrawColor(140,140,140); pdf.setLineWidth(0.5);
+    [[x,y],[x+w,y],[x,y+h],[x+w,y+h]].forEach(([cx,cy])=>{
+      pdf.line(cx-CUT, cy, cx-2, cy); pdf.line(cx+2, cy, cx+CUT, cy);
+      pdf.line(cx, cy-CUT, cx, cy-2); pdf.line(cx, cy+2, cx, cy+CUT);
+    });
+    pdf.setDrawColor(180,180,180); pdf.setLineWidth(0.4); pdf.setLineDashPattern([3,3], 0);
+    if (col > 0)      pdf.line(x+OL,   y,      x+OL,   y+h);    // left neighbour
+    if (col < cols-1) pdf.line(x+w-OL, y,      x+w-OL, y+h);    // right neighbour
+    if (row > 0)      pdf.line(x,      y+OL,   x+w,    y+OL);   // sheet above
+    if (row < rows-1) pdf.line(x,      y+h-OL, x+w,    y+h-OL); // sheet below
+    pdf.setLineDashPattern([], 0);
+  }
+
+  // Emits one PDF page per tile. Each tile is rendered on its own small canvas by
+  // calling o.render(ctx) with the context shifted so only that tile's region of the
+  // full-resolution design lands on it. The full design is never allocated as one
+  // canvas, which keeps phones (iOS caps canvases at ~16.7M px) working.
+  //   o.wPt, o.hPt     design size in PDF points
+  //   o.cols, o.rows   grid
+  //   o.render(ctx)    draws the whole design in full-resolution pixel coordinates
+  //   o.format         'JPEG' for photos, 'PNG' for line art
+  //   o.label(row,col,pageNum,pages)  small header text
+  //   o.firstOnCurrentPage  draw the first tile on the current page instead of adding one
+  //   o.onTile()       awaited after each page (progress updates)
+  async function emitTiles(pdf, L, o){
+    const pxPerPt = PRINT_DPI / 72;
+    const stepW = L.printW - L.OL, stepH = L.printH - L.OL;
+    const pages = o.cols * o.rows;
+    let first = true;
+    for (let row=0; row<o.rows; row++){
+      for (let col=0; col<o.cols; col++){
+        const x0pt = col*stepW, y0pt = row*stepH;
+        const tileWpt = Math.min(L.printW, o.wPt - x0pt);
+        const tileHpt = Math.min(L.printH, o.hPt - y0pt);
+        const px0 = Math.round(x0pt*pxPerPt), py0 = Math.round(y0pt*pxPerPt);
+        const tw = Math.max(1, Math.round((x0pt+tileWpt)*pxPerPt) - px0);
+        const th = Math.max(1, Math.round((y0pt+tileHpt)*pxPerPt) - py0);
+
+        const tile = document.createElement('canvas');
+        tile.width = tw; tile.height = th;
+        const tctx = tile.getContext('2d');
+        tctx.fillStyle = '#ffffff'; tctx.fillRect(0, 0, tw, th);
+        tctx.save();
+        tctx.translate(-px0, -py0);
+        o.render(tctx);
+        tctx.restore();
+
+        const data = o.format === 'PNG'
+          ? tile.toDataURL('image/png')
+          : tile.toDataURL('image/jpeg', 0.92);
+        tile.width = tile.height = 0; // release canvas memory right away (Safari)
+
+        if (!(first && o.firstOnCurrentPage)) pdf.addPage([L.page.w, L.page.h]);
+        first = false;
+        // Every tile starts at the top-left printable corner, including partial ones.
+        pdf.addImage(data, o.format, L.M, L.M, tileWpt, tileHpt, undefined, 'FAST');
+        drawTileMarks(pdf, L, L.M, L.M, tileWpt, tileHpt, row, col, o.rows, o.cols);
+
+        pdf.setFontSize(6); pdf.setTextColor(130,130,130);
+        pdf.text(o.label(row, col, row*o.cols+col+1, pages), L.M, 14);
+        await o.onTile();
+      }
+    }
+  }
+
+  // Points the download button at a fresh PDF and frees the previous one.
+  let lastPdfUrl = null;
+  function setDownload(pdf, filename){
+    if (lastPdfUrl) URL.revokeObjectURL(lastPdfUrl);
+    lastPdfUrl = URL.createObjectURL(pdf.output('blob'));
+    downloadLink.href = lastPdfUrl;
+    downloadLink.download = filename;
+    downloadWrap.classList.add('show');
+  }
+
   // ---------- Layered PDF (color separation) ----------
   async function generateLayeredPdf(L){
     const DPI = 300;
     const { jsPDF } = window.jspdf;
     const pdf = new jsPDF({unit:'pt', format:[L.page.w, L.page.h]});
-    const CUT = L.cropMm * MM;
 
     const activeLayers = state.layers.filter(ly => ly.included && ly.contours.length);
     const useLines = linesEnabledChk.checked;
@@ -1194,8 +1293,8 @@
       const scaleY = innerHpx / Math.max(1, (ly.bbox.maxY - ly.bbox.minY));
       const physWcm = wpx/DPI*2.54;
       const physHcm = hpx/DPI*2.54;
-      const cols = Math.ceil((physWcm*CM) / (L.printW - L.OL));
-      const rows = Math.ceil((physHcm*CM) / (L.printH - L.OL));
+      const cols = tileCount(physWcm*CM, L.printW, L.OL);
+      const rows = tileCount(physHcm*CM, L.printH, L.OL);
       return { kind:'contours', layer: ly, wpx, hpx, scaleX, scaleY, physWcm, physHcm, cols, rows, pages: cols*rows };
     });
 
@@ -1264,75 +1363,42 @@
     let done = 0;
     for (const p of prepared){
       const ly = p.layer;
-      const canvas = document.createElement('canvas');
-      canvas.width = p.wpx; canvas.height = p.hpx;
-      const cctx = canvas.getContext('2d');
-      cctx.fillStyle = '#ffffff'; cctx.fillRect(0,0,p.wpx,p.hpx);
-
+      let render;
       if (p.kind === 'raster'){
-        cctx.imageSmoothingEnabled = true;
-        cctx.imageSmoothingQuality = 'high';
-        cctx.drawImage(p.raster, 0, 0, p.wpx, p.hpx);
+        render = ctx => {
+          ctx.imageSmoothingEnabled = true;
+          ctx.imageSmoothingQuality = 'high';
+          ctx.drawImage(p.raster, 0, 0, p.wpx, p.hpx);
+        };
       } else {
-        cctx.strokeStyle = '#000000';
-        cctx.lineWidth = strokePx;
-        cctx.lineJoin = 'round';
-        cctx.beginPath();
-        ly.contours.forEach(contour=>{
-          contour.forEach((pt,i)=>{
-            const px = padPx + (pt.x - ly.bbox.minX)*p.scaleX;
-            const py = padPx + (pt.y - ly.bbox.minY)*p.scaleY;
-            if (i===0) cctx.moveTo(px,py); else cctx.lineTo(px,py);
+        render = ctx => {
+          ctx.strokeStyle = '#000000';
+          ctx.lineWidth = strokePx;
+          ctx.lineJoin = 'round';
+          ctx.beginPath();
+          ly.contours.forEach(contour=>{
+            contour.forEach((pt,i)=>{
+              const px = padPx + (pt.x - ly.bbox.minX)*p.scaleX;
+              const py = padPx + (pt.y - ly.bbox.minY)*p.scaleY;
+              if (i===0) ctx.moveTo(px,py); else ctx.lineTo(px,py);
+            });
+            ctx.closePath();
           });
-          cctx.closePath();
-        });
-        cctx.stroke();
+          ctx.stroke();
+        };
       }
-
-      const scaleXpt = p.wpx / (p.physWcm*CM);
-      const scaleYpt = p.hpx / (p.physHcm*CM);
-
-      for (let row=0; row<p.rows; row++){
-        for (let col=0; col<p.cols; col++){
-          const x0pt = col*(L.printW - L.OL);
-          const y0pt = row*(L.printH - L.OL);
-          const x1pt = Math.min(x0pt+L.printW, p.physWcm*CM);
-          const y1pt = Math.min(y0pt+L.printH, p.physHcm*CM);
-          const px0 = Math.round(x0pt*scaleXpt), py0 = Math.round(y0pt*scaleYpt);
-          const px1 = Math.round(x1pt*scaleXpt), py1 = Math.round(y1pt*scaleYpt);
-          const tw = px1-px0, th = py1-py0;
-
-          const tileCanvas = document.createElement('canvas');
-          tileCanvas.width=tw; tileCanvas.height=th;
-          tileCanvas.getContext('2d').drawImage(canvas, px0,py0,tw,th, 0,0,tw,th);
-          const jpg = tileCanvas.toDataURL('image/jpeg', 0.95);
-
-          pdf.addPage([L.page.w, L.page.h]);
-          const tileWpt = x1pt-x0pt, tileHpt = y1pt-y0pt;
-          const topY = L.page.h - L.M - tileHpt;
-          pdf.addImage(jpg, 'JPEG', L.M, topY, tileWpt, tileHpt);
-
-          pdf.setDrawColor(140,140,140); pdf.setLineWidth(0.5);
-          const corners=[[L.M,L.page.h-L.M],[L.M+tileWpt,L.page.h-L.M],[L.M,L.page.h-L.M-tileHpt],[L.M+tileWpt,L.page.h-L.M-tileHpt]];
-          corners.forEach(([cx,cy])=>{
-            pdf.line(cx-CUT,cy,cx-2,cy); pdf.line(cx+2,cy,cx+CUT,cy);
-            pdf.line(cx,cy-CUT,cx,cy-2); pdf.line(cx,cy+2,cx,cy+CUT);
-          });
-          pdf.setDrawColor(180,180,180); pdf.setLineWidth(0.4); pdf.setLineDashPattern([3,3],0);
-          if (col>0) pdf.line(L.M+L.OL, L.page.h-L.M, L.M+L.OL, L.page.h-L.M-tileHpt);
-          if (row>0) pdf.line(L.M, L.page.h-L.M-L.OL, L.M+tileWpt, L.page.h-L.M-L.OL);
-          pdf.setLineDashPattern([],0);
-
-          const pageNumInLayer = row*p.cols+col+1;
-          pdf.setFontSize(6); pdf.setTextColor(130,130,130);
-          pdf.text(`Capa: ${ly.name}  |  Hoja ${pageNumInLayer}/${p.pages}  |  Fila ${row+1}/${p.rows} Col ${col+1}/${p.cols}  ·  Mundo Piñatas K&A`, L.M, 14);
-
+      await emitTiles(pdf, L, {
+        wPt: p.wpx * 72 / PRINT_DPI, hPt: p.hpx * 72 / PRINT_DPI,
+        cols: p.cols, rows: p.rows, render, format: 'PNG',
+        label: (row, col, n, pages) =>
+          `Capa: ${ly.name}  |  Hoja ${n}/${pages}  |  Fila ${row+1}/${p.rows} Col ${col+1}/${p.cols}  ·  Mundo Piñatas K&A`,
+        onTile: async () => {
           done++;
           progressFill.style.width = Math.round((done/totalPages)*90) + '%';
           statusEl.textContent = `Generando capa "${ly.name}"… ${done}/${totalPages}`;
           await nextFrame();
         }
-      }
+      });
     }
 
     // ---- Instructions page ----
@@ -1366,14 +1432,10 @@
     progressFill.style.width = '100%';
     statusEl.textContent = `✅ Listo — ${totalPages+2} páginas en total (1 índice + ${totalPages} de recorte + 1 de instrucciones).`;
 
-    const blob = pdf.output('blob');
-    const url = URL.createObjectURL(blob);
-    downloadLink.href = url;
     const tagParts = [];
     if (activeLayers.length) tagParts.push('capas');
     if (useLines) tagParts.push('contornos');
-    downloadLink.download = `plantilla_${tagParts.join('_')}_${sizeInput.value.replace('.','_')}cm.pdf`;
-    downloadWrap.classList.add('show');
+    setDownload(pdf, `plantilla_${tagParts.join('_')}_${sizeInput.value.replace('.','_')}cm.pdf`);
   }
 
   // ---------- PDF generation ----------
@@ -1405,31 +1467,28 @@
         return;
       }
 
-      const DPI = 300;
-      const targetHpx = Math.round(L.finalHcm/2.54 * DPI);
-      const targetWpx = Math.round(L.finalWcm/2.54 * DPI);
-
-      // Render the full-resolution source onto a white background canvas
-      const full = document.createElement('canvas');
-      full.width = targetWpx; full.height = targetHpx;
-      const fctx = full.getContext('2d');
-      fctx.fillStyle = '#ffffff';
-      fctx.fillRect(0,0,targetWpx,targetHpx);
-
+      const pxPerPt = PRINT_DPI / 72;
+      const fullW = L.imgWpt * pxPerPt, fullH = L.imgHpt * pxPerPt;
+      let render, format;
       if (state.mode === 'circle'){
         const strokeMm = parseFloat(circleStrokeInput.value) || 3;
-        const strokePx = (strokeMm/10/2.54) * DPI;
-        const cx = targetWpx/2, cy = targetHpx/2;
-        const r = Math.min(targetWpx,targetHpx)/2 - strokePx/2 - 2;
-        fctx.strokeStyle = '#000000';
-        fctx.lineWidth = strokePx;
-        fctx.beginPath();
-        fctx.arc(cx, cy, Math.max(r,0), 0, Math.PI*2);
-        fctx.stroke();
+        const strokePx = (strokeMm/10/2.54) * PRINT_DPI;
+        const r = Math.max(0, Math.min(fullW, fullH)/2 - strokePx/2 - 2);
+        render = ctx => {
+          ctx.strokeStyle = '#000000';
+          ctx.lineWidth = strokePx;
+          ctx.beginPath();
+          ctx.arc(fullW/2, fullH/2, r, 0, Math.PI*2);
+          ctx.stroke();
+        };
+        format = 'PNG';
       } else {
-        fctx.imageSmoothingEnabled = true;
-        fctx.imageSmoothingQuality = 'high';
-        fctx.drawImage(imgTrimmedCanvas, 0, 0, targetWpx, targetHpx);
+        render = ctx => {
+          ctx.imageSmoothingEnabled = true;
+          ctx.imageSmoothingQuality = 'high';
+          ctx.drawImage(imgTrimmedCanvas, 0, 0, fullW, fullH);
+        };
+        format = 'JPEG';
       }
 
       statusEl.textContent = 'Generando páginas…';
@@ -1437,73 +1496,22 @@
 
       const { jsPDF } = window.jspdf;
       const pdf = new jsPDF({unit:'pt', format:[L.page.w, L.page.h]});
-
-      const scaleX = targetWpx / L.imgWpt; // px per pt
-      const scaleY = targetHpx / L.imgHpt;
-      const CUT = L.cropMm * MM;
       const total = L.cols * L.rows;
+      const sizeTag = state.mode === 'circle' ? `Círculo ${circleMeasureLabel()}` : `Piñata ${sizeInput.value} cm`;
       let done = 0;
 
-      for (let row=0; row<L.rows; row++){
-        for (let col=0; col<L.cols; col++){
-          const x0pt = col * (L.printW - L.OL);
-          const y0pt = row * (L.printH - L.OL);
-          const x1pt = Math.min(x0pt + L.printW, L.imgWpt);
-          const y1pt = Math.min(y0pt + L.printH, L.imgHpt);
-
-          const px0 = Math.round(x0pt*scaleX), py0 = Math.round(y0pt*scaleY);
-          const px1 = Math.round(x1pt*scaleX), py1 = Math.round(y1pt*scaleY);
-          const tileWpx = px1-px0, tileHpx = py1-py0;
-
-          const tileWpt = x1pt-x0pt, tileHpt = y1pt-y0pt;
-
-          const tileCanvas = document.createElement('canvas');
-          tileCanvas.width = tileWpx; tileCanvas.height = tileHpx;
-          tileCanvas.getContext('2d').drawImage(full, px0, py0, tileWpx, tileHpx, 0, 0, tileWpx, tileHpx);
-          const jpegData = tileCanvas.toDataURL('image/jpeg', 0.95);
-
-          if (done > 0) pdf.addPage([L.page.w, L.page.h]);
-
-          const topY = L.page.h - L.M - tileHpt;
-          pdf.addImage(jpegData, 'JPEG', L.M, topY, tileWpt, tileHpt);
-
-          // crop marks
-          pdf.setDrawColor(140,140,140);
-          pdf.setLineWidth(0.5);
-          const corners = [
-            [L.M, L.page.h - L.M],
-            [L.M+tileWpt, L.page.h - L.M],
-            [L.M, L.page.h - L.M - tileHpt],
-            [L.M+tileWpt, L.page.h - L.M - tileHpt],
-          ];
-          corners.forEach(([cx,cy])=>{
-            pdf.line(cx-CUT, cy, cx-2, cy);
-            pdf.line(cx+2, cy, cx+CUT, cy);
-            pdf.line(cx, cy-CUT, cx, cy-2);
-            pdf.line(cx, cy+2, cx, cy+CUT);
-          });
-
-          // overlap guides (dashed)
-          pdf.setDrawColor(180,180,180);
-          pdf.setLineWidth(0.4);
-          pdf.setLineDashPattern([3,3], 0);
-          if (col>0) pdf.line(L.M+L.OL, L.page.h-L.M, L.M+L.OL, L.page.h-L.M-tileHpt);
-          if (row>0) pdf.line(L.M, L.page.h-L.M-L.OL, L.M+tileWpt, L.page.h-L.M-L.OL);
-          pdf.setLineDashPattern([], 0);
-
-          // label
-          const pageNum = row*L.cols + col + 1;
-          const sizeTag = state.mode === 'circle' ? `Círculo ${circleMeasureLabel()}` : `Piñata ${sizeInput.value} cm`;
-          pdf.setFontSize(6);
-          pdf.setTextColor(130,130,130);
-          pdf.text(`Hoja ${pageNum}/${total}  |  Fila ${row+1}/${L.rows}  Col ${col+1}/${L.cols}  |  ${sizeTag} · Mundo Piñatas K&A`, L.M, 14);
-
+      await emitTiles(pdf, L, {
+        wPt: L.imgWpt, hPt: L.imgHpt, cols: L.cols, rows: L.rows,
+        render, format, firstOnCurrentPage: true,
+        label: (row, col, n, pages) =>
+          `Hoja ${n}/${pages}  |  Fila ${row+1}/${L.rows}  Col ${col+1}/${L.cols}  |  ${sizeTag} · Mundo Piñatas K&A`,
+        onTile: async () => {
           done++;
           progressFill.style.width = Math.round((done/total)*90) + '%';
           statusEl.textContent = `Generando páginas… ${done}/${total}`;
           await nextFrame();
         }
-      }
+      });
 
       // instructions page
       pdf.addPage([L.page.w, L.page.h]);
@@ -1533,7 +1541,7 @@
         assemblyExtra,
         `  •  Hay un solape de ${overlapInput.value} mm entre hojas — úsalo para el pegado.`,
         '  •  Pega de izquierda a derecha, fila por fila (de arriba hacia abajo).',
-        '  •  Las líneas punteadas grises marcan la zona de solape.',
+        '  •  Las líneas punteadas grises marcan la zona de solape: empalma el borde recortado de cada hoja sobre la línea punteada de la hoja vecina.',
         '  •  Verifica que el diseño continúe sin saltos antes de pegar cada hoja.',
         '',
         'RESULTADO FINAL:',
@@ -1553,14 +1561,10 @@
       progressFill.style.width = '100%';
       statusEl.textContent = `✅ Listo — ${total+1} páginas en total (${total} de diseño + 1 de instrucciones).`;
 
-      const blob = pdf.output('blob');
-      const url = URL.createObjectURL(blob);
-      downloadLink.href = url;
       const fileTag = state.mode === 'circle'
         ? `circulo_r${getCircleRadiusCm().toFixed(1).replace('.','_')}cm`
         : `pinata_${sizeInput.value.replace('.','_')}cm`;
-      downloadLink.download = `plantilla_${fileTag}.pdf`;
-      downloadWrap.classList.add('show');
+      setDownload(pdf, `plantilla_${fileTag}.pdf`);
 
     } catch(err){
       console.error(err);
