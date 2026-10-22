@@ -2,7 +2,7 @@
 <html lang="es">
 <head>
 <meta charset="utf-8">
-<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>Mundo Piñatas K&A · Generador de plantillas</title>
 <!-- Installable web app -->
 <link rel="manifest" href="manifest.webmanifest">
@@ -29,6 +29,7 @@
     --ok:#1F9D63;
   }
   *{box-sizing:border-box;}
+  button, input, select, textarea{font-family:inherit;}
   html,body{margin:0;padding:0;}
   body{
     background:
@@ -36,9 +37,9 @@
       radial-gradient(circle at 92% 88%, rgba(20,184,174,.22), transparent 45%),
       var(--paper);
     color:var(--ink);
-    font-family:'Work Sans', sans-serif;
+    font-family:'Work Sans', system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
     min-height:100vh;
-    padding:0 0 80px;
+    padding:0 0 calc(160px + env(safe-area-inset-bottom));
   }
   .wrap{max-width:920px; margin:0 auto; padding:36px 22px;}
 
@@ -56,13 +57,13 @@
     width:100%; height:100%; object-fit:cover; display:block;
   }
   h1{
-    font-family:'Baloo 2', sans-serif; font-weight:800; font-size:26px; margin:0; line-height:1.1;
+    font-family:'Baloo 2', 'Work Sans', system-ui, sans-serif; font-weight:800; font-size:24px; margin:0; line-height:1.1;
     letter-spacing:-.01em;
   }
-  header p{margin:2px 0 0; color:#6b6178; font-size:14px;}
+  header p{margin:2px 0 0; color:#6b6178; font-size:13px;}
 
   .torn{
-    height:16px; margin:26px 0 30px;
+    height:16px; margin:14px 0 16px;
     background:
       linear-gradient(135deg, var(--paper) 50%, transparent 50%) 0 0/14px 16px repeat-x,
       linear-gradient(-135deg, var(--paper) 50%, transparent 50%) 0 0/14px 16px repeat-x;
@@ -72,11 +73,11 @@
 
   /* Tabs */
   .tabbar{
-    display:flex; gap:10px; margin-bottom:24px;
+    display:flex; gap:10px; margin-bottom:16px;
   }
   .tabbar button{
-    flex:1; padding:14px 16px; border-radius:14px; border:1.5px solid var(--line);
-    background:#fff; cursor:pointer; font-family:'Baloo 2'; font-weight:700; font-size:15px;
+    flex:1; padding:11px 12px; border-radius:14px; border:1.5px solid var(--line);
+    background:#fff; cursor:pointer; font-family:'Baloo 2', 'Work Sans', system-ui, sans-serif; font-weight:700; font-size:15px;
     color:#8b8195; display:flex; align-items:center; justify-content:center; gap:8px;
     transition:.15s;
   }
@@ -86,16 +87,16 @@
   }
 
   h2.step{
-    font-family:'Baloo 2'; font-weight:700; font-size:15px; letter-spacing:.02em;
+    font-family:'Baloo 2', 'Work Sans', system-ui, sans-serif; font-weight:700; font-size:15px; letter-spacing:.02em;
     color:var(--hotpink-dark); text-transform:uppercase; margin:0 0 10px;
     display:flex; align-items:center; gap:8px;
   }
   h2.step .num{
     width:24px; height:24px; border-radius:50%; background:var(--hotpink-dark); color:#fff;
-    font-family:'Baloo 2'; font-size:13px; display:flex; align-items:center; justify-content:center; flex:none;
+    font-family:'Baloo 2', 'Work Sans', system-ui, sans-serif; font-size:13px; display:flex; align-items:center; justify-content:center; flex:none;
   }
 
-  section.card{
+  .card{
     background:#fff; border:1px solid var(--line); border-radius:18px;
     padding:26px; margin-bottom:22px;
     box-shadow: 0 2px 0 rgba(36,27,51,.04);
@@ -152,8 +153,8 @@
     width:26px; height:26px; border-radius:7px; flex:none; border:1px solid rgba(0,0,0,.2);
   }
   .layer-row input[type=text]{
-    flex:1; border:1px solid var(--line); border-radius:8px; padding:7px 9px; font-size:13.5px;
-    font-family:'Work Sans'; background:#fff;
+    flex:1; min-width:0; width:100%; border:1px solid var(--line); border-radius:8px; padding:7px 9px; font-size:13.5px;
+    font-family:'Work Sans', system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif; background:#fff;
   }
   .layer-row .layer-meta{ font-size:11px; color:#9a90a6; flex:none; width:44px; text-align:right;}
   .layer-row input[type=checkbox]{ width:17px; height:17px; accent-color:var(--turquoise); flex:none; }
@@ -168,7 +169,7 @@
     display:flex; align-items:center; gap:10px;
   }
   .size-input input[type=number]{
-    width:120px; font-size:22px; font-family:'Baloo 2'; font-weight:700;
+    width:120px; font-size:22px; font-family:'Baloo 2', 'Work Sans', system-ui, sans-serif; font-weight:700;
     padding:10px 12px; border-radius:10px; border:1.5px solid var(--line); color:var(--ink);
     background:var(--paper);
   }
@@ -182,7 +183,7 @@
   .seg{display:flex; gap:8px; flex-wrap:wrap;}
   .seg button{
     flex:1; min-width:110px; padding:10px 12px; border-radius:10px; border:1.5px solid var(--line);
-    background:var(--paper); font-family:'Work Sans'; font-weight:600; font-size:13.5px; cursor:pointer; color:var(--ink);
+    background:var(--paper); font-family:'Work Sans', system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif; font-weight:600; font-size:13.5px; cursor:pointer; color:var(--ink);
   }
   .seg button.active{ background:var(--hotpink); border-color:var(--hotpink); color:#fff; }
 
@@ -194,38 +195,30 @@
   .adv-grid .field label.fl{font-size:12.5px; margin-bottom:4px;}
   .adv-grid input{
     width:100%; padding:8px 10px; border-radius:8px; border:1.5px solid var(--line); font-size:14px;
-    font-family:'Work Sans';
+    font-family:'Work Sans', system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
   }
 
   /* Results */
   #resultStats{
-    display:none; grid-template-columns:repeat(4,1fr); gap:12px; margin-bottom:20px;
+    display:none; grid-template-columns:repeat(3,1fr); gap:10px; margin-bottom:16px;
   }
   #resultStats.show{display:grid;}
   .stat{
     background:var(--paper); border:1px solid var(--line); border-radius:12px; padding:14px;
     text-align:center;
   }
-  .stat .v{font-family:'Baloo 2'; font-weight:800; font-size:22px; color:var(--hotpink-dark);}
+  .stat .v{font-family:'Baloo 2', 'Work Sans', system-ui, sans-serif; font-weight:800; font-size:22px; color:var(--hotpink-dark);}
   .stat .l{font-size:11.5px; color:#7a7086; text-transform:uppercase; letter-spacing:.03em; margin-top:2px;}
 
   #gridPreview{
     display:none; margin-bottom:20px;
   }
   #gridPreview.show{display:block;}
-  #gridCanvasWrap{
-    display:grid; gap:3px; background:#D9C9E8; padding:3px; border-radius:8px; width:fit-content; margin:0 auto;
-  }
-  .gcell{
-    background:#fff; width:34px; height:44px; display:flex; align-items:center; justify-content:center;
-    font-size:9px; color:#a99bb8; font-family:'Work Sans'; position:relative;
-    border:1px dashed #e4d6f2;
-  }
 
   button#generateBtn{
     width:100%; padding:16px; border-radius:12px; border:none; cursor:pointer;
     background:linear-gradient(135deg, var(--hotpink), var(--hotpink-dark));
-    color:#fff; font-family:'Baloo 2'; font-weight:700; font-size:17px;
+    color:#fff; font-family:'Baloo 2', 'Work Sans', system-ui, sans-serif; font-weight:700; font-size:17px;
     box-shadow:0 3px 0 var(--hotpink-dark), 0 8px 18px rgba(216,28,93,.25);
     transition:transform .08s;
   }
@@ -245,7 +238,7 @@
   #downloadWrap.show{display:block;}
   #downloadLink{
     display:inline-flex; align-items:center; gap:8px; background:var(--ok); color:#fff; text-decoration:none;
-    padding:12px 22px; border-radius:10px; font-weight:700; font-family:'Baloo 2'; font-size:15px;
+    padding:12px 22px; border-radius:10px; font-weight:700; font-family:'Baloo 2', 'Work Sans', system-ui, sans-serif; font-size:15px;
   }
 
   footer{text-align:center; color:#a99bb8; font-size:12.5px; margin-top:30px;}
@@ -256,6 +249,60 @@
     #resultStats{grid-template-columns:1fr 1fr;}
     #previewRow{flex-direction:column;}
   }
+
+  /* Quick size chips */
+  .chips{display:flex; gap:8px; flex-wrap:wrap; margin-bottom:10px;}
+  .chips button{
+    padding:9px 18px; border-radius:999px; border:1.5px solid var(--line); background:var(--paper);
+    font-weight:700; font-size:15px; color:var(--ink); cursor:pointer;
+  }
+  .chips button.active{background:var(--violet); border-color:var(--violet); color:#fff;}
+  .size-input{flex-wrap:wrap;}
+
+  /* Real preview */
+  #previewCanvas{display:block; margin:0 auto; border-radius:6px; box-shadow:0 1px 6px rgba(36,27,51,.15); max-width:100%;}
+  .preview-note{font-size:12.5px; color:#6b6178; text-align:center; margin:10px 0 0;}
+  .preview-empty{font-size:14px; color:#6b6178; text-align:center; margin:4px 0;}
+
+  /* Extra options (collapsible card) */
+  details.extras{margin-top:0;}
+  details.extras > summary{
+    font-family:'Baloo 2', 'Work Sans', system-ui, sans-serif; font-size:16px; font-weight:700;
+    color:var(--violet); list-style-position:inside;
+  }
+  details.extras > summary .hint{font-family:'Work Sans', system-ui, sans-serif; font-weight:400; font-size:12.5px; color:#8b8195;}
+  details.extras[open] > summary{margin-bottom:6px;}
+  .extras-title{font-size:14px; margin:18px 0 0; color:var(--ink);}
+
+  /* Sticky action bar */
+  #actionBar{
+    position:fixed; left:0; right:0; bottom:0; z-index:50;
+    background:#ffffff; border-top:1px solid var(--line);
+    box-shadow:0 -6px 20px rgba(36,27,51,.08);
+    padding:10px 16px calc(10px + env(safe-area-inset-bottom));
+  }
+  .bar-inner{max-width:920px; margin:0 auto;}
+  #barSummary{font-size:13.5px; font-weight:600; text-align:center; margin-bottom:8px; min-height:17px;}
+  #actionBar #status{margin:0 0 8px; font-size:12.5px; min-height:0;}
+  #actionBar #status:empty{display:none;}
+  #actionBar #progressBar{margin:0 0 8px;}
+  #actionBar.done #generateBtn{display:none;}
+  #actionBar #downloadWrap{margin-top:0;}
+  #actionBar #downloadWrap.show{display:flex; gap:10px;}
+  #actionBar #downloadLink{flex:1; justify-content:center; padding:14px 16px;}
+  #shareBtn{
+    flex:1; padding:14px 16px; border-radius:10px; border:none; cursor:pointer;
+    background:var(--violet); color:#fff; font-family:'Baloo 2', 'Work Sans', system-ui, sans-serif; font-weight:700; font-size:15px;
+  }
+  button#generateBtn{padding:14px;}
+  button#generateBtn:disabled{opacity:1; background:#F6BFD1; color:#fff; box-shadow:none;}
+
+  @media(max-width:520px){
+    .card{padding:18px;}
+    #resultStats{grid-template-columns:repeat(3,1fr) !important;}
+    .stat{padding:10px 6px;}
+    .stat .v{font-size:17px;}
+  }
 </style>
 </head>
 <body>
@@ -264,21 +311,21 @@
   <header>
     <div class="logo-mark"><img src="data:image/jpeg;base64,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" alt="Mundo Piñatas K&A"></div>
     <div>
-      <h1>Generador de plantillas para piñatas</h1>
-      <p>Sube tu diseño, dale un tamaño y descarga el PDF listo para imprimir y armar</p>
+      <h1>Plantillas K&A</h1>
+      <p>Tu diseño en hojas listas para imprimir y armar</p>
     </div>
   </header>
 
   <div class="torn"></div>
 
   <div class="tabbar" id="modeTabs">
-    <button data-mode="image" class="active">🖼️ Plantilla de imagen</button>
-    <button data-mode="circle">⚪ Plantilla círculo</button>
+    <button data-mode="image" class="active">🖼️ Imagen</button>
+    <button data-mode="circle">⚪ Círculo</button>
   </div>
 
   <!-- STEP 1 -->
   <section class="card">
-    <h2 class="step"><span class="num">1</span><span id="step1Label">Imagen del diseño</span></h2>
+    <h2 class="step"><span class="num">1</span><span id="step1Label">Diseño</span></h2>
 
     <div id="imageFields">
       <div id="dropzone">
@@ -293,6 +340,93 @@
         <div id="fileMeta"></div>
       </div>
       <button id="changeFile" style="display:none;">Cambiar imagen</button>
+    </div>
+
+    <div id="circleFields" style="display:none;">
+      <div class="field">
+        <label class="fl">Medida del círculo</label>
+        <div class="chips" id="circleChips">
+          <button type="button" data-dia="43">43 cm de diámetro</button>
+        </div>
+        <div class="size-input">
+          <input type="number" inputmode="decimal" id="radiusInput" value="30" min="1" max="300" step="0.5">
+          <span class="unit">cm</span>
+        </div>
+      </div>
+      <div class="field">
+        <label class="fl">Esa medida es el</label>
+        <div class="seg" id="circleDimSeg">
+          <button data-circledim="radius" class="active">Radio</button>
+          <button data-circledim="diameter">Diámetro</button>
+        </div>
+      </div>
+      <div class="field">
+        <label class="fl">Grosor del contorno <span class="hint">— solo la línea, sin relleno</span></label>
+        <div class="size-input">
+          <input type="number" inputmode="decimal" id="circleStrokeInput" value="3" min="0.5" max="15" step="0.5">
+          <span class="unit">mm</span>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- STEP 2 -->
+  <section class="card">
+    <h2 class="step"><span class="num">2</span><span id="step2Label">Tamaño y papel</span></h2>
+
+    <div id="sizeFields">
+      <div class="field">
+        <label class="fl">Medida <span class="hint" id="sizeHint">— del lado más largo del diseño</span></label>
+        <div class="chips" id="sizeChips">
+          <button type="button" data-size="65">65 cm</button>
+          <button type="button" data-size="80">80 cm</button>
+        </div>
+        <div class="size-input">
+          <input type="number" inputmode="decimal" id="sizeInput" value="65" min="10" max="300" step="0.5">
+          <span class="unit">cm</span>
+          <span class="orient-pill" id="orientPill">Sube una imagen primero</span>
+        </div>
+      </div>
+
+      <div class="field">
+        <label class="fl">Aplicar la medida a</label>
+        <div class="seg" id="dimSeg">
+          <button data-dim="auto" class="active">Automático</button>
+          <button data-dim="height">Alto</button>
+          <button data-dim="width">Ancho</button>
+        </div>
+      </div>
+    </div>
+
+    <div class="field">
+      <label class="fl">Papel de impresión</label>
+      <div class="seg" id="paperSeg">
+        <button data-paper="letter" class="active">Carta (Letter)</button>
+        <button data-paper="a4">A4</button>
+      </div>
+    </div>
+  </section>
+
+  <!-- STEP 3 -->
+  <section class="card">
+    <h2 class="step"><span class="num">3</span>Vista previa</h2>
+
+    <div id="resultStats">
+      <div class="stat"><div class="v" id="statSize">—</div><div class="l">Tamaño final</div></div>
+      <div class="stat"><div class="v" id="statGrid">—</div><div class="l">Columnas × filas</div></div>
+      <div class="stat"><div class="v" id="statPages">—</div><div class="l">Hojas</div></div>
+    </div>
+
+    <div id="gridPreview">
+      <canvas id="previewCanvas"></canvas>
+      <p class="preview-note">Cada número es una hoja · la franja rosa es el solape para pegar</p>
+    </div>
+    <p id="previewEmpty" class="preview-empty">Sube una imagen para ver cómo se divide en hojas.</p>
+  </section>
+
+  <!-- EXTRA OPTIONS -->
+  <details class="card extras">
+    <summary>Opciones extra <span class="hint">— capas, contornos, márgenes y solape</span></summary>
 
       <div id="layersToggleWrap" style="display:none;">
         <label class="checklabel">
@@ -311,7 +445,7 @@
           <div class="field">
             <label class="fl">Grosor del contorno <span class="hint">— línea de corte, sin relleno</span></label>
             <div class="size-input">
-              <input type="number" id="layersStrokeInput" value="3" min="0.5" max="15" step="0.5">
+              <input type="number" inputmode="decimal" id="layersStrokeInput" value="3" min="0.5" max="15" step="0.5">
               <span class="unit">mm</span>
             </div>
           </div>
@@ -338,7 +472,7 @@
           <div class="field">
             <label class="fl">Grosor de línea</label>
             <div class="size-input">
-              <input type="number" id="linesStrokeInput" value="1.5" min="0.5" max="8" step="0.5">
+              <input type="number" inputmode="decimal" id="linesStrokeInput" value="1.5" min="0.5" max="8" step="0.5">
               <span class="unit">mm</span>
             </div>
           </div>
@@ -347,106 +481,39 @@
           </div>
         </div>
       </div>
-    </div>
 
-    <div id="circleFields" style="display:none;">
+    <h3 class="extras-title">Márgenes y solape</h3>
+    <div class="adv-grid">
       <div class="field">
-        <label class="fl">Medida del círculo</label>
-        <div class="size-input">
-          <input type="number" id="radiusInput" value="30" min="1" max="300" step="0.5">
-          <span class="unit">cm</span>
-        </div>
+        <label class="fl">Margen (mm)</label>
+        <input type="number" inputmode="decimal" id="marginInput" value="8" min="3" max="20" step="0.5">
       </div>
       <div class="field">
-        <label class="fl">Esa medida es el</label>
-        <div class="seg" id="circleDimSeg">
-          <button data-circledim="radius" class="active">Radio</button>
-          <button data-circledim="diameter">Diámetro</button>
-        </div>
+        <label class="fl">Solape (mm)</label>
+        <input type="number" inputmode="decimal" id="overlapInput" value="4" min="3" max="5" step="0.5">
       </div>
       <div class="field">
-        <label class="fl">Grosor del contorno <span class="hint">— solo la línea, sin relleno</span></label>
-        <div class="size-input">
-          <input type="number" id="circleStrokeInput" value="3" min="0.5" max="15" step="0.5">
-          <span class="unit">mm</span>
-        </div>
+        <label class="fl">Marca de corte (mm)</label>
+        <input type="number" inputmode="decimal" id="cropInput" value="3" min="2" max="6" step="0.5">
       </div>
     </div>
-  </section>
-
-  <!-- STEP 2 -->
-  <section class="card">
-    <h2 class="step"><span class="num">2</span><span id="step2Label">Tamaño final de la piñata</span></h2>
-
-    <div id="sizeFields">
-      <div class="field">
-        <label class="fl">Medida <span class="hint" id="sizeHint">— se aplica al alto si el diseño es vertical, o al ancho si es horizontal</span></label>
-        <div class="size-input">
-          <input type="number" id="sizeInput" value="65" min="10" max="300" step="0.5">
-          <span class="unit">cm</span>
-          <span class="orient-pill" id="orientPill">Sube una imagen primero</span>
-        </div>
-      </div>
-
-      <div class="field">
-        <label class="fl">Aplicar la medida a</label>
-        <div class="seg" id="dimSeg">
-          <button data-dim="auto" class="active">Automático</button>
-          <button data-dim="height">Alto</button>
-          <button data-dim="width">Ancho</button>
-        </div>
-      </div>
-    </div>
-
-    <div class="field">
-      <label class="fl">Papel de impresión</label>
-      <div class="seg" id="paperSeg">
-        <button data-paper="letter" class="active">Carta (Letter)</button>
-        <button data-paper="a4">A4</button>
-      </div>
-    </div>
-
-    <details>
-      <summary>Opciones avanzadas (márgenes, solape y marcas de corte)</summary>
-      <div class="adv-grid">
-        <div class="field">
-          <label class="fl">Margen (mm)</label>
-          <input type="number" id="marginInput" value="8" min="3" max="20" step="0.5">
-        </div>
-        <div class="field">
-          <label class="fl">Solape (mm)</label>
-          <input type="number" id="overlapInput" value="4" min="3" max="5" step="0.5">
-        </div>
-        <div class="field">
-          <label class="fl">Marca de corte (mm)</label>
-          <input type="number" id="cropInput" value="3" min="2" max="6" step="0.5">
-        </div>
-      </div>
-    </details>
-  </section>
-
-  <!-- STEP 3 -->
-  <section class="card">
-    <h2 class="step"><span class="num">3</span>Vista previa y descarga</h2>
-
-    <div id="resultStats">
-      <div class="stat"><div class="v" id="statSize">—</div><div class="l">Tamaño final</div></div>
-      <div class="stat"><div class="v" id="statGrid">—</div><div class="l">Hojas (col×fil)</div></div>
-      <div class="stat"><div class="v" id="statPages">—</div><div class="l">Páginas totales</div></div>
-      <div class="stat"><div class="v" id="statDpi">300</div><div class="l">DPI</div></div>
-    </div>
-
-    <div id="gridPreview">
-      <div id="gridCanvasWrap"></div>
-    </div>
-
-    <button id="generateBtn" disabled>Sube una imagen para continuar</button>
-    <div id="progressBar"><div id="progressFill"></div></div>
-    <div id="status"></div>
-    <div id="downloadWrap"><a id="downloadLink" href="#" download="plantilla_pinata.pdf">⬇ Descargar PDF</a></div>
-  </section>
+  </details>
 
   <footer>Hecho para <b>Mundo Piñatas K&A</b> · Cuernavaca, Morelos · Todo se procesa en tu navegador, ninguna imagen se sube a internet.</footer>
+</div>
+
+<!-- Sticky action bar: always reachable on phones -->
+<div id="actionBar">
+  <div class="bar-inner">
+    <div id="barSummary"></div>
+    <div id="progressBar"><div id="progressFill"></div></div>
+    <div id="status"></div>
+    <button id="generateBtn" disabled>Sube una imagen para continuar</button>
+    <div id="downloadWrap">
+      <a id="downloadLink" href="#" download="plantilla_pinata.pdf">⬇ Descargar</a>
+      <button type="button" id="shareBtn" style="display:none;">Compartir</button>
+    </div>
+  </div>
 </div>
 
 <script>
@@ -518,7 +585,13 @@
   const downloadLink = document.getElementById('downloadLink');
   const resultStats  = document.getElementById('resultStats');
   const gridPreview   = document.getElementById('gridPreview');
-  const gridCanvasWrap= document.getElementById('gridCanvasWrap');
+  const previewCanvas = document.getElementById('previewCanvas');
+  const previewEmpty  = document.getElementById('previewEmpty');
+  const actionBar     = document.getElementById('actionBar');
+  const barSummary    = document.getElementById('barSummary');
+  const shareBtn      = document.getElementById('shareBtn');
+  const sizeChips     = document.getElementById('sizeChips');
+  const circleChips   = document.getElementById('circleChips');
 
   // ---------- Mode tabs ----------
   modeTabs.addEventListener('click', e => {
@@ -534,8 +607,9 @@
     imageFields.style.display  = isImage ? 'block' : 'none';
     circleFields.style.display = isImage ? 'none'  : 'block';
     sizeFields.style.display   = isImage ? 'block' : 'none';
-    step1Label.textContent = isImage ? 'Imagen del diseño' : 'Medidas del círculo';
-    step2Label.textContent = isImage ? 'Tamaño final de la piñata' : 'Papel y opciones de impresión';
+    step1Label.textContent = isImage ? 'Diseño' : 'Medidas del círculo';
+    step2Label.textContent = isImage ? 'Tamaño y papel' : 'Papel';
+    layersToggleWrap.style.display = (isImage && imgTrimmedCanvas) ? 'block' : 'none';
     updateGenerateButtonState();
     updatePreview();
   }
@@ -550,6 +624,38 @@
       generateBtn.textContent = 'Generar PDF';
     }
   }
+
+  // ---------- Quick sizes (catalog sizes) ----------
+  sizeChips.addEventListener('click', e => {
+    const btn = e.target.closest('button'); if (!btn) return;
+    sizeInput.value = btn.dataset.size;
+    updatePreview();
+  });
+  circleChips.addEventListener('click', e => {
+    const btn = e.target.closest('button'); if (!btn) return;
+    radiusInput.value = btn.dataset.dia;
+    circleDimSeg.querySelector('[data-circledim="diameter"]').click();
+    updateGenerateButtonState();
+    updatePreview();
+  });
+  function syncChips(){
+    const size = parseFloat(sizeInput.value);
+    sizeChips.querySelectorAll('button').forEach(b =>
+      b.classList.toggle('active', parseFloat(b.dataset.size) === size));
+    const val = parseFloat(radiusInput.value);
+    circleChips.querySelectorAll('button').forEach(b =>
+      b.classList.toggle('active', state.circleDim === 'diameter' && parseFloat(b.dataset.dia) === val));
+  }
+
+  // Any change to the settings makes the last PDF stale: go back to "Generar PDF".
+  function invalidateDownload(){
+    actionBar.classList.remove('done');
+    downloadWrap.classList.remove('show');
+    statusEl.textContent = '';
+  }
+  const mainArea = document.querySelector('.wrap');
+  ['input','change'].forEach(ev => mainArea.addEventListener(ev, invalidateDownload));
+  mainArea.addEventListener('click', e => { if (e.target.closest('button')) invalidateDownload(); });
 
   // ---------- File handling ----------
   dropzone.addEventListener('click', () => fileInput.click());
@@ -1147,9 +1253,15 @@
 
   function updatePreview(){
     const L = computeLayout();
+    syncChips();
     if (!L){
       resultStats.classList.remove('show');
       gridPreview.classList.remove('show');
+      previewEmpty.style.display = 'block';
+      previewEmpty.textContent = state.mode === 'circle'
+        ? 'Ingresa la medida del círculo.'
+        : 'Sube una imagen para ver cómo se divide en hojas.';
+      barSummary.textContent = state.mode === 'circle' ? 'Ingresa la medida del círculo' : 'Sube una imagen para empezar';
       if (state.mode === 'circle'){
         orientPill.textContent = 'Ingresa un radio';
       } else {
@@ -1173,20 +1285,71 @@
     document.getElementById('statPages').textContent = `${L.totalPages}`;
     resultStats.classList.add('show');
 
-    // mini grid
-    gridCanvasWrap.innerHTML = '';
-    gridCanvasWrap.style.gridTemplateColumns = `repeat(${L.cols}, 34px)`;
+    previewEmpty.style.display = 'none';
+    gridPreview.classList.add('show');
+    drawPreview(L);
+
+    const sizeTxt = state.mode === 'circle'
+      ? `Círculo Ø ${L.finalWcm.toFixed(1)} cm`
+      : `${L.finalWcm.toFixed(1)} × ${L.finalHcm.toFixed(1)} cm`;
+    barSummary.textContent = `${sizeTxt} · ${L.totalPages} hoja${L.totalPages>1?'s':''}`;
+  }
+
+  // Thumbnail of the design (or circle) at its final proportions with the sheet grid on top:
+  // pink bands are the overlap strips, numbers are the sheet order in the PDF.
+  function drawPreview(L){
+    const maxW = Math.min(gridPreview.clientWidth || 320, 520);
+    const maxH = 380;
+    const k = Math.min(maxW / L.imgWpt, maxH / L.imgHpt);
+    const w = Math.max(1, Math.round(L.imgWpt * k)), h = Math.max(1, Math.round(L.imgHpt * k));
+    const dpr = window.devicePixelRatio || 1;
+    previewCanvas.width = Math.round(w * dpr); previewCanvas.height = Math.round(h * dpr);
+    previewCanvas.style.width = w + 'px'; previewCanvas.style.height = h + 'px';
+    const ctx = previewCanvas.getContext('2d');
+    ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+    ctx.fillStyle = '#ffffff'; ctx.fillRect(0, 0, w, h);
+
+    if (state.mode === 'circle'){
+      ctx.strokeStyle = '#241B33'; ctx.lineWidth = 2;
+      ctx.beginPath(); ctx.arc(w/2, h/2, Math.max(0, Math.min(w, h)/2 - 2), 0, Math.PI*2); ctx.stroke();
+    } else if (imgTrimmedCanvas){
+      ctx.imageSmoothingEnabled = true; ctx.imageSmoothingQuality = 'high';
+      ctx.drawImage(imgTrimmedCanvas, 0, 0, w, h);
+    }
+
+    const stepW = (L.printW - L.OL) * k, stepH = (L.printH - L.OL) * k, ol = Math.max(1.5, L.OL * k);
+    ctx.fillStyle = 'rgba(255,62,127,0.35)';
+    for (let c = 1; c < L.cols; c++) ctx.fillRect(c*stepW, 0, ol, h);
+    for (let r = 1; r < L.rows; r++) ctx.fillRect(0, r*stepH, w, ol);
+    ctx.strokeStyle = '#D81C5D'; ctx.lineWidth = 1;
+    ctx.strokeRect(0.5, 0.5, w - 1, h - 1);
+
+    const cellW = L.printW * k, cellH = L.printH * k;
+    const fs = Math.max(10, Math.min(15, Math.min(stepW, stepH) * 0.16));
+    ctx.font = `700 ${fs}px 'Work Sans', system-ui, sans-serif`;
+    ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
     let n = 1;
-    for (let r=0;r<L.rows;r++){
-      for (let c=0;c<L.cols;c++){
-        const cell = document.createElement('div');
-        cell.className = 'gcell';
-        cell.textContent = n++;
-        gridCanvasWrap.appendChild(cell);
+    for (let r = 0; r < L.rows; r++){
+      for (let c = 0; c < L.cols; c++){
+        const x0 = c*stepW + (c ? ol : 0), x1 = Math.min(c*stepW + cellW, w);
+        const y0 = r*stepH + (r ? ol : 0), y1 = Math.min(r*stepH + cellH, h);
+        const rad = fs * 0.95;
+        // thin edge sheets: keep the number badge inside the preview
+        const cx = Math.min(Math.max((x0 + x1) / 2, rad + 1), w - rad - 1);
+        const cy = Math.min(Math.max((y0 + y1) / 2, rad + 1), h - rad - 1);
+        ctx.fillStyle = 'rgba(255,255,255,0.92)';
+        ctx.beginPath(); ctx.arc(cx, cy, rad, 0, Math.PI*2); ctx.fill();
+        ctx.strokeStyle = '#D81C5D'; ctx.lineWidth = 1.2; ctx.stroke();
+        ctx.fillStyle = '#D81C5D'; ctx.fillText(String(n++), cx, cy + 0.5);
       }
     }
-    gridPreview.classList.add('show');
   }
+
+  let resizeTimer = null;
+  window.addEventListener('resize', () => {
+    clearTimeout(resizeTimer);
+    resizeTimer = setTimeout(updatePreview, 150);
+  });
 
   // ---------- Shared tiling helpers ----------
   // n sheets that each print `printLen` and overlap by `OL` cover n*(printLen-OL)+OL,
@@ -1267,13 +1430,30 @@
 
   // Points the download button at a fresh PDF and frees the previous one.
   let lastPdfUrl = null;
+  let lastPdfFile = null;
   function setDownload(pdf, filename){
+    const blob = pdf.output('blob');
     if (lastPdfUrl) URL.revokeObjectURL(lastPdfUrl);
-    lastPdfUrl = URL.createObjectURL(pdf.output('blob'));
+    lastPdfUrl = URL.createObjectURL(blob);
     downloadLink.href = lastPdfUrl;
     downloadLink.download = filename;
+    lastPdfFile = new File([blob], filename, { type: 'application/pdf' });
+    let canShare = false;
+    try { canShare = !!(navigator.canShare && navigator.canShare({ files: [lastPdfFile] })); } catch(_) {}
+    shareBtn.style.display = canShare ? '' : 'none';
     downloadWrap.classList.add('show');
+    actionBar.classList.add('done');
   }
+
+  // Share sheet (WhatsApp, Drive, printer apps…) on phones that support sharing files.
+  shareBtn.addEventListener('click', async () => {
+    if (!lastPdfFile) return;
+    try {
+      await navigator.share({ files: [lastPdfFile], title: 'Plantilla · Mundo Piñatas K&A' });
+    } catch (err) {
+      if (err && err.name !== 'AbortError') statusEl.textContent = '⚠️ No se pudo compartir: ' + err.message;
+    }
+  });
 
   // ---------- Layered PDF (color separation) ----------
   async function generateLayeredPdf(L){
@@ -1439,7 +1619,7 @@
     });
 
     progressFill.style.width = '100%';
-    statusEl.textContent = `✅ Listo — ${totalPages+2} páginas en total (1 índice + ${totalPages} de recorte + 1 de instrucciones).`;
+    statusEl.textContent = `✅ Listo · ${totalPages+2} páginas (índice + ${totalPages} de recorte + instrucciones)`;
 
     const tagParts = [];
     if (activeLayers.length) tagParts.push('capas');
@@ -1568,7 +1748,7 @@
       });
 
       progressFill.style.width = '100%';
-      statusEl.textContent = `✅ Listo — ${total+1} páginas en total (${total} de diseño + 1 de instrucciones).`;
+      statusEl.textContent = `✅ Listo · ${total+1} páginas (${total} de diseño + instrucciones)`;
 
       const fileTag = state.mode === 'circle'
         ? `circulo_r${getCircleRadiusCm().toFixed(1).replace('.','_')}cm`
