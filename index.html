@@ -316,8 +316,8 @@
   .part-meta{font-size:11.5px; color:#7a7086; flex:none; white-space:nowrap;}
   .part-del{border:none; background:none; font-size:18px; color:#9a90a6; cursor:pointer; padding:4px 6px; flex:none;}
   .parts-empty{font-size:13px; color:#8b8195; margin:2px 0;}
-  #partsCard .checklabel{display:flex; align-items:center; gap:9px; cursor:pointer; font-weight:600; font-size:14px;}
-  #partsCard .checklabel input{width:18px; height:18px; accent-color:var(--hotpink);}
+  .checklabel{display:flex; align-items:center; gap:9px; cursor:pointer; font-weight:600; font-size:14px;}
+  .checklabel input{width:18px; height:18px; accent-color:var(--hotpink);}
 
   @media(max-width:520px){
     .tabbar{gap:8px;}
@@ -440,7 +440,7 @@
 
     <div id="gridPreview">
       <canvas id="previewCanvas"></canvas>
-      <p class="preview-note">Cada número es una hoja · la franja rosa es donde se pegan dos hojas</p>
+      <p class="preview-note" id="previewNote">Cada número es una hoja · la franja rosa es donde se pegan dos hojas</p>
     </div>
     <p id="previewEmpty" class="preview-empty">Sube una imagen para ver cómo se divide en hojas.</p>
   </section>
@@ -514,7 +514,7 @@
 
   <!-- EXTRA OPTIONS -->
   <details class="card extras">
-    <summary>Opciones extra <span class="hint">— márgenes y solape</span></summary>
+    <summary>Opciones extra <span class="hint">— márgenes, solape y orientación</span></summary>
 
     <div class="adv-grid">
       <div class="field">
@@ -523,13 +523,27 @@
       </div>
       <div class="field">
         <label class="fl">Solape (mm)</label>
-        <input type="number" inputmode="decimal" id="overlapInput" value="4" min="3" max="5" step="0.5">
+        <input type="number" inputmode="decimal" id="overlapInput" value="4" min="3" max="15" step="0.5">
       </div>
       <div class="field">
         <label class="fl">Marca de corte (mm)</label>
         <input type="number" inputmode="decimal" id="cropInput" value="3" min="2" max="6" step="0.5">
       </div>
     </div>
+
+    <div class="field" style="margin-top:14px;">
+      <label class="fl">Orientación de la hoja <span class="hint">— automática elige la que gasta menos hojas</span></label>
+      <div class="seg" id="orientSeg">
+        <button type="button" data-orient="auto" class="active">Automática</button>
+        <button type="button" data-orient="portrait">Vertical</button>
+        <button type="button" data-orient="landscape">Horizontal</button>
+      </div>
+    </div>
+
+    <label class="checklabel" style="margin-top:14px;">
+      <input type="checkbox" id="skipBlankChk" checked>
+      Omitir hojas en blanco <span class="hint">— no imprime las hojas donde no cae nada del diseño</span>
+    </label>
   </details>
 
   <footer>Hecho para <b>Mundo Piñatas K&A</b> · Cuernavaca, Morelos · Todo se procesa en tu navegador, ninguna imagen se sube a internet.</footer>
@@ -565,7 +579,8 @@
     mode: 'image',
     paper: 'letter',
     dim: 'auto',
-    circleDim: 'radius'
+    circleDim: 'radius',
+    orient: 'auto'       // sheet orientation: auto | portrait | landscape
   };
 
   const modeTabs   = document.getElementById('modeTabs');
@@ -1060,6 +1075,18 @@
     updatePreview();
   });
 
+  const orientSeg = document.getElementById('orientSeg');
+  const skipBlankChk = document.getElementById('skipBlankChk');
+  const previewNote = document.getElementById('previewNote');
+  orientSeg.addEventListener('click', e => {
+    const btn = e.target.closest('button'); if (!btn) return;
+    [...orientSeg.children].forEach(b=>b.classList.remove('active'));
+    btn.classList.add('active');
+    state.orient = btn.dataset.orient;
+    updatePreview();
+  });
+  skipBlankChk.addEventListener('change', () => updatePreview());
+
   dimSeg.addEventListener('click', e => {
     const btn = e.target.closest('button'); if (!btn) return;
     [...dimSeg.children].forEach(b=>b.classList.remove('active'));
@@ -1120,26 +1147,123 @@
       }
     }
 
-    const page = PAGES[state.paper];
     const marginMm  = parseFloat(marginInput.value)  || 8;
     const overlapMm = parseFloat(overlapInput.value) || 4;
     const cropMm    = parseFloat(cropInput.value)    || 3;
 
     const M  = marginMm * MM;
     const OL = overlapMm * MM;
-    const printW = page.w - 2*M;
-    const printH = page.h - 2*M;
-
     const imgWpt = finalWcm * CM;
     const imgHpt = finalHcm * CM;
 
-    const cols = tileCount(imgWpt, printW, OL);
-    const rows = tileCount(imgHpt, printH, OL);
+    // Facciones packs loose pieces on upright sheets and has its own page count,
+    // so sheet rotation and blank-sheet skipping only apply to the tiled modes.
+    const tiled = state.mode !== 'parts';
+    const probe = tiled ? designProbe(imgWpt, imgHpt) : null;
+    const base = PAGES[state.paper];
+    const options = !tiled || state.orient === 'portrait' ? [false]
+                  : state.orient === 'landscape' ? [true] : [false, true];
+    let best = null;
+    for (const sideways of options){
+      const page = sideways
+        ? { w: base.h, h: base.w, label: base.label + ' horizontal' }
+        : { w: base.w, h: base.h, label: base.label };
+      const printW = page.w - 2*M, printH = page.h - 2*M;
+      const g = { page, printW, printH, sheetLandscape: sideways,
+                  cols: tileCount(imgWpt, printW, OL), rows: tileCount(imgHpt, printH, OL) };
+      Object.assign(g, sheetPlan(probe, g, imgWpt, imgHpt, OL, tiled && skipBlankChk.checked));
+      // fewest printed sheets wins; ties keep the upright sheet
+      if (!best || g.printed < best.printed ||
+          (g.printed === best.printed && g.cols*g.rows < best.cols*best.rows)) best = g;
+    }
 
     return {
-      landscape, finalWcm, finalHcm, page, M, OL, cropMm, printW, printH,
-      imgWpt, imgHpt, cols, rows, totalPages: cols*rows, appliedTo
+      landscape, finalWcm, finalHcm, M, OL, cropMm, imgWpt, imgHpt, appliedTo, probe,
+      page: best.page, printW: best.printW, printH: best.printH,
+      sheetLandscape: best.sheetLandscape, orient: best.sheetLandscape ? 'landscape' : 'portrait',
+      cols: best.cols, rows: best.rows, num: best.num,
+      gridPages: best.cols*best.rows, totalPages: best.printed
     };
+  }
+
+  // What gets printed in the image / circle modes: draws the whole design in
+  // full-resolution (300 DPI) pixel coordinates.
+  function designRenderer(imgWpt, imgHpt){
+    const pxPerPt = PRINT_DPI / 72;
+    const fullW = imgWpt * pxPerPt, fullH = imgHpt * pxPerPt;
+    if (state.mode === 'circle'){
+      const strokeMm = parseFloat(circleStrokeInput.value) || 3;
+      const strokePx = (strokeMm/10/2.54) * PRINT_DPI;
+      const r = Math.max(0, Math.min(fullW, fullH)/2 - strokePx/2 - 2);
+      return { fullW, fullH, format: 'PNG', render: ctx => {
+        ctx.strokeStyle = '#000000';
+        ctx.lineWidth = strokePx;
+        ctx.beginPath();
+        ctx.arc(fullW/2, fullH/2, r, 0, Math.PI*2);
+        ctx.stroke();
+      }};
+    }
+    return { fullW, fullH, format: 'JPEG', render: ctx => {
+      ctx.imageSmoothingEnabled = true;
+      ctx.imageSmoothingQuality = 'high';
+      ctx.drawImage(imgTrimmedCanvas, 0, 0, fullW, fullH);
+    }};
+  }
+
+  // Low-resolution copy of the printed design plus an "ink" mask (anything that is not
+  // white paper). Used to find blank sheets and as the thumbnail of the assembly map.
+  let probeCache = { key: null, src: null, val: null };
+  function designProbe(imgWpt, imgHpt){
+    const key = [state.mode, imgWpt.toFixed(2), imgHpt.toFixed(2),
+                 state.mode === 'circle' ? circleStrokeInput.value : ''].join('|');
+    if (probeCache.key === key && probeCache.src === imgTrimmedCanvas) return probeCache.val;
+    const d = designRenderer(imgWpt, imgHpt);
+    const sc = Math.min(1/8, 1400 / Math.max(d.fullW, d.fullH));
+    const w = Math.max(1, Math.ceil(d.fullW * sc)), h = Math.max(1, Math.ceil(d.fullH * sc));
+    const canvas = document.createElement('canvas');
+    canvas.width = w; canvas.height = h;
+    const ctx = canvas.getContext('2d', { willReadFrequently: true });
+    ctx.fillStyle = '#ffffff'; ctx.fillRect(0, 0, w, h);
+    ctx.save(); ctx.scale(sc, sc); d.render(ctx); ctx.restore();
+    const px = ctx.getImageData(0, 0, w, h).data;
+    const ink = new Uint8Array(w*h);
+    for (let i = 0, q = 0; q < w*h; i += 4, q++){
+      if (px[i] < 248 || px[i+1] < 248 || px[i+2] < 248) ink[q] = 1;
+    }
+    const val = { canvas, ink, w, h, pxPerPt: (PRINT_DPI / 72) * sc };
+    probeCache = { key, src: imgTrimmedCanvas, val };
+    return val;
+  }
+
+  // Numbers the sheets of a grid in reading order. With `skip`, sheets on which no ink
+  // falls get number 0 and are left out of the PDF. Returns { num, printed }.
+  function sheetPlan(probe, g, imgWpt, imgHpt, OL, skip){
+    const n = g.cols * g.rows, num = new Array(n).fill(0);
+    const used = new Array(n).fill(true);
+    if (skip && probe){
+      const stepW = g.printW - OL, stepH = g.printH - OL, k = probe.pxPerPt;
+      let any = false;
+      for (let r = 0; r < g.rows; r++){
+        for (let c = 0; c < g.cols; c++){
+          const x0pt = c*stepW, y0pt = r*stepH;
+          const x1pt = Math.min(x0pt + g.printW, imgWpt), y1pt = Math.min(y0pt + g.printH, imgHpt);
+          // one probe pixel of slack so a hairline on the sheet edge is never lost
+          const x0 = Math.max(0, Math.floor(x0pt*k) - 1), x1 = Math.min(probe.w, Math.ceil(x1pt*k) + 1);
+          const y0 = Math.max(0, Math.floor(y0pt*k) - 1), y1 = Math.min(probe.h, Math.ceil(y1pt*k) + 1);
+          let hit = false;
+          for (let y = y0; y < y1 && !hit; y++){
+            const row = y * probe.w;
+            for (let x = x0; x < x1; x++){ if (probe.ink[row + x]){ hit = true; break; } }
+          }
+          used[r*g.cols + c] = hit;
+          any = any || hit;
+        }
+      }
+      if (!any) used.fill(true); // completely white design: print the grid as it is
+    }
+    let printed = 0;
+    for (let i = 0; i < n; i++) if (used[i]) num[i] = ++printed;
+    return { num, printed };
   }
 
   function updatePreview(){
@@ -1188,10 +1312,15 @@
     gridPreview.classList.add('show');
     drawPreview(L);
 
+    const skipped = L.gridPages - L.totalPages;
+    previewNote.textContent = 'Cada número es una hoja · la franja rosa es donde se pegan dos hojas'
+      + (skipped ? ` · las ${skipped === 1 ? 'casilla gris es una hoja' : skipped + ' casillas grises son hojas'} en blanco que no se imprime${skipped === 1 ? '' : 'n'}` : '')
+      + (L.sheetLandscape ? ' · hojas en horizontal' : '');
+
     const sizeTxt = state.mode === 'circle'
       ? `Círculo Ø ${L.finalWcm.toFixed(1)} cm`
       : `${L.finalWcm.toFixed(1)} × ${L.finalHcm.toFixed(1)} cm`;
-    barSummary.textContent = `${sizeTxt} · ${L.totalPages} hoja${L.totalPages>1?'s':''}`;
+    barSummary.textContent = `${sizeTxt} · ${L.totalPages} hoja${L.totalPages>1?'s':''}${L.sheetLandscape ? ' en horizontal' : ''}`;
   }
 
   // Thumbnail of the design (or circle) at its final proportions with the sheet grid on top:
@@ -1227,9 +1356,20 @@
     const fs = Math.max(10, Math.min(15, Math.min(stepW, stepH) * 0.16));
     ctx.font = `700 ${fs}px 'Work Sans', system-ui, sans-serif`;
     ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
-    let n = 1;
+    // sheets that are skipped (blank): greyed out, no number
+    ctx.fillStyle = 'rgba(120,112,135,0.30)';
     for (let r = 0; r < L.rows; r++){
       for (let c = 0; c < L.cols; c++){
+        if (L.num[r*L.cols + c]) continue;
+        const bx0 = c ? c*stepW + ol/2 : 0, bx1 = c < L.cols-1 ? (c+1)*stepW + ol/2 : w;
+        const by0 = r ? r*stepH + ol/2 : 0, by1 = r < L.rows-1 ? (r+1)*stepH + ol/2 : h;
+        ctx.fillRect(bx0, by0, bx1 - bx0, by1 - by0);
+      }
+    }
+    for (let r = 0; r < L.rows; r++){
+      for (let c = 0; c < L.cols; c++){
+        const sheetNum = L.num[r*L.cols + c];
+        if (!sheetNum) continue;
         const x0 = c*stepW + (c ? ol : 0), x1 = Math.min(c*stepW + cellW, w);
         const y0 = r*stepH + (r ? ol : 0), y1 = Math.min(r*stepH + cellH, h);
         const rad = fs * 0.95;
@@ -1239,7 +1379,7 @@
         ctx.fillStyle = 'rgba(255,255,255,0.92)';
         ctx.beginPath(); ctx.arc(cx, cy, rad, 0, Math.PI*2); ctx.fill();
         ctx.strokeStyle = '#D81C5D'; ctx.lineWidth = 1.2; ctx.stroke();
-        ctx.fillStyle = '#D81C5D'; ctx.fillText(String(n++), cx, cy + 0.5);
+        ctx.fillStyle = '#D81C5D'; ctx.fillText(String(sheetNum), cx, cy + 0.5);
       }
     }
   }
@@ -1259,11 +1399,12 @@
 
   // Cut marks at the 4 corners of the printed tile, plus the glue strips. Every joint
   // between two sheets is marked ONCE, on the sheet that goes underneath: a sheet shows
-  // a strip on its right edge when it has a neighbour to the right and on its bottom
-  // edge when it has one below (never on the left/top). The strip names the sheet that
+  // a strip on its right edge when a sheet is glued to its right and on its bottom
+  // edge when one is glued below (never on the left/top). The strip names the sheet that
   // is glued over it. jsPDF measures y from the top of the page, so the tile occupies
-  // [x, x+w] × [y, y+h]. `num` is this sheet's number within its grid.
-  function drawTileMarks(pdf, L, x, y, w, h, row, col, rows, cols, num){
+  // [x, x+w] × [y, y+h]. rightNum / belowNum are the numbers of those neighbours
+  // (0 = no sheet there, or it is blank and not printed).
+  function drawTileMarks(pdf, L, x, y, w, h, rightNum, belowNum){
     const CUT = L.cropMm * MM, OL = L.OL;
     pdf.setDrawColor(140,140,140); pdf.setLineWidth(0.5);
     [[x,y],[x+w,y],[x,y+h],[x+w,y+h]].forEach(([cx,cy])=>{
@@ -1271,7 +1412,7 @@
       pdf.line(cx, cy-CUT, cx, cy-2); pdf.line(cx, cy+2, cx, cy+CUT);
     });
 
-    const right = col < cols-1, below = row < rows-1;
+    const right = rightNum > 0, below = belowNum > 0;
     if (!right && !below) return;
 
     // Wash the strip so it reads as "this part gets covered" even over a dark design.
@@ -1293,17 +1434,93 @@
     if (below) pdf.line(x, y+h-OL, x+w, y+h-OL);
     pdf.setLineDashPattern([], 0);
 
-    const fs = Math.min(6, OL * 0.6);
+    const fs = Math.min(8, OL * 0.6);
     pdf.setFont(undefined, 'bold'); pdf.setFontSize(fs); pdf.setTextColor(120,10,50);
     if (right){
-      const t = `PEGA AQUÍ LA HOJA ${num + 1}`, tw = pdf.getTextWidth(t);
+      const t = `PEGA AQUÍ LA HOJA ${rightNum}`, tw = pdf.getTextWidth(t);
       if (tw < h - 2*OL) pdf.text(t, x+w-OL/2 + fs*0.35, y + h/2 + tw/2, { angle: 90 });
     }
     if (below){
-      const t = `PEGA AQUÍ LA HOJA ${num + cols}`, tw = pdf.getTextWidth(t);
+      const t = `PEGA AQUÍ LA HOJA ${belowNum}`, tw = pdf.getTextWidth(t);
       if (tw < w - 2*OL) pdf.text(t, x + w/2 - tw/2, y+h-OL/2 + fs*0.35);
     }
     pdf.setFont(undefined, 'normal');
+  }
+
+  // 5 cm ruler with a tick every cm, right-aligned at xRight on baseline y. Measuring
+  // it on paper tells whether the PDF was printed at 100 %.
+  function drawRuler(pdf, xRight, y){
+    const len = 5 * CM, x0 = xRight - len;
+    pdf.setDrawColor(60,60,60); pdf.setLineWidth(0.5);
+    pdf.line(x0, y, xRight, y);
+    for (let i = 0; i <= 5; i++){
+      const tx = x0 + i*CM;
+      pdf.line(tx, y, tx, y - (i === 0 || i === 5 ? 5 : 3));
+    }
+    pdf.setFont(undefined, 'normal'); pdf.setFontSize(5.5); pdf.setTextColor(60,60,60);
+    const t = 'Escala: esta regla mide 5 cm';
+    pdf.text(t, x0 - 4 - pdf.getTextWidth(t), y);
+    return x0 - 4 - pdf.getTextWidth(t);
+  }
+
+  // Things that live in the top margin of a sheet, right-aligned: a tiny map of the
+  // grid with this sheet filled in, and (first sheet only) the scale ruler.
+  function drawSheetExtras(pdf, L, cols, rows, num, idx, withRuler){
+    const top = 5, bottom = L.M - 3, availH = bottom - top;
+    let xr = L.page.w - L.M;
+    if (cols*rows > 1 && availH >= 6){
+      let ch = Math.min(5, availH / rows), cw = ch * (L.printW / L.printH);
+      if (cols*cw > 70){ const f = 70 / (cols*cw); cw *= f; ch *= f; }
+      const mx = xr - cols*cw, my = bottom - rows*ch;
+      pdf.setLineWidth(0.25);
+      for (let i = 0; i < cols*rows; i++){
+        const cx = mx + (i % cols)*cw, cy = my + Math.floor(i / cols)*ch;
+        if (i === idx){ pdf.setFillColor(216,28,93); pdf.setDrawColor(216,28,93); pdf.rect(cx, cy, cw, ch, 'FD'); }
+        else if (num[i]){ pdf.setDrawColor(120,120,120); pdf.rect(cx, cy, cw, ch, 'S'); }
+        else { pdf.setFillColor(215,215,215); pdf.setDrawColor(190,190,190); pdf.rect(cx, cy, cw, ch, 'FD'); }
+      }
+      xr = mx - 10;
+    }
+    if (withRuler && availH >= 8) drawRuler(pdf, xr, bottom - 1);
+  }
+
+  // Assembly map: thumbnail of the design with the sheet grid and numbers on top;
+  // blank sheets that are not printed are greyed out. Fits inside maxW × maxH at (x, y).
+  function drawAssemblyMap(pdf, L, x, y, maxW, maxH){
+    const k = Math.min(maxW / L.imgWpt, maxH / L.imgHpt);
+    const w = L.imgWpt * k, h = L.imgHpt * k;
+    const canFade = typeof pdf.GState === 'function' && typeof pdf.setGState === 'function';
+    if (L.probe){
+      pdf.addImage(L.probe.canvas.toDataURL('image/jpeg', 0.8), 'JPEG', x, y, w, h, undefined, 'FAST');
+      if (canFade){
+        pdf.setGState(new pdf.GState({ opacity: 0.5 }));
+        pdf.setFillColor(255,255,255); pdf.rect(x, y, w, h, 'F');
+        pdf.setGState(new pdf.GState({ opacity: 1 }));
+      }
+    }
+    const stepW = (L.printW - L.OL) * k, stepH = (L.printH - L.OL) * k, half = L.OL * k / 2;
+    const fs = Math.max(5, Math.min(13, Math.min(stepW, stepH) * 0.38));
+    const cells = [];
+    for (let r = 0; r < L.rows; r++){
+      for (let c = 0; c < L.cols; c++){
+        const x0 = x + (c ? c*stepW + half : 0), x1 = x + (c < L.cols-1 ? (c+1)*stepW + half : w);
+        const y0 = y + (r ? r*stepH + half : 0), y1 = y + (r < L.rows-1 ? (r+1)*stepH + half : h);
+        cells.push({ x0, y0, x1, y1, n: L.num[r*L.cols + c] });
+      }
+    }
+    pdf.setFillColor(205,205,205);
+    cells.forEach(q => { if (!q.n) pdf.rect(q.x0, q.y0, q.x1-q.x0, q.y1-q.y0, 'F'); });
+    pdf.setDrawColor(216,28,93); pdf.setLineWidth(0.6);
+    cells.forEach(q => pdf.rect(q.x0, q.y0, q.x1-q.x0, q.y1-q.y0, 'S'));
+    pdf.setFont(undefined, 'bold'); pdf.setFontSize(fs);
+    cells.forEach(q => {
+      if (!q.n) return;
+      const t = String(q.n), tw = pdf.getTextWidth(t), cx = (q.x0+q.x1)/2, cy = (q.y0+q.y1)/2;
+      pdf.setFillColor(255,255,255); pdf.circle(cx, cy, Math.max(tw, fs) * 0.62, 'F');
+      pdf.setTextColor(216,28,93); pdf.text(t, cx - tw/2, cy + fs*0.35);
+    });
+    pdf.setFont(undefined, 'normal');
+    return h;
   }
 
   // Emits one PDF page per tile. Each tile is rendered on its own small canvas by
@@ -1316,14 +1533,19 @@
   //   o.format         'JPEG' for photos, 'PNG' for line art
   //   o.label(row,col,pageNum,pages)  small header text
   //   o.firstOnCurrentPage  draw the first tile on the current page instead of adding one
+  //   o.num            optional sheet numbers per cell (0 = blank sheet, skipped)
+  //   o.ruler          draw the scale ruler on the first sheet
   //   o.onTile()       awaited after each page (progress updates)
   async function emitTiles(pdf, L, o){
     const pxPerPt = PRINT_DPI / 72;
     const stepW = L.printW - L.OL, stepH = L.printH - L.OL;
-    const pages = o.cols * o.rows;
+    const num = o.num || Array.from({ length: o.cols * o.rows }, (_, i) => i + 1);
+    const pages = num.reduce((m, v) => Math.max(m, v), 0);
     let first = true;
     for (let row=0; row<o.rows; row++){
       for (let col=0; col<o.cols; col++){
+        const idx = row*o.cols + col, n = num[idx];
+        if (!n) continue; // blank sheet
         const x0pt = col*stepW, y0pt = row*stepH;
         const tileWpt = Math.min(L.printW, o.wPt - x0pt);
         const tileHpt = Math.min(L.printH, o.hPt - y0pt);
@@ -1345,14 +1567,16 @@
           : tile.toDataURL('image/jpeg', 0.92);
         tile.width = tile.height = 0; // release canvas memory right away (Safari)
 
-        if (!(first && o.firstOnCurrentPage)) pdf.addPage([L.page.w, L.page.h]);
+        if (!(first && o.firstOnCurrentPage)) pdf.addPage([L.page.w, L.page.h], L.orient);
+        drawSheetExtras(pdf, L, o.cols, o.rows, num, idx, !!o.ruler && first);
         first = false;
         // Every tile starts at the top-left printable corner, including partial ones.
         pdf.addImage(data, o.format, L.M, L.M, tileWpt, tileHpt, undefined, 'FAST');
-        drawTileMarks(pdf, L, L.M, L.M, tileWpt, tileHpt, row, col, o.rows, o.cols, row*o.cols+col+1);
+        drawTileMarks(pdf, L, L.M, L.M, tileWpt, tileHpt,
+          col < o.cols-1 ? num[idx+1] : 0, row < o.rows-1 ? num[idx+o.cols] : 0);
 
         pdf.setFontSize(6); pdf.setTextColor(130,130,130);
-        pdf.text(o.label(row, col, row*o.cols+col+1, pages), L.M, 14);
+        pdf.text(o.label(row, col, n, pages), L.M, 14);
         await o.onTile();
       }
     }
@@ -1726,7 +1950,7 @@
   // optional contour sheets, and the instructions page.
   async function generatePartsPdf(L){
     const { jsPDF } = window.jspdf;
-    const pdf = new jsPDF({unit:'pt', format:[L.page.w, L.page.h]});
+    const pdf = new jsPDF({unit:'pt', format:[L.page.w, L.page.h], orientation: L.orient});
     const { w: W, h: H } = parts;
     const ptPerPx = L.imgWpt / W;
     const pxPerPt = PRINT_DPI / 72;
@@ -1857,7 +2081,7 @@
     pdf.setFontSize(10);
     infos.forEach(info => {
       if (rowsLeft <= 0){
-        pdf.addPage([L.page.w, L.page.h]);
+        pdf.addPage([L.page.w, L.page.h], L.orient);
         pdf.setTextColor(216,28,93); pdf.setFont(undefined, 'bold'); pdf.setFontSize(13);
         pdf.text('Lista de piezas (continuación)', L.M, L.M + 6);
         ly = L.M + 28; rowsLeft = nextRows; pdf.setFontSize(10);
@@ -1910,7 +2134,7 @@
         ctx.textAlign = 'left'; ctx.textBaseline = 'alphabetic';
         ctx.fillText(itemLabel(it), (it.x + padPt) * pxPerPt, (it.y + 2*padPt + it.dh + 8) * pxPerPt);
       }
-      pdf.addPage([L.page.w, L.page.h]);
+      pdf.addPage([L.page.w, L.page.h], L.orient);
       pdf.addImage(cv.toDataURL('image/png'), 'PNG', L.M, L.M, L.printW, L.printH, undefined, 'FAST');
       cv.width = cv.height = 0;
       pdf.setFontSize(6); pdf.setTextColor(130,130,130);
@@ -1955,7 +2179,7 @@
     }
 
     // 8) instructions
-    pdf.addPage([L.page.w, L.page.h]);
+    pdf.addPage([L.page.w, L.page.h], L.orient);
     pdf.setTextColor(216,28,93); pdf.setFont(undefined, 'bold'); pdf.setFontSize(16);
     pdf.text('Instrucciones · Mundo Piñatas K&A', L.M, L.M + 16);
     pdf.setTextColor(20,20,20);
@@ -2020,42 +2244,20 @@
         return;
       }
 
-      const pxPerPt = PRINT_DPI / 72;
-      const fullW = L.imgWpt * pxPerPt, fullH = L.imgHpt * pxPerPt;
-      let render, format;
-      if (state.mode === 'circle'){
-        const strokeMm = parseFloat(circleStrokeInput.value) || 3;
-        const strokePx = (strokeMm/10/2.54) * PRINT_DPI;
-        const r = Math.max(0, Math.min(fullW, fullH)/2 - strokePx/2 - 2);
-        render = ctx => {
-          ctx.strokeStyle = '#000000';
-          ctx.lineWidth = strokePx;
-          ctx.beginPath();
-          ctx.arc(fullW/2, fullH/2, r, 0, Math.PI*2);
-          ctx.stroke();
-        };
-        format = 'PNG';
-      } else {
-        render = ctx => {
-          ctx.imageSmoothingEnabled = true;
-          ctx.imageSmoothingQuality = 'high';
-          ctx.drawImage(imgTrimmedCanvas, 0, 0, fullW, fullH);
-        };
-        format = 'JPEG';
-      }
+      const { render, format } = designRenderer(L.imgWpt, L.imgHpt);
 
       statusEl.textContent = 'Generando páginas…';
       await nextFrame();
 
       const { jsPDF } = window.jspdf;
-      const pdf = new jsPDF({unit:'pt', format:[L.page.w, L.page.h]});
-      const total = L.cols * L.rows;
+      const pdf = new jsPDF({unit:'pt', format:[L.page.w, L.page.h], orientation: L.orient});
+      const total = L.totalPages, skipped = L.gridPages - total;
       const sizeTag = state.mode === 'circle' ? `Círculo ${circleMeasureLabel()}` : `Piñata ${sizeInput.value} cm`;
       let done = 0;
 
       await emitTiles(pdf, L, {
         wPt: L.imgWpt, hPt: L.imgHpt, cols: L.cols, rows: L.rows,
-        render, format, firstOnCurrentPage: true,
+        render, format, firstOnCurrentPage: true, num: L.num, ruler: true,
         label: (row, col, n, pages) =>
           `Hoja ${n}/${pages}  |  Fila ${row+1}/${L.rows}  Col ${col+1}/${L.cols}  |  ${sizeTag} · Mundo Piñatas K&A`,
         onTile: async () => {
@@ -2067,11 +2269,12 @@
       });
 
       // instructions page
-      pdf.addPage([L.page.w, L.page.h]);
+      pdf.addPage([L.page.w, L.page.h], L.orient);
       pdf.setTextColor(216,28,93);
       pdf.setFontSize(16);
       pdf.setFont(undefined, 'bold');
       pdf.text('Instrucciones · Mundo Piñatas K&A', L.M, L.M+16);
+      drawRuler(pdf, L.page.w - L.M, L.M + 16);
 
       pdf.setTextColor(20,20,20);
       const assemblyExtra = state.mode === 'circle'
@@ -2087,14 +2290,16 @@
         '  •  Seleccionar "Tamaño real" o "Escala 100%" en el diálogo de impresión.',
         '  •  Desactivar "Ajustar al área imprimible".',
         `  •  Papel: ${L.page.label}  ·  Calidad: Alta.`,
+        '  •  Comprueba la escala antes de recortar: la regla impresa arriba de la hoja 1 (y en esta página) debe medir exactamente 5 cm.',
         '',
         'ENSAMBLAJE:',
-        `  •  El diseño ocupa ${total} hojas (${L.cols} columna${L.cols>1?'s':''} × ${L.rows} fila${L.rows>1?'s':''}).`,
+        `  •  El diseño ocupa ${total} hoja${total>1?'s':''} (cuadrícula de ${L.cols} columna${L.cols>1?'s':''} × ${L.rows} fila${L.rows>1?'s':''}).`,
+        skipped ? `  •  ${skipped === 1 ? 'Una hoja queda en blanco y no se incluye' : skipped + ' hojas quedan en blanco y no se incluyen'}: son las casillas grises del mapa.` : '',
+        total > 1 ? '  •  El mapa de abajo muestra dónde va cada hoja; cada hoja trae arriba a la derecha un mini mapa con su lugar marcado.' : '',
         '  •  Recorta cada hoja siguiendo las marcas de corte grises en las esquinas.',
         assemblyExtra,
         total > 1 ? `  •  La franja rosa (${overlapInput.value} mm) es la zona de pegado: solo aparece en los lados donde se une otra hoja.` : '',
-        total > 1 ? '  •  Cada franja dice qué hoja va encima: pon pegamento en la franja y coloca ahí el borde recortado de esa hoja,' : '',
-        total > 1 ? '     alineándolo con la línea punteada. Los lados sin franja son la orilla del diseño o van encima de otra hoja.' : '',
+        total > 1 ? '  •  Cada franja dice qué hoja va encima: pon pegamento en la franja y coloca ahí el borde recortado de esa hoja, alineándolo con la línea punteada. Los lados sin franja son la orilla del diseño o van encima de otra hoja.' : '',
         total > 1 ? '  •  Pega de izquierda a derecha, fila por fila (de arriba hacia abajo).' : '',
         '  •  Verifica que el diseño continúe sin saltos antes de pegar cada hoja.',
         '',
@@ -2108,12 +2313,20 @@
       pdf.setFontSize(10.5);
       lines.forEach(line=>{
         pdf.setFont(undefined, (line.endsWith(':') && !line.startsWith(' ')) ? 'bold' : 'normal');
-        pdf.text(line, L.M, y);
-        y += 15;
+        pdf.splitTextToSize(line, L.printW - 14).forEach((t, i) => { pdf.text(i ? '     ' + t : t, L.M, y); y += 15; });
       });
 
+      if (total > 1){
+        const room = L.page.h - L.M - (y + 24);
+        if (room >= 70){
+          pdf.setFont(undefined, 'bold'); pdf.setFontSize(10.5); pdf.setTextColor(20,20,20);
+          pdf.text('MAPA DE ARMADO:', L.M, y + 8);
+          drawAssemblyMap(pdf, L, L.M, y + 18, Math.min(L.printW, 330), room);
+        }
+      }
+
       progressFill.style.width = '100%';
-      statusEl.textContent = `✅ Listo · ${total+1} páginas (${total} de diseño + instrucciones)`;
+      statusEl.textContent = `✅ Listo · ${total+1} páginas (${total} de diseño + instrucciones)` + (skipped ? ` · ${skipped} en blanco omitida${skipped>1?'s':''}` : '');
 
       const fileTag = state.mode === 'circle'
         ? `circulo_r${getCircleRadiusCm().toFixed(1).replace('.','_')}cm`
