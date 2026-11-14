@@ -440,7 +440,7 @@
 
     <div id="gridPreview">
       <canvas id="previewCanvas"></canvas>
-      <p class="preview-note">Cada número es una hoja · la franja rosa es el solape para pegar</p>
+      <p class="preview-note">Cada número es una hoja · la franja rosa es donde se pegan dos hojas</p>
     </div>
     <p id="previewEmpty" class="preview-empty">Sube una imagen para ver cómo se divide en hojas.</p>
   </section>
@@ -1257,22 +1257,53 @@
     return Math.max(1, Math.ceil((lenPt - OL) / (printLen - OL)));
   }
 
-  // Cut marks at the 4 corners of the printed tile, plus a dashed overlap guide on
-  // EVERY side that is shared with a neighbouring sheet. jsPDF measures y from the
-  // top of the page, so the tile occupies [x, x+w] × [y, y+h].
-  function drawTileMarks(pdf, L, x, y, w, h, row, col, rows, cols){
+  // Cut marks at the 4 corners of the printed tile, plus the glue strips. Every joint
+  // between two sheets is marked ONCE, on the sheet that goes underneath: a sheet shows
+  // a strip on its right edge when it has a neighbour to the right and on its bottom
+  // edge when it has one below (never on the left/top). The strip names the sheet that
+  // is glued over it. jsPDF measures y from the top of the page, so the tile occupies
+  // [x, x+w] × [y, y+h]. `num` is this sheet's number within its grid.
+  function drawTileMarks(pdf, L, x, y, w, h, row, col, rows, cols, num){
     const CUT = L.cropMm * MM, OL = L.OL;
     pdf.setDrawColor(140,140,140); pdf.setLineWidth(0.5);
     [[x,y],[x+w,y],[x,y+h],[x+w,y+h]].forEach(([cx,cy])=>{
       pdf.line(cx-CUT, cy, cx-2, cy); pdf.line(cx+2, cy, cx+CUT, cy);
       pdf.line(cx, cy-CUT, cx, cy-2); pdf.line(cx, cy+2, cx, cy+CUT);
     });
-    pdf.setDrawColor(180,180,180); pdf.setLineWidth(0.4); pdf.setLineDashPattern([3,3], 0);
-    if (col > 0)      pdf.line(x+OL,   y,      x+OL,   y+h);    // left neighbour
-    if (col < cols-1) pdf.line(x+w-OL, y,      x+w-OL, y+h);    // right neighbour
-    if (row > 0)      pdf.line(x,      y+OL,   x+w,    y+OL);   // sheet above
-    if (row < rows-1) pdf.line(x,      y+h-OL, x+w,    y+h-OL); // sheet below
+
+    const right = col < cols-1, below = row < rows-1;
+    if (!right && !below) return;
+
+    // Wash the strip so it reads as "this part gets covered" even over a dark design.
+    const canFade = typeof pdf.GState === 'function' && typeof pdf.setGState === 'function';
+    if (canFade){
+      pdf.setGState(new pdf.GState({ opacity: 0.6 }));
+      pdf.setFillColor(255,255,255);
+      if (right) pdf.rect(x+w-OL, y, OL, h, 'F');
+      if (below) pdf.rect(x, y+h-OL, right ? w-OL : w, OL, 'F');
+      pdf.setGState(new pdf.GState({ opacity: 0.22 }));
+      pdf.setFillColor(216,28,93);
+      if (right) pdf.rect(x+w-OL, y, OL, h, 'F');
+      if (below) pdf.rect(x, y+h-OL, right ? w-OL : w, OL, 'F');
+      pdf.setGState(new pdf.GState({ opacity: 1 }));
+    }
+
+    pdf.setDrawColor(150,20,65); pdf.setLineWidth(0.5); pdf.setLineDashPattern([3,2], 0);
+    if (right) pdf.line(x+w-OL, y, x+w-OL, y+h);
+    if (below) pdf.line(x, y+h-OL, x+w, y+h-OL);
     pdf.setLineDashPattern([], 0);
+
+    const fs = Math.min(6, OL * 0.6);
+    pdf.setFont(undefined, 'bold'); pdf.setFontSize(fs); pdf.setTextColor(120,10,50);
+    if (right){
+      const t = `PEGA AQUÍ LA HOJA ${num + 1}`, tw = pdf.getTextWidth(t);
+      if (tw < h - 2*OL) pdf.text(t, x+w-OL/2 + fs*0.35, y + h/2 + tw/2, { angle: 90 });
+    }
+    if (below){
+      const t = `PEGA AQUÍ LA HOJA ${num + cols}`, tw = pdf.getTextWidth(t);
+      if (tw < w - 2*OL) pdf.text(t, x + w/2 - tw/2, y+h-OL/2 + fs*0.35);
+    }
+    pdf.setFont(undefined, 'normal');
   }
 
   // Emits one PDF page per tile. Each tile is rendered on its own small canvas by
@@ -1318,7 +1349,7 @@
         first = false;
         // Every tile starts at the top-left printable corner, including partial ones.
         pdf.addImage(data, o.format, L.M, L.M, tileWpt, tileHpt, undefined, 'FAST');
-        drawTileMarks(pdf, L, L.M, L.M, tileWpt, tileHpt, row, col, o.rows, o.cols);
+        drawTileMarks(pdf, L, L.M, L.M, tileWpt, tileHpt, row, col, o.rows, o.cols, row*o.cols+col+1);
 
         pdf.setFontSize(6); pdf.setTextColor(130,130,130);
         pdf.text(o.label(row, col, row*o.cols+col+1, pages), L.M, 14);
@@ -1937,7 +1968,7 @@
       '  •  Cada silueta es una pieza: recórtala por la línea negra y cálcala sobre el material de su color.',
       '  •  El número de cada pieza indica su lugar en el mapa de armado (página 1).',
       `  •  Las siluetas ya incluyen ${bleedMm} mm de traslape: esa orilla va debajo de la pieza vecina.`,
-      '  •  Piezas grandes vienen en varias hojas: únelas primero empalmando el borde sobre la línea punteada.',
+      '  •  Piezas grandes vienen en varias hojas: únelas primero: la franja rosa indica qué hoja se pega encima.',
       '  •  Las piezas marcadas "(girada)" se rotaron 90° para ahorrar papel; revisa su posición en el mapa.',
       '  •  Arma de atrás hacia adelante: primero las piezas grandes (cuerpo, cabello) y al final los detalles (ojos, boca).',
     ];
@@ -2061,9 +2092,10 @@
         `  •  El diseño ocupa ${total} hojas (${L.cols} columna${L.cols>1?'s':''} × ${L.rows} fila${L.rows>1?'s':''}).`,
         '  •  Recorta cada hoja siguiendo las marcas de corte grises en las esquinas.',
         assemblyExtra,
-        `  •  Hay un solape de ${overlapInput.value} mm entre hojas — úsalo para el pegado.`,
-        '  •  Pega de izquierda a derecha, fila por fila (de arriba hacia abajo).',
-        '  •  Las líneas punteadas grises marcan la zona de solape: empalma el borde recortado de cada hoja sobre la línea punteada de la hoja vecina.',
+        total > 1 ? `  •  La franja rosa (${overlapInput.value} mm) es la zona de pegado: solo aparece en los lados donde se une otra hoja.` : '',
+        total > 1 ? '  •  Cada franja dice qué hoja va encima: pon pegamento en la franja y coloca ahí el borde recortado de esa hoja,' : '',
+        total > 1 ? '     alineándolo con la línea punteada. Los lados sin franja son la orilla del diseño o van encima de otra hoja.' : '',
+        total > 1 ? '  •  Pega de izquierda a derecha, fila por fila (de arriba hacia abajo).' : '',
         '  •  Verifica que el diseño continúe sin saltos antes de pegar cada hoja.',
         '',
         'RESULTADO FINAL:',
