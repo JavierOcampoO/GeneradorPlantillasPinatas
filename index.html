@@ -299,6 +299,11 @@
     -webkit-overflow-scrolling:touch;
   }
   #partsCanvas{display:block; margin:0 auto; touch-action:manipulation; cursor:crosshair; image-rendering:auto;}
+  #partsCanvas.drawing{touch-action:none;}
+  #toolSeg{margin-bottom:8px;}
+  #toolSeg button{flex:1 1 0; min-width:70px; padding-left:6px; padding-right:6px;}
+  .wide-btn{width:100%; margin-top:2px;}
+  .wide-btn:disabled{opacity:.5; cursor:not-allowed;}
   .parts-status{font-size:12.5px; color:#6b6178; margin:8px 0 14px; min-height:16px;}
   .part-row{
     display:flex; align-items:center; gap:8px; padding:8px; margin-bottom:8px;
@@ -448,7 +453,13 @@
   <!-- STEP 3 (Facciones) -->
   <section class="card" id="partsCard" style="display:none;">
     <h2 class="step"><span class="num">3</span>Piezas</h2>
-    <p class="parts-help">Toca una zona del diseño para agregarla a la <b>pieza activa</b>. Tócala otra vez para quitarla.</p>
+    <div class="seg" id="toolSeg">
+      <button type="button" data-tool="lasso" class="active">✏️ Lazo</button>
+      <button type="button" data-tool="wand">🎨 Color</button>
+      <button type="button" data-tool="zone">🔲 Zona</button>
+      <button type="button" data-tool="erase">🧽 Borrar</button>
+    </div>
+    <p class="parts-help" id="partsHelp"></p>
     <div class="parts-toolbar">
       <button type="button" id="partNewBtn">＋ Nueva pieza</button>
       <button type="button" id="partUndoBtn">↶ Deshacer</button>
@@ -457,7 +468,7 @@
     <div id="partsCanvasWrap"><canvas id="partsCanvas"></canvas></div>
     <div id="partsStatus" class="parts-status">Sube una imagen para empezar.</div>
 
-    <div class="field">
+    <div class="field" id="tolField" style="display:none;">
       <label class="fl">Tolerancia de color <span class="hint">— más alta agrega tonos más distintos al tocar</span></label>
       <div class="size-input">
         <input type="range" id="tolSlider" min="5" max="120" value="40" style="flex:1;">
@@ -468,6 +479,16 @@
     <div class="field">
       <label class="fl">Piezas <span class="hint">— toca una fila para hacerla la pieza activa</span></label>
       <div id="partsList"></div>
+      <button type="button" id="splitBtn" class="small-btn wide-btn" disabled>Separar la pieza activa en capas de color</button>
+    </div>
+
+    <div class="field">
+      <label class="fl">Dentro de cada pieza <span class="hint">— qué se imprime dentro de la silueta</span></label>
+      <div class="seg" id="fillSeg">
+        <button type="button" data-fill="lines" class="active">Líneas</button>
+        <button type="button" data-fill="color">Color liso</button>
+        <button type="button" data-fill="image">Imagen</button>
+      </div>
     </div>
 
     <div class="field auto-box">
@@ -580,6 +601,8 @@
     paper: 'letter',
     dim: 'auto',
     circleDim: 'radius',
+    tool: 'lasso',       // Facciones tool: lasso | wand | zone | erase
+    partFill: 'lines',   // inside each printed piece: lines | color | image
     orient: 'auto'       // sheet orientation: auto | portrait | landscape
   };
 
@@ -643,6 +666,11 @@
   const autoCountVal  = document.getElementById('autoCountVal');
   const autoBtn       = document.getElementById('autoBtn');
   const bleedInput    = document.getElementById('bleedInput');
+  const toolSeg       = document.getElementById('toolSeg');
+  const fillSeg       = document.getElementById('fillSeg');
+  const partsHelp     = document.getElementById('partsHelp');
+  const tolField      = document.getElementById('tolField');
+  const splitBtn      = document.getElementById('splitBtn');
 
   // ---------- Mode tabs ----------
   modeTabs.addEventListener('click', e => {
@@ -1210,27 +1238,31 @@
     }};
   }
 
-  // Low-resolution copy of the printed design plus an "ink" mask (anything that is not
-  // white paper). Used to find blank sheets and as the thumbnail of the assembly map.
+  // Low-resolution copy of something that will be printed plus an "ink" mask (anything
+  // that is not white paper). Used to find blank sheets and as the assembly-map thumbnail.
+  function makeProbe(render, fullW, fullH){
+    const sc = Math.min(1/8, 1400 / Math.max(fullW, fullH));
+    const w = Math.max(1, Math.ceil(fullW * sc)), h = Math.max(1, Math.ceil(fullH * sc));
+    const canvas = document.createElement('canvas');
+    canvas.width = w; canvas.height = h;
+    const ctx = canvas.getContext('2d', { willReadFrequently: true });
+    ctx.fillStyle = '#ffffff'; ctx.fillRect(0, 0, w, h);
+    ctx.save(); ctx.scale(sc, sc); render(ctx); ctx.restore();
+    const px = ctx.getImageData(0, 0, w, h).data;
+    const ink = new Uint8Array(w*h);
+    for (let i = 0, q = 0; q < w*h; i += 4, q++){
+      if (px[i] < 248 || px[i+1] < 248 || px[i+2] < 248) ink[q] = 1;
+    }
+    return { canvas, ink, w, h, pxPerPt: (PRINT_DPI / 72) * sc };
+  }
+
   let probeCache = { key: null, src: null, val: null };
   function designProbe(imgWpt, imgHpt){
     const key = [state.mode, imgWpt.toFixed(2), imgHpt.toFixed(2),
                  state.mode === 'circle' ? circleStrokeInput.value : ''].join('|');
     if (probeCache.key === key && probeCache.src === imgTrimmedCanvas) return probeCache.val;
     const d = designRenderer(imgWpt, imgHpt);
-    const sc = Math.min(1/8, 1400 / Math.max(d.fullW, d.fullH));
-    const w = Math.max(1, Math.ceil(d.fullW * sc)), h = Math.max(1, Math.ceil(d.fullH * sc));
-    const canvas = document.createElement('canvas');
-    canvas.width = w; canvas.height = h;
-    const ctx = canvas.getContext('2d', { willReadFrequently: true });
-    ctx.fillStyle = '#ffffff'; ctx.fillRect(0, 0, w, h);
-    ctx.save(); ctx.scale(sc, sc); d.render(ctx); ctx.restore();
-    const px = ctx.getImageData(0, 0, w, h).data;
-    const ink = new Uint8Array(w*h);
-    for (let i = 0, q = 0; q < w*h; i += 4, q++){
-      if (px[i] < 248 || px[i+1] < 248 || px[i+2] < 248) ink[q] = 1;
-    }
-    const val = { canvas, ink, w, h, pxPerPt: (PRINT_DPI / 72) * sc };
+    const val = makeProbe(d.render, d.fullW, d.fullH);
     probeCache = { key, src: imgTrimmedCanvas, val };
     return val;
   }
@@ -1613,10 +1645,12 @@
   // ---------- Facciones: split the design into pieces ----------
   // =====================================================================
   // The design is analysed on a working copy (max 1100 px per side). Every working
-  // pixel is owned by at most one piece (parts.owner = piece id, -1 = none). Tapping
-  // runs a "magic wand" (contiguous area of similar colour) and adds it to the active
-  // piece, or removes it if it already belongs to the active piece. The background is
-  // never selectable.
+  // pixel is owned by at most one piece (parts.owner = piece id, -1 = none). Tools:
+  //   lasso  draw around an area: everything inside becomes a new piece
+  //   wand   tap: contiguous area of similar colour, added to / removed from the active piece
+  //   zone   tap: the whole area enclosed by dark outline strokes, whatever its colours
+  //   erase  draw around an area to take it out of every piece
+  // The background is never selectable.
   const PART_WORK_MAX = 1100;
   const PART_COLORS = [
     [255,62,127],[20,184,174],[91,62,142],[255,166,0],[46,134,222],
@@ -1625,7 +1659,7 @@
   const parts = {
     ready: false, src: null, w: 0, h: 0, data: null, bg: null, owner: null,
     work: null, overlay: null, pieces: [], activeId: -1, nextId: 0,
-    history: [], zoom: false
+    history: [], zoom: false, dark: null, line: null
   };
 
   function partsHaveContent(){ return parts.pieces.some(p => p.count > 0); }
@@ -1653,7 +1687,8 @@
       pieces: [], activeId: -1, nextId: 0, history: []
     });
     parts.overlay.width = w; parts.overlay.height = h;
-    partsStatus.textContent = 'Toca el cabello, la cara, los ojos… cada toque agrega esa zona a la pieza activa.';
+    computeLineMasks();
+    partsStatus.textContent = 'Empieza rodeando con el dedo un ojo, la boca o la nariz.';
     renderParts(); renderPartsList(); updateGenerateButtonState(); updatePreview();
   }
 
@@ -1664,6 +1699,130 @@
     parts.pieces.push(piece);
     parts.activeId = id;
     return piece;
+  }
+
+  // parts.dark = dark pixels of the design; parts.line = the thin dark strokes among
+  // them (drawing outlines). A dark pixel is "thin" when it disappears under a
+  // morphological opening, so solid dark shapes such as pupils are not lines.
+  function computeLineMasks(){
+    const { w, h, data, bg } = parts, n = w*h;
+    const dark = new Uint8Array(n);
+    for (let p = 0, i = 0; p < n; p++, i += 4){
+      if (!bg[p] && 0.299*data[i] + 0.587*data[i+1] + 0.114*data[i+2] < 85) dark[p] = 1;
+    }
+    // opening with a round element of radius r: strokes up to ~2r wide count as lines
+    const r = Math.max(3, Math.round(Math.max(w, h) / 140));
+    const depth = distToZero(dark, w, h);
+    const notCore = new Uint8Array(n);
+    for (let p = 0; p < n; p++) notCore[p] = depth[p] > 3*r ? 0 : 1;
+    const toCore = distToZero(notCore, w, h);
+    const line = new Uint8Array(n);
+    for (let p = 0; p < n; p++) line[p] = dark[p] && toCore[p] > 3*(r + 1.5) ? 1 : 0;
+    parts.dark = dark; parts.line = line;
+  }
+
+  // Chamfer (3-4) distance from every set pixel to the nearest unset one, in thirds
+  // of a pixel. Unset pixels get 0.
+  function distToZero(mask, w, h){
+    const BIG = 1e7, d = new Int32Array(w*h);
+    for (let p = 0; p < w*h; p++) d[p] = mask[p] ? BIG : 0;
+    for (let y = 0; y < h; y++){
+      for (let x = 0; x < w; x++){
+        const p = y*w + x; let v = d[p];
+        if (!v) continue;
+        if (x > 0 && d[p-1] + 3 < v) v = d[p-1] + 3;
+        if (y > 0){
+          if (d[p-w] + 3 < v) v = d[p-w] + 3;
+          if (x > 0 && d[p-w-1] + 4 < v) v = d[p-w-1] + 4;
+          if (x < w-1 && d[p-w+1] + 4 < v) v = d[p-w+1] + 4;
+        }
+        d[p] = v;
+      }
+    }
+    for (let y = h-1; y >= 0; y--){
+      for (let x = w-1; x >= 0; x--){
+        const p = y*w + x; let v = d[p];
+        if (!v) continue;
+        if (x < w-1 && d[p+1] + 3 < v) v = d[p+1] + 3;
+        if (y < h-1){
+          if (d[p+w] + 3 < v) v = d[p+w] + 3;
+          if (x < w-1 && d[p+w+1] + 4 < v) v = d[p+w+1] + 4;
+          if (x > 0 && d[p+w-1] + 4 < v) v = d[p+w-1] + 4;
+        }
+        d[p] = v;
+      }
+    }
+    return d;
+  }
+
+  // Flood fill from (sx, sy) over the pixels where pass[p] is set.
+  function floodMask(sx, sy, pass){
+    const { w, h } = parts;
+    const visited = new Uint8Array(w*h), stack = new Int32Array(w*h), out = [];
+    let sp = 0;
+    stack[sp++] = sy*w + sx; visited[sy*w + sx] = 1;
+    while (sp){
+      const p = stack[--sp];
+      out.push(p);
+      const x = p % w, y = (p / w) | 0;
+      if (x > 0     && !visited[p-1] && pass[p-1]){ visited[p-1] = 1; stack[sp++] = p-1; }
+      if (x < w-1   && !visited[p+1] && pass[p+1]){ visited[p+1] = 1; stack[sp++] = p+1; }
+      if (y > 0     && !visited[p-w] && pass[p-w]){ visited[p-w] = 1; stack[sp++] = p-w; }
+      if (y < h-1   && !visited[p+w] && pass[p+w]){ visited[p+w] = 1; stack[sp++] = p+w; }
+    }
+    return out;
+  }
+
+  // Area enclosed by outline strokes around the tapped pixel, whatever its colours.
+  // Tapping a solid dark shape (a pupil) selects that shape. The result is grown a
+  // little so it reaches the middle of the surrounding outline. null = tapped a line.
+  function zoneRegion(sx, sy){
+    const { w, h, bg, dark, line } = parts, n = w*h, seed = sy*w + sx;
+    if (line[seed]) return null;
+    const pass = new Uint8Array(n);
+    if (dark[seed]){
+      for (let p = 0; p < n; p++) pass[p] = dark[p] && !line[p] ? 1 : 0;
+    } else {
+      const wall = fastDilate(dark, w, h, 1);           // closes hairline gaps in the outline
+      for (let p = 0; p < n; p++) pass[p] = !bg[p] && !wall[p] ? 1 : 0;
+      if (!pass[seed]) for (let p = 0; p < n; p++) pass[p] = !bg[p] && !dark[p] ? 1 : 0;
+    }
+    const core = floodMask(sx, sy, pass);
+    const m = new Uint8Array(n);
+    for (const p of core) m[p] = 1;
+    const grown = fastDilate(m, w, h, Math.max(2, Math.round(Math.max(w, h) / 350)));
+    const out = [];
+    for (let p = 0; p < n; p++) if (grown[p] && !bg[p] && (m[p] || dark[p])) out.push(p);
+    return Int32Array.from(out);
+  }
+
+  // Pixels inside a hand-drawn closed path (points in working-pixel coordinates).
+  function lassoRegion(pts){
+    const { w, h, bg } = parts;
+    const c = document.createElement('canvas');
+    c.width = w; c.height = h;
+    const ctx = c.getContext('2d');
+    ctx.beginPath();
+    pts.forEach((pt, i) => { if (i) ctx.lineTo(pt.x, pt.y); else ctx.moveTo(pt.x, pt.y); });
+    ctx.closePath(); ctx.fillStyle = '#000'; ctx.fill();
+    const a = ctx.getImageData(0, 0, w, h).data, out = [];
+    for (let p = 0; p < w*h; p++) if (a[p*4 + 3] > 127 && !bg[p]) out.push(p);
+    return out;
+  }
+
+  // Gives the pixels of `region` to piece `target` (-1 = no piece) and records an undo
+  // step. `only(cur)` filters by current owner. Returns how many pixels changed.
+  function assignRegion(region, target, only){
+    const idx = [], prev = [];
+    for (const q of region){
+      const cur = parts.owner[q];
+      if (cur !== target && (!only || only(cur))){ idx.push(q); prev.push(cur); }
+    }
+    if (!idx.length) return 0;
+    for (const q of idx) parts.owner[q] = target;
+    parts.history.push({ idx: Int32Array.from(idx), prev: Int16Array.from(prev) });
+    if (parts.history.length > 30) parts.history.shift();
+    return idx.length;
   }
 
   // Contiguous region of colour within `tol` (RGB distance) of the tapped pixel, never crossing background.
@@ -1743,19 +1902,105 @@
       od.data[k+3] = id === parts.activeId ? 150 : 95;
     }
     octx.putImageData(od, 0, 0);
+    paintParts();
+    partZoomBtn.textContent = parts.zoom ? '🔍 Reducir' : '🔍 Ampliar';
+  }
+
+  // Design + piece overlay + the path being drawn with the lasso / eraser.
+  let lassoPts = null;
+  function paintParts(){
+    if (!parts.ready) return;
+    const { w, h } = parts;
     const ctx = partsCanvas.getContext('2d');
     ctx.clearRect(0, 0, w, h);
     ctx.drawImage(parts.work, 0, 0);
     ctx.drawImage(parts.overlay, 0, 0);
-    partZoomBtn.textContent = parts.zoom ? '🔍 Reducir' : '🔍 Ampliar';
+    if (lassoPts && lassoPts.length > 1){
+      const lw = Math.max(2, w / 220);
+      ctx.beginPath();
+      lassoPts.forEach((pt, i) => { if (i) ctx.lineTo(pt.x, pt.y); else ctx.moveTo(pt.x, pt.y); });
+      ctx.lineJoin = ctx.lineCap = 'round';
+      ctx.fillStyle = state.tool === 'erase' ? 'rgba(60,60,60,0.18)' : 'rgba(255,62,127,0.18)';
+      ctx.fill();
+      ctx.strokeStyle = '#fff'; ctx.lineWidth = lw * 2; ctx.stroke();
+      ctx.strokeStyle = state.tool === 'erase' ? '#3c3c3c' : '#D81C5D'; ctx.lineWidth = lw; ctx.stroke();
+    }
+  }
+
+  const TOOL_HELP = {
+    lasso: 'Rodea con el dedo una parte del diseño (un ojo, la boca, la nariz). Todo lo que quede dentro se vuelve una <b>pieza nueva</b>.',
+    wand:  'Toca una zona para agregar ese color a la <b>pieza activa</b>. Tócala otra vez para quitarla.',
+    zone:  'Toca dentro de una zona cerrada por líneas oscuras: se agrega completa a la <b>pieza activa</b>, sin importar sus colores. Ideal para dibujos con contorno negro.',
+    erase: 'Rodea con el dedo lo que quieras quitar de las piezas.'
+  };
+  const isDrawTool = () => state.tool === 'lasso' || state.tool === 'erase';
+  function applyTool(){
+    [...toolSeg.children].forEach(b => b.classList.toggle('active', b.dataset.tool === state.tool));
+    partsHelp.innerHTML = TOOL_HELP[state.tool];
+    tolField.style.display = state.tool === 'wand' ? '' : 'none';
+    partsCanvas.classList.toggle('drawing', isDrawTool());
+  }
+  toolSeg.addEventListener('click', e => {
+    const btn = e.target.closest('button'); if (!btn) return;
+    state.tool = btn.dataset.tool;
+    applyTool();
+  });
+  fillSeg.addEventListener('click', e => {
+    const btn = e.target.closest('button'); if (!btn) return;
+    [...fillSeg.children].forEach(b => b.classList.toggle('active', b === btn));
+    state.partFill = btn.dataset.fill;
+  });
+  applyTool();
+
+  function canvasPoint(e){
+    const rect = partsCanvas.getBoundingClientRect();
+    return { x: (e.clientX - rect.left) / rect.width * parts.w, y: (e.clientY - rect.top) / rect.height * parts.h };
+  }
+  partsCanvas.addEventListener('pointerdown', e => {
+    if (!parts.ready || !isDrawTool() || (e.pointerType === 'mouse' && e.button !== 0)) return;
+    e.preventDefault();
+    try { partsCanvas.setPointerCapture(e.pointerId); } catch(_) {}
+    lassoPts = [canvasPoint(e)];
+  });
+  partsCanvas.addEventListener('pointermove', e => {
+    if (!lassoPts) return;
+    const pt = canvasPoint(e), last = lassoPts[lassoPts.length - 1];
+    if (Math.abs(pt.x - last.x) + Math.abs(pt.y - last.y) < 1.5) return;
+    lassoPts.push(pt);
+    paintParts();
+  });
+  function finishLasso(cancel){
+    const pts = lassoPts; lassoPts = null;
+    if (!pts) return;
+    if (cancel || pts.length < 4){ paintParts(); return; }
+    const region = lassoRegion(pts);
+    if (!region.length){ partsStatus.textContent = 'Ahí no hay diseño. Rodea una parte del dibujo.'; paintParts(); return; }
+    if (state.tool === 'erase'){
+      const n = assignRegion(region, -1, cur => cur >= 0);
+      partsStatus.textContent = n ? 'Se borró esa zona de las piezas.' : 'Esa zona no pertenecía a ninguna pieza.';
+    } else {
+      let piece = pieceById(parts.activeId);
+      if (!piece || piece.count > 0) piece = newPiece();
+      assignRegion(region, piece.id);
+      partsStatus.textContent = `Pieza creada: "${piece.name}". Ponle nombre en la lista o rodea otra parte.`;
+    }
+    partsChanged();
+  }
+  partsCanvas.addEventListener('pointerup', () => finishLasso(false));
+  partsCanvas.addEventListener('pointercancel', () => finishLasso(true));
+
+  function updateSplitBtn(){
+    const p = pieceById(parts.activeId);
+    splitBtn.disabled = !(parts.ready && p && p.count > 0);
   }
 
   function renderPartsList(){
+    updateSplitBtn();
     partsList.textContent = '';
     if (!parts.ready || !parts.pieces.length){
       const p = document.createElement('p');
       p.className = 'parts-empty';
-      p.textContent = parts.ready ? 'Aún no hay piezas. Toca el diseño para crear la primera.' : 'Sube una imagen para empezar.';
+      p.textContent = parts.ready ? 'Aún no hay piezas. Rodea una parte del diseño para crear la primera.' : 'Sube una imagen para empezar.';
       partsList.appendChild(p);
       return;
     }
@@ -1797,6 +2042,7 @@
       r.classList.toggle('active', parts.pieces[i] && parts.pieces[i].id === id));
     const p = pieceById(id);
     if (p) partsStatus.textContent = `Pieza activa: ${p.name}`;
+    updateSplitBtn();
   }
 
   function deletePiece(id){
@@ -1809,34 +2055,155 @@
   }
 
   partsCanvas.addEventListener('click', e => {
-    if (!parts.ready) return;
-    const rect = partsCanvas.getBoundingClientRect();
-    const x = Math.min(parts.w - 1, Math.max(0, Math.floor((e.clientX - rect.left) / rect.width * parts.w)));
-    const y = Math.min(parts.h - 1, Math.max(0, Math.floor((e.clientY - rect.top) / rect.height * parts.h)));
+    if (!parts.ready || isDrawTool()) return;
+    const pt = canvasPoint(e);
+    const x = Math.min(parts.w - 1, Math.max(0, Math.floor(pt.x)));
+    const y = Math.min(parts.h - 1, Math.max(0, Math.floor(pt.y)));
     const p = y*parts.w + x;
     if (parts.bg[p]){ partsStatus.textContent = 'Ese punto es fondo. Toca dentro del diseño.'; return; }
+    let region;
+    if (state.tool === 'zone'){
+      region = zoneRegion(x, y);
+      if (!region){ partsStatus.textContent = 'Tocaste una línea del dibujo. Toca dentro de la zona.'; return; }
+    } else {
+      region = wandRegion(x, y, parseFloat(tolSlider.value) || 40);
+    }
     if (!pieceById(parts.activeId)) newPiece();
     const active = parts.activeId;
-    const region = wandRegion(x, y, parseFloat(tolSlider.value) || 40);
     const removing = parts.owner[p] === active;
-    const idx = [], prev = [];
-    for (const q of region){
-      const cur = parts.owner[q];
-      if (removing ? cur === active : cur !== active){ idx.push(q); prev.push(cur); }
-    }
-    if (!idx.length) return;
-    for (const q of idx) parts.owner[q] = removing ? -1 : active;
-    parts.history.push({ idx: Int32Array.from(idx), prev: Int16Array.from(prev) });
-    if (parts.history.length > 30) parts.history.shift();
+    const n = removing ? assignRegion(region, -1, cur => cur === active) : assignRegion(region, active);
+    if (!n) return;
     const piece = pieceById(active);
     partsStatus.textContent = removing ? `Se quitó una zona de "${piece.name}".` : `Se agregó una zona a "${piece.name}".`;
+    partsChanged();
+  });
+
+  // Splits the active piece into colour layers (white of the eye, iris, pupil…): each
+  // layer becomes its own piece, to be cut from a different sheet of foam and stacked.
+  // Outline strokes are not a layer: they join the colour next to them.
+  splitBtn.addEventListener('click', async () => {
+    const piece = pieceById(parts.activeId);
+    if (!parts.ready || !piece || !piece.count) return;
+    partsStatus.textContent = 'Separando en capas de color…';
+    await nextFrame();
+    const { w, h, data, owner, line, dark } = parts, n = w*h;
+    // strokes and the blurred fringe around dark shapes have no colour of their own
+    const fringe = fastDilate(dark, w, h, 2);
+    const px = [], strokes = [];
+    for (let p = 0; p < n; p++) if (owner[p] === piece.id) (line[p] || (fringe[p] && !dark[p]) ? strokes : px).push(p);
+    if (px.length < 30){ partsStatus.textContent = 'Esa pieza es demasiado pequeña para separarla.'; return; }
+    const col = p => [data[p*4], data[p*4+1], data[p*4+2]];
+    const samples = [];
+    for (let i = 0; i < Math.min(4000, px.length); i++) samples.push(col(px[Math.floor(Math.random()*px.length)]));
+    let cents = kmeansPlusPlusInit(samples, Math.min(6, samples.length)).map(c => ({ c, n: 1 }));
+    for (let iter = 0; iter < 12; iter++){
+      const sums = cents.map(() => [0,0,0,0]);
+      for (const sm of samples){
+        let best = 0, bd = Infinity;
+        cents.forEach((k, ci) => { const d = dist2(sm, k.c); if (d < bd){ bd = d; best = ci; } });
+        sums[best][0] += sm[0]; sums[best][1] += sm[1]; sums[best][2] += sm[2]; sums[best][3]++;
+      }
+      cents = cents.map((k, ci) => sums[ci][3] ? { c: [sums[ci][0]/sums[ci][3], sums[ci][1]/sums[ci][3], sums[ci][2]/sums[ci][3]], n: sums[ci][3] } : { c: k.c, n: 0 });
+    }
+    cents = cents.filter(k => k.n > 0);
+    // merge colours that are close to each other (shading of the same material)
+    const MERGE2 = 55*55;
+    for (;;){
+      let bi = -1, bj = -1, bd = MERGE2;
+      for (let i = 0; i < cents.length; i++) for (let j = i+1; j < cents.length; j++){
+        const d = dist2(cents[i].c, cents[j].c); if (d < bd){ bd = d; bi = i; bj = j; }
+      }
+      if (bi < 0) break;
+      const a = cents[bi], b = cents[bj], t = a.n + b.n;
+      cents[bi] = { c: [0,1,2].map(q => (a.c[q]*a.n + b.c[q]*b.n) / t), n: t };
+      cents.splice(bj, 1);
+    }
+    const label = new Int8Array(n).fill(-1), counts = cents.map(() => 0);
+    for (const p of px){
+      const c = col(p); let best = 0, bd = Infinity;
+      cents.forEach((k, ci) => { const d = dist2(c, k.c); if (d < bd){ bd = d; best = ci; } });
+      label[p] = best; counts[best]++;
+    }
+    // drop specks: layers under 1.5 % of the piece join the nearest remaining colour
+    const keep = counts.map(c => c >= Math.max(25, px.length * 0.015));
+    if (keep.filter(Boolean).length < 2){
+      partsStatus.textContent = `"${piece.name}" es de un solo color: no hay capas que separar.`;
+      return;
+    }
+    for (const p of px){
+      if (keep[label[p]]) continue;
+      const c = col(p); let best = -1, bd = Infinity;
+      cents.forEach((k, ci) => { if (!keep[ci]) return; const d = dist2(c, k.c); if (d < bd){ bd = d; best = ci; } });
+      label[p] = best;
+    }
+    // outline strokes take the layer of the nearest coloured pixel
+    const pending = new Uint8Array(n);
+    for (const p of strokes) pending[p] = 1;
+    const nb4 = p => { const x = p % w, y = (p / w) | 0; return [x > 0 ? p-1 : -1, x < w-1 ? p+1 : -1, y > 0 ? p-w : -1, y < h-1 ? p+w : -1]; };
+    const absorb = () => {
+      let frontier = [];
+      for (let p = 0; p < n; p++) if (label[p] >= 0) frontier.push(p);
+      while (frontier.length){
+        const next = [];
+        for (const p of frontier){
+          for (const q of nb4(p)){
+            if (q >= 0 && pending[q]){ pending[q] = 0; label[q] = label[p]; next.push(q); }
+          }
+        }
+        frontier = next;
+      }
+    };
+    absorb();
+    // specks: islands of a layer that are too small to cut join what surrounds them
+    const minIsland = Math.max(40, Math.round(piece.count * 0.004));
+    const seen = new Uint8Array(n);
+    let dropped = false;
+    for (let p0 = 0; p0 < n; p0++){
+      if (label[p0] < 0 || seen[p0]) continue;
+      const comp = [p0]; seen[p0] = 1;
+      for (let i = 0; i < comp.length; i++){
+        for (const q of nb4(comp[i])){
+          if (q >= 0 && !seen[q] && label[q] === label[p0]){ seen[q] = 1; comp.push(q); }
+        }
+      }
+      if (comp.length < minIsland && comp.length < piece.count * 0.5){
+        for (const q of comp){ label[q] = -1; pending[q] = 1; }
+        dropped = true;
+      }
+    }
+    if (dropped) absorb();
+    // biggest layer first: it keeps the original piece and goes at the bottom
+    const size = cents.map(() => 0);
+    for (let p = 0; p < n; p++) if (label[p] >= 0) size[label[p]]++;
+    const order = cents.map((_, i) => i).filter(i => keep[i] && size[i] > 0).sort((a, b) => size[b] - size[a]);
+    if (order.length < 2){ partsStatus.textContent = `"${piece.name}" es de un solo color: no hay capas que separar.`; return; }
+    const baseName = (piece.name || 'Pieza').trim();
+    const idx = [], prev = [], idOf = {};
+    order.forEach((ci, rank) => {
+      if (rank === 0){ idOf[ci] = piece.id; piece.name = `${baseName} · capa 1`; }
+      else {
+        const at = parts.pieces.indexOf(pieceById(idOf[order[rank-1]]));
+        const np = newPiece(`${baseName} · capa ${rank+1}`);
+        parts.pieces.splice(parts.pieces.indexOf(np), 1);
+        parts.pieces.splice(at + 1, 0, np);       // keep the layers together in the list
+        idOf[ci] = np.id;
+      }
+    });
+    for (let p = 0; p < n; p++){
+      if (owner[p] !== piece.id) continue;
+      const t = label[p] >= 0 ? idOf[label[p]] : piece.id;
+      if (t !== piece.id){ idx.push(p); prev.push(piece.id); owner[p] = t; }
+    }
+    parts.history.push({ idx: Int32Array.from(idx), prev: Int16Array.from(prev) });
+    parts.activeId = piece.id;
+    partsStatus.textContent = `"${baseName}" quedó en ${order.length} capas de color. Se pegan una sobre otra, de la más grande a la más chica.`;
     partsChanged();
   });
 
   partNewBtn.addEventListener('click', () => {
     if (!parts.ready) return;
     const p = newPiece();
-    partsStatus.textContent = `Nueva pieza: ${p.name}. Toca las zonas que la forman.`;
+    partsStatus.textContent = `Nueva pieza: ${p.name}. Agrégale zonas con Color o Zona, o rodéala con el Lazo.`;
     renderParts(); renderPartsList();
   });
   partUndoBtn.addEventListener('click', () => {
@@ -1895,7 +2262,7 @@
     });
     parts.pieces = parts.pieces.filter(pc => pc.count >= minCount);
     parts.activeId = parts.pieces.length ? parts.pieces[0].id : -1;
-    partsStatus.textContent = `${parts.pieces.length} piezas creadas por color. Renómbralas y ajústalas tocando el diseño.`;
+    partsStatus.textContent = `${parts.pieces.length} piezas creadas por color. Renómbralas y ajústalas con las herramientas.`;
     partsChanged();
   });
 
@@ -1942,6 +2309,81 @@
       if (i === 0) ctx.moveTo(x, y); else ctx.lineTo(x, y);
     });
     ctx.closePath();
+  }
+
+  // Packs boxes on as few sheets as possible (MaxRects, best short side fit). Every item
+  // offers `opts` = [{rot, w, h}] (upright and/or turned 90°); the chosen one is written
+  // back as it.rot / it.boxW / it.boxH together with its position it.x / it.y.
+  function packSheets(items, binW, binH, gap){
+    const bins = [];
+    const order = items.slice().sort((a, b) =>
+      Math.max(b.opts[0].w, b.opts[0].h) - Math.max(a.opts[0].w, a.opts[0].h));
+    const place = (bin, it) => {
+      let best = null;
+      for (const fr of bin.free){
+        for (const o of it.opts){
+          const w = o.w + gap, h = o.h + gap;
+          if (w > fr.w + 0.01 || h > fr.h + 0.01) continue;
+          const score = Math.min(fr.w - w, fr.h - h);
+          if (!best || score < best.score || (score === best.score && fr.y < best.y)) best = { score, x: fr.x, y: fr.y, w, h, o };
+        }
+      }
+      if (!best) return false;
+      it.x = best.x; it.y = best.y; it.rot = best.o.rot; it.boxW = best.o.w; it.boxH = best.o.h;
+      bin.items.push(it);
+      const used = best, out = [];
+      for (const fr of bin.free){
+        if (used.x >= fr.x + fr.w || used.x + used.w <= fr.x || used.y >= fr.y + fr.h || used.y + used.h <= fr.y){ out.push(fr); continue; }
+        if (used.x > fr.x) out.push({ x: fr.x, y: fr.y, w: used.x - fr.x, h: fr.h });
+        if (used.x + used.w < fr.x + fr.w) out.push({ x: used.x + used.w, y: fr.y, w: fr.x + fr.w - used.x - used.w, h: fr.h });
+        if (used.y > fr.y) out.push({ x: fr.x, y: fr.y, w: fr.w, h: used.y - fr.y });
+        if (used.y + used.h < fr.y + fr.h) out.push({ x: fr.x, y: used.y + used.h, w: fr.w, h: fr.y + fr.h - used.y - used.h });
+      }
+      bin.free = out.filter((a, i) => a.w > 1 && a.h > 1 && !out.some((b, j) => j !== i &&
+        a.x >= b.x && a.y >= b.y && a.x + a.w <= b.x + b.w && a.y + a.h <= b.y + b.h && (j < i || !(a.x === b.x && a.y === b.y && a.w === b.w && a.h === b.h))));
+      return true;
+    };
+    for (const it of order){
+      if (bins.some(bin => place(bin, it))) continue;
+      const bin = { free: [{ x: 0, y: 0, w: binW + gap, h: binH + gap }], items: [] };
+      bins.push(bin);
+      place(bin, it);
+    }
+    return bins.map(b => b.items);
+  }
+
+  // Inner detail of the design as black strokes on a transparent canvas (working
+  // resolution): the drawing's own outline strokes, the edge of solid dark shapes and
+  // the borders between clearly different colours.
+  function buildDetailCanvas(){
+    const { w, h, data, bg, dark, line } = parts, n = w*h;
+    const edge = new Uint8Array(n);
+    const nearDark = fastDilate(dark, w, h, 2);
+    const diff = (p, q) => {
+      const i = p*4, j = q*4;
+      return Math.max(Math.abs(data[i]-data[j]), Math.abs(data[i+1]-data[j+1]), Math.abs(data[i+2]-data[j+2]));
+    };
+    for (let y = 0; y < h; y++){
+      for (let x = 0; x < w; x++){
+        const p = y*w + x;
+        if (bg[p]) continue;
+        if (line[p]){ edge[p] = 1; continue; }
+        if (dark[p]){   // solid dark shape: draw only its rim
+          if ((x > 0 && !dark[p-1]) || (x < w-1 && !dark[p+1]) || (y > 0 && !dark[p-w]) || (y < h-1 && !dark[p+w])) edge[p] = 1;
+          continue;
+        }
+        if (nearDark[p]) continue;   // the stroke next to it already marks this border
+        if ((x < w-2 && !bg[p+2] && !nearDark[p+2] && diff(p, p+2) > 55) ||
+            (y < h-2 && !bg[p+2*w] && !nearDark[p+2*w] && diff(p, p+2*w) > 55)) edge[p] = 1;
+      }
+    }
+    const c = document.createElement('canvas');
+    c.width = w; c.height = h;
+    const ctx = c.getContext('2d');
+    const id = ctx.createImageData(w, h);
+    for (let p = 0; p < n; p++) if (edge[p]){ id.data[p*4+3] = 255; }
+    ctx.putImageData(id, 0, 0);
+    return c;
   }
 
   // ---------- Facciones PDF ----------
@@ -1993,35 +2435,90 @@
       infos.push(info);
     }
 
-    // 2) orientation: turn a piece 90° when that lets it fit on one sheet, or when it
-    //    needs fewer sheets when tiled. dw/dh are the drawn (possibly rotated) sizes.
+    // 2) what goes inside each silhouette, and the piece renderer
+    const itemLabelOf = (it, rot) => `${it.info.num} · ${it.info.name}${it.nParts > 1 ? ` (${it.ci+1}/${it.nParts})` : ''}${rot ? ' (girada)' : ''}`;
+    const fillMode = state.partFill;
+    const detailCanvas = fillMode === 'lines' ? buildDetailCanvas() : null;
+    const tileFormat = fillMode === 'image' ? 'JPEG' : 'PNG';
+    const sPx = ptPerPx * pxPerPt;
+    const drawSilhouette = (ctx, it, ox, oy) => {
+      ctx.beginPath();
+      it.ct.forEach((pt, i) => {   // rotated pieces are turned 90° clockwise
+        const x = it.rot ? ox + (it.maxY - pt.y) * sPx : ox + (pt.x - it.minX) * sPx;
+        const y = it.rot ? oy + (pt.x - it.minX) * sPx : oy + (pt.y - it.minY) * sPx;
+        if (i === 0) ctx.moveTo(x, y); else ctx.lineTo(x, y);
+      });
+      ctx.closePath();
+      if (fillMode === 'color'){
+        ctx.fillStyle = `rgb(${it.info.color.join(',')})`; ctx.fill();
+      } else {
+        ctx.fillStyle = '#fff'; ctx.fill();
+        ctx.save();
+        ctx.clip();
+        if (it.rot) ctx.transform(0, sPx, -sPx, 0, ox + it.maxY * sPx, oy - it.minX * sPx);
+        else ctx.transform(sPx, 0, 0, sPx, ox - it.minX * sPx, oy - it.minY * sPx);
+        ctx.imageSmoothingEnabled = true; ctx.imageSmoothingQuality = 'high';
+        ctx.drawImage(fillMode === 'image' ? imgTrimmedCanvas : detailCanvas, 0, 0, W, H);
+        ctx.restore();
+      }
+      ctx.strokeStyle = '#000'; ctx.lineWidth = outlinePt * pxPerPt; ctx.lineJoin = 'round'; ctx.stroke();
+    };
+
+    //    Layout: every piece may be turned 90°. Pieces that fit on a sheet are packed
+    //    together on as few sheets as possible; bigger ones are tiled in whichever
+    //    orientation needs fewer sheets, leaving out the tiles that stay blank.
     const fits = (bw, bh) => bw <= L.printW && bh <= L.printH;
     const tilesFor = (wf, hf) => tileCount(wf, L.printW, L.OL) * tileCount(hf, L.printH, L.OL);
+    const skipBlank = skipBlankChk.checked;
+    const small = [], big = [];
+    const meter = document.createElement('canvas').getContext('2d');
+    meter.font = "700 9px 'Work Sans', system-ui, sans-serif";
+    const labelW = (it, rot) => meter.measureText(itemLabelOf(it, rot)).width + padPt;   // label never runs into the next piece
     items.forEach(it => {
-      if (fits(it.boxW, it.boxH)) it.rot = false;
-      else if (fits(it.hPt + 2*padPt, it.wPt + 2*padPt + labelPt)) it.rot = true;
-      else it.rot = tilesFor(it.hPt + 2*padPt, it.wPt + 2*padPt) < tilesFor(it.wPt + 2*padPt, it.hPt + 2*padPt);
-      it.dw = it.rot ? it.hPt : it.wPt;
-      it.dh = it.rot ? it.wPt : it.hPt;
-      it.boxW = it.dw + 2*padPt; it.boxH = it.dh + 2*padPt + labelPt;
+      it.opts = [{ rot: false, w: Math.max(it.wPt + 2*padPt, labelW(it, false)), h: it.hPt + 2*padPt + labelPt },
+                 { rot: true,  w: Math.max(it.hPt + 2*padPt, labelW(it, true)),  h: it.wPt + 2*padPt + labelPt }].filter(o => fits(o.w, o.h));
+      if (it.opts.length){ small.push(it); return; }
+      it.rot = tilesFor(it.hPt + 2*padPt, it.wPt + 2*padPt) < tilesFor(it.wPt + 2*padPt, it.hPt + 2*padPt);
+      big.push(it);
     });
-
-    // pack items that fit on one sheet; bigger ones get tiled
-    const small = items.filter(it => fits(it.boxW, it.boxH)).sort((a, b) => b.boxH - a.boxH);
-    const big = items.filter(it => !fits(it.boxW, it.boxH));
-    const sheets = [];
-    let sheet = null, x = 0, y = 0, shelfH = 0;
-    for (const it of small){
-      if (!sheet){ sheet = []; sheets.push(sheet); x = 0; y = 0; shelfH = 0; }
-      if (x > 0 && x + it.boxW > L.printW){ y += shelfH + gapPt; x = 0; shelfH = 0; }
-      if (y + it.boxH > L.printH){ sheet = []; sheets.push(sheet); x = 0; y = 0; shelfH = 0; }
-      it.x = x; it.y = y; sheet.push(it);
-      x += it.boxW + gapPt; shelfH = Math.max(shelfH, it.boxH);
-    }
-    big.forEach(it => {
+    const sheets = packSheets(small, L.printW, L.printH, gapPt);
+    items.forEach(it => { it.dw = it.rot ? it.hPt : it.wPt; it.dh = it.rot ? it.wPt : it.hPt; });
+    let skippedTiles = 0;
+    for (const it of big){
       it.wFull = it.dw + 2*padPt; it.hFull = it.dh + 2*padPt;
       it.cols = tileCount(it.wFull, L.printW, L.OL); it.rows = tileCount(it.hFull, L.printH, L.OL);
-    });
+      const g = { cols: it.cols, rows: it.rows, printW: L.printW, printH: L.printH };
+      const probe = skipBlank ? makeProbe(ctx => drawSilhouette(ctx, it, padPt * pxPerPt, padPt * pxPerPt), it.wFull * pxPerPt, it.hFull * pxPerPt) : null;
+      Object.assign(it, sheetPlan(probe, g, it.wFull, it.hFull, L.OL, skipBlank));
+      if (probe) probe.canvas.width = probe.canvas.height = 0;
+      skippedTiles += it.cols*it.rows - it.printed;
+    }
+
+    //    contour sheets (edge detection over the whole design), prepared now so the
+    //    page plan knows which of them stay blank
+    let lineRaster = null, lineRender = null, linePlan = null;
+    if (useLines){
+      statusEl.textContent = 'Detectando bordes y líneas…';
+      await nextFrame();
+      const { mask, ww: eww, wh: ewh } = detectEdgeMask(imgTrimmedCanvas, parseFloat(linesThresholdSlider.value) || 35);
+      const fullWpx = L.imgWpt * pxPerPt, fullHpx = L.imgHpt * pxPerPt;
+      const strokePx = ((parseFloat(linesStrokeInput.value) || 1.5) / 10 / 2.54) * PRINT_DPI;
+      const dil = binaryDilate(mask, eww, ewh, Math.max(1, Math.round((strokePx * (eww / fullWpx)) / 2)));
+      lineRaster = document.createElement('canvas');
+      lineRaster.width = eww; lineRaster.height = ewh;
+      const rctx = lineRaster.getContext('2d');
+      const id = rctx.createImageData(eww, ewh);
+      for (let p = 0; p < eww*ewh; p++){
+        const i = p*4;
+        const v = dil[p] ? 15 : 255;
+        id.data[i] = id.data[i+1] = id.data[i+2] = v; id.data[i+3] = 255;
+      }
+      rctx.putImageData(id, 0, 0);
+      lineRender = ctx => { ctx.imageSmoothingEnabled = true; ctx.imageSmoothingQuality = 'high'; ctx.drawImage(lineRaster, 0, 0, fullWpx, fullHpx); };
+      const probe = skipBlank ? makeProbe(lineRender, fullWpx, fullHpx) : null;
+      linePlan = sheetPlan(probe, L, L.imgWpt, L.imgHpt, L.OL, skipBlank);
+      skippedTiles += L.cols*L.rows - linePlan.printed;
+    }
 
     // 3) page plan (needed up front so the list can say where each piece is)
     const mapH = Math.min(L.printH * 0.55, L.printW * L.imgHpt / L.imgWpt);
@@ -2031,9 +2528,9 @@
     const legendPages = 1 + Math.max(0, Math.ceil((infos.length - firstRows) / nextRows));
     let page = legendPages + 1;
     sheets.forEach(sh => { sh.page = page; sh.forEach(it => it.info.pages.push(page)); page++; });
-    big.forEach(it => { it.page = page; for (let k = 0; k < it.cols*it.rows; k++) it.info.pages.push(page + k); page += it.cols*it.rows; });
+    big.forEach(it => { it.page = page; for (let k = 0; k < it.printed; k++) it.info.pages.push(page + k); page += it.printed; });
     const linesStart = page;
-    const lineTiles = useLines ? L.cols*L.rows : 0;
+    const lineTiles = useLines ? linePlan.printed : 0;
     const totalPages = page - 1 + lineTiles + 1;
     const pagesText = arr => {
       const u = [...new Set(arr)].sort((a, b) => a - b);
@@ -2100,21 +2597,9 @@
       pdf.setTextColor(100,100,100); pdf.text('Sin piezas: este PDF solo incluye las hojas de contornos.', L.M, ly);
     }
 
-    const itemLabel = it => `${it.info.num} · ${it.info.name}${it.nParts > 1 ? ` (${it.ci+1}/${it.nParts})` : ''}${it.rot ? ' (girada)' : ''}`;
-    const drawSilhouette = (ctx, it, ox, oy) => {
-      const s = ptPerPx * pxPerPt;
-      ctx.beginPath();
-      it.ct.forEach((pt, i) => {   // rotated pieces are turned 90° clockwise
-        const x = it.rot ? ox + (it.maxY - pt.y) * s : ox + (pt.x - it.minX) * s;
-        const y = it.rot ? oy + (pt.x - it.minX) * s : oy + (pt.y - it.minY) * s;
-        if (i === 0) ctx.moveTo(x, y); else ctx.lineTo(x, y);
-      });
-      ctx.closePath();
-      ctx.fillStyle = `rgb(${it.info.color.join(',')})`; ctx.fill();
-      ctx.strokeStyle = '#000'; ctx.lineWidth = outlinePt * pxPerPt; ctx.lineJoin = 'round'; ctx.stroke();
-    };
+    const itemLabel = it => itemLabelOf(it, it.rot);
     let done = 0;
-    const work = sheets.length + big.reduce((a, it) => a + it.cols*it.rows, 0) + lineTiles;
+    const work = sheets.length + big.reduce((a, it) => a + it.printed, 0) + lineTiles;
     const tick = async (msg) => {
       done++;
       progressFill.style.width = Math.round(30 + (done / Math.max(1, work)) * 65) + '%';
@@ -2135,7 +2620,8 @@
         ctx.fillText(itemLabel(it), (it.x + padPt) * pxPerPt, (it.y + 2*padPt + it.dh + 8) * pxPerPt);
       }
       pdf.addPage([L.page.w, L.page.h], L.orient);
-      pdf.addImage(cv.toDataURL('image/png'), 'PNG', L.M, L.M, L.printW, L.printH, undefined, 'FAST');
+      if (fillMode === 'image') pdf.addImage(cv.toDataURL('image/jpeg', 0.92), 'JPEG', L.M, L.M, L.printW, L.printH, undefined, 'FAST');
+      else pdf.addImage(cv.toDataURL('image/png'), 'PNG', L.M, L.M, L.printW, L.printH, undefined, 'FAST');
       cv.width = cv.height = 0;
       pdf.setFontSize(6); pdf.setTextColor(130,130,130);
       pdf.text(`Piezas · hoja ${sh.page}/${totalPages}  ·  Mundo Piñatas K&A`, L.M, 14);
@@ -2145,34 +2631,18 @@
     // 6) pieces bigger than a sheet: tiled with overlap guides
     for (const it of big){
       await emitTiles(pdf, L, {
-        wPt: it.wFull, hPt: it.hFull, cols: it.cols, rows: it.rows, format: 'PNG',
+        wPt: it.wFull, hPt: it.hFull, cols: it.cols, rows: it.rows, format: tileFormat, num: it.num,
         render: ctx => drawSilhouette(ctx, it, padPt * pxPerPt, padPt * pxPerPt),
         label: (row, col, n, pages) => `Pieza ${itemLabel(it)}  |  Hoja ${n}/${pages}  |  Fila ${row+1}/${it.rows} Col ${col+1}/${it.cols}  ·  Mundo Piñatas K&A`,
         onTile: () => tick('Pieza grande…')
       });
     }
 
-    // 7) optional contour sheets (edge detection over the whole design)
+    // 7) optional contour sheets
     if (useLines){
-      statusEl.textContent = 'Detectando bordes y líneas…';
-      await nextFrame();
-      const { mask, ww: eww, wh: ewh } = detectEdgeMask(imgTrimmedCanvas, parseFloat(linesThresholdSlider.value) || 35);
-      const fullWpx = L.imgWpt * pxPerPt, fullHpx = L.imgHpt * pxPerPt;
-      const strokePx = ((parseFloat(linesStrokeInput.value) || 1.5) / 10 / 2.54) * PRINT_DPI;
-      const dil = binaryDilate(mask, eww, ewh, Math.max(1, Math.round((strokePx * (eww / fullWpx)) / 2)));
-      const raster = document.createElement('canvas');
-      raster.width = eww; raster.height = ewh;
-      const rctx = raster.getContext('2d');
-      const id = rctx.createImageData(eww, ewh);
-      for (let p = 0; p < eww*ewh; p++){
-        const i = p*4;
-        const v = dil[p] ? 15 : 255;
-        id.data[i] = id.data[i+1] = id.data[i+2] = v; id.data[i+3] = 255;
-      }
-      rctx.putImageData(id, 0, 0);
       await emitTiles(pdf, L, {
-        wPt: L.imgWpt, hPt: L.imgHpt, cols: L.cols, rows: L.rows, format: 'PNG',
-        render: ctx => { ctx.imageSmoothingEnabled = true; ctx.imageSmoothingQuality = 'high'; ctx.drawImage(raster, 0, 0, fullWpx, fullHpx); },
+        wPt: L.imgWpt, hPt: L.imgHpt, cols: L.cols, rows: L.rows, format: 'PNG', num: linePlan.num,
+        render: lineRender,
         label: (row, col, n, pages) => `Contornos  |  Hoja ${n}/${pages} (pág. ${linesStart + n - 1})  |  Fila ${row+1}/${L.rows} Col ${col+1}/${L.cols}  ·  Mundo Piñatas K&A`,
         onTile: () => tick('Contornos…')
       });
@@ -2189,7 +2659,10 @@
       '  •  Seleccionar "Tamaño real" o "Escala 100%" y desactivar "Ajustar al área imprimible".',
       `  •  Papel: ${L.page.label}  ·  Calidad: Alta.`,
       'PIEZAS (FACCIONES):',
-      '  •  Cada silueta es una pieza: recórtala por la línea negra y cálcala sobre el material de su color.',
+      '  •  Cada silueta es una pieza: recórtala por la línea negra gruesa y cálcala sobre el foami o el material de su color.',
+      fillMode === 'lines' ? '  •  Las líneas delgadas dentro de cada pieza son los detalles del diseño: sirven de guía para dibujarlos o para ubicar las capas.' : '',
+      active.some(p => / · capa \d+$/.test(p.name)) ? '  •  Las piezas "capa" van una sobre otra: pega primero la capa 1 (la más grande) y encima las siguientes.' : '',
+      skippedTiles ? `  •  ${skippedTiles === 1 ? 'Se omitió una hoja' : 'Se omitieron ' + skippedTiles + ' hojas'} en blanco de las piezas grandes o contornos; el mini mapa de cada hoja muestra su lugar.` : '',
       '  •  El número de cada pieza indica su lugar en el mapa de armado (página 1).',
       `  •  Las siluetas ya incluyen ${bleedMm} mm de traslape: esa orilla va debajo de la pieza vecina.`,
       '  •  Piezas grandes vienen en varias hojas: únelas primero: la franja rosa indica qué hoja se pega encima.',
@@ -2197,6 +2670,7 @@
       '  •  Arma de atrás hacia adelante: primero las piezas grandes (cuerpo, cabello) y al final los detalles (ojos, boca).',
     ];
     if (useLines) lines.push('  •  Las hojas de "Contornos" muestran todas las líneas del diseño a tamaño real, como guía.');
+    for (let i = lines.length - 1; i >= 0; i--) if (!lines[i]) lines.splice(i, 1);
     lines.push(`Diseño: ${L.finalWcm.toFixed(1)} × ${L.finalHcm.toFixed(1)} cm  ·  300 DPI`, 'Mundo Piñatas K&A · Cuernavaca, Morelos, México');
     let yy = L.M + 44;
     pdf.setFontSize(10.5);
