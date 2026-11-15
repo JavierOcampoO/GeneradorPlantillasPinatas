@@ -6,7 +6,7 @@
 <title>Mundo Piñatas K&A · Generador de plantillas</title>
 <!-- Installable web app -->
 <link rel="manifest" href="manifest.webmanifest">
-<meta name="theme-color" content="#D81C5D">
+<meta name="theme-color" content="#D9006C">
 <link rel="icon" type="image/png" sizes="32x32" href="icons/favicon-32.png">
 <link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
 <meta name="apple-mobile-web-app-capable" content="yes">
@@ -18,371 +18,386 @@
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
 <style>
   :root{
-    --paper:#FFF7EA;
-    --ink:#241B33;
-    --hotpink:#FF3E7F;
-    --hotpink-dark:#D81C5D;
-    --turquoise:#14B8AE;
-    --sun:#FFC93C;
-    --violet:#5B3E8E;
-    --line:#E7DCC8;
-    --ok:#1F9D63;
+    /* logo */
+    --magenta:#D9006C; --magenta-d:#A80053; --yellow:#FFC800; --yellow-d:#E0A800;
+    /* piñata de picos */
+    --turq:#00B2A9; --orange:#FF7A1A; --purple:#7A2BBF; --green:#58B82E;
+    /* surfaces */
+    --bg:#FFF8EC; --card:#FFFFFF; --ink:#2A1230; --muted:#75687C; --line:#EFE3D0; --soft:#FFF1F7; --field:#FFFBF4;
+    --r:20px;
+    --head:'Baloo 2','Work Sans',system-ui,sans-serif;
+    --body:'Work Sans',system-ui,-apple-system,'Segoe UI',Roboto,sans-serif;
   }
   *{box-sizing:border-box;}
-  button, input, select, textarea{font-family:inherit;}
-  html,body{margin:0;padding:0;}
+  html,body{margin:0; padding:0;}
+  button,input,select,textarea{font-family:inherit;}
+  button{-webkit-tap-highlight-color:transparent;}
   body{
+    background:var(--bg); color:var(--ink); font-family:var(--body); font-size:15px; line-height:1.45;
+    min-height:100vh; padding:0 0 calc(132px + env(safe-area-inset-bottom));
+  }
+  :focus-visible{outline:3px solid var(--turq); outline-offset:2px;}
+  .ic{width:20px; height:20px; flex:none; fill:none; stroke:currentColor; stroke-width:1.9; stroke-linecap:round; stroke-linejoin:round;}
+
+  /* ---------- Header: logo + papel de china ---------- */
+  .top{background:#fff;}
+  .top-in{max-width:1120px; margin:0 auto; padding:14px 20px 12px; display:flex; align-items:center; gap:14px;}
+  .logo-mark{width:54px; height:54px; flex:none; border-radius:50%; overflow:hidden; box-shadow:0 0 0 3px var(--yellow);}
+  .logo-mark img{width:100%; height:100%; object-fit:cover; display:block;}
+  h1{font-family:var(--head); font-weight:800; font-size:25px; line-height:1.05; margin:0; letter-spacing:-.01em; color:var(--magenta);}
+  .brand p{margin:3px 0 0; color:var(--muted); font-size:13.5px;}
+  .top-pinata{margin-left:auto; width:58px; height:62px; flex:none; transform:rotate(8deg);}
+  /* fringe: four rows of tissue paper with scissor cuts and a zigzag hem */
+  .fleco{
+    height:30px;
     background:
-      radial-gradient(circle at 8% 12%, rgba(255,201,60,.28), transparent 40%),
-      radial-gradient(circle at 92% 88%, rgba(20,184,174,.22), transparent 45%),
-      var(--paper);
-    color:var(--ink);
-    font-family:'Work Sans', system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
-    min-height:100vh;
-    padding:0 0 calc(160px + env(safe-area-inset-bottom));
-  }
-  .wrap{max-width:920px; margin:0 auto; padding:36px 22px;}
-
-  /* Header */
-  header{
-    display:flex; align-items:center; gap:16px; margin-bottom:8px;
-  }
-  .logo-mark{
-    width:52px; height:52px; flex:none; border-radius:50%;
-    overflow:hidden;
-    box-shadow: 0 3px 0 rgba(36,27,51,.25);
-    border:2px solid #fff;
-  }
-  .logo-mark img{
-    width:100%; height:100%; object-fit:cover; display:block;
-  }
-  h1{
-    font-family:'Baloo 2', 'Work Sans', system-ui, sans-serif; font-weight:800; font-size:24px; margin:0; line-height:1.1;
-    letter-spacing:-.01em;
-  }
-  header p{margin:2px 0 0; color:#6b6178; font-size:13px;}
-
-  .torn{
-    height:16px; margin:14px 0 16px;
-    background:
-      linear-gradient(135deg, var(--paper) 50%, transparent 50%) 0 0/14px 16px repeat-x,
-      linear-gradient(-135deg, var(--paper) 50%, transparent 50%) 0 0/14px 16px repeat-x;
-    background-color:var(--violet);
-    opacity:.9;
+      linear-gradient(-45deg, var(--bg) 5px, transparent 0) 0 100%/10px 10px repeat-x,
+      linear-gradient(45deg, var(--bg) 5px, transparent 0) 0 100%/10px 10px repeat-x,
+      repeating-linear-gradient(90deg, rgba(42,18,48,.13) 0 1px, transparent 1px 5px),
+      linear-gradient(to bottom, var(--magenta) 0 25%, var(--yellow) 25% 50%, var(--turq) 50% 75%, var(--orange) 75%);
   }
 
-  /* Tabs */
-  .tabbar{
-    display:flex; gap:10px; margin-bottom:16px;
-  }
+  .wrap{max-width:1120px; margin:0 auto; padding:18px 20px 8px;}
+
+  /* ---------- Mode tabs ---------- */
+  .tabbar{display:flex; gap:6px; padding:5px; background:#fff; border:1.5px solid var(--line); border-radius:999px; max-width:520px; margin:0 auto;}
   .tabbar button{
-    flex:1; padding:11px 12px; border-radius:14px; border:1.5px solid var(--line);
-    background:#fff; cursor:pointer; font-family:'Baloo 2', 'Work Sans', system-ui, sans-serif; font-weight:700; font-size:15px;
-    color:#8b8195; display:flex; align-items:center; justify-content:center; gap:8px;
-    transition:.15s;
+    flex:1; min-height:44px; padding:8px 10px; border:none; border-radius:999px; background:transparent; cursor:pointer;
+    font-family:var(--head); font-weight:700; font-size:15.5px; color:var(--muted);
+    display:flex; align-items:center; justify-content:center; gap:7px; transition:background .15s, color .15s;
   }
-  .tabbar button.active{
-    background:linear-gradient(135deg, var(--hotpink), var(--hotpink-dark)); color:#fff; border-color:transparent;
-    box-shadow:0 3px 0 var(--hotpink-dark);
-  }
+  .tabbar button:hover{color:var(--ink);}
+  .tabbar button.active{background:var(--magenta); color:#fff; box-shadow:0 3px 0 var(--yellow);}
+  .mode-hint{text-align:center; color:var(--muted); font-size:14px; margin:12px auto 18px; max-width:520px;}
 
+  /* ---------- Cards ---------- */
+  .layout{display:grid; gap:16px; grid-template-columns:minmax(0,1fr); max-width:620px; margin:0 auto;}
+  .card{
+    --c:var(--magenta);
+    position:relative; background:var(--card); border-radius:var(--r); padding:26px 20px 20px; min-width:0;
+    box-shadow:0 1px 0 var(--line), 0 10px 26px -18px rgba(42,18,48,.35); overflow:hidden;
+  }
+  .card::before{   /* strip of fringe in the card's colour */
+    content:''; position:absolute; left:0; right:0; top:0; height:9px;
+    background:
+      linear-gradient(-45deg, #fff 3px, transparent 0) 0 100%/6px 6px repeat-x,
+      linear-gradient(45deg, #fff 3px, transparent 0) 0 100%/6px 6px repeat-x,
+      repeating-linear-gradient(90deg, rgba(42,18,48,.14) 0 1px, transparent 1px 6px),
+      var(--c);
+  }
+  .card.c2{--c:var(--orange);} .card.c3{--c:var(--turq);} .card.extras{--c:var(--purple);}
   h2.step{
-    font-family:'Baloo 2', 'Work Sans', system-ui, sans-serif; font-weight:700; font-size:15px; letter-spacing:.02em;
-    color:var(--hotpink-dark); text-transform:uppercase; margin:0 0 10px;
-    display:flex; align-items:center; gap:8px;
+    font-family:var(--head); font-weight:800; font-size:19px; margin:0 0 14px; color:var(--ink);
+    display:flex; align-items:center; gap:10px; letter-spacing:-.005em;
   }
   h2.step .num{
-    width:24px; height:24px; border-radius:50%; background:var(--hotpink-dark); color:#fff;
-    font-family:'Baloo 2', 'Work Sans', system-ui, sans-serif; font-size:13px; display:flex; align-items:center; justify-content:center; flex:none;
+    width:28px; height:28px; border-radius:50%; background:var(--c); color:#fff; flex:none;
+    font-size:15px; display:flex; align-items:center; justify-content:center;
   }
 
-  .card{
-    background:#fff; border:1px solid var(--line); border-radius:18px;
-    padding:26px; margin-bottom:22px;
-    box-shadow: 0 2px 0 rgba(36,27,51,.04);
-  }
-
-  /* Dropzone */
+  /* ---------- Step 1: design ---------- */
   #dropzone{
-    border:2.5px dashed #D9C9E8; border-radius:14px; padding:34px 20px;
-    text-align:center; cursor:pointer; transition:.15s;
-    background:#FBF6FF;
+    border:2px dashed #E8B9D2; border-radius:16px; padding:22px 16px; text-align:center; cursor:pointer;
+    background:var(--soft); transition:border-color .15s, background .15s, transform .15s;
+    display:flex; flex-direction:column; align-items:center; gap:2px;
   }
-  #dropzone.drag{ border-color:var(--hotpink); background:#FFF0F5; }
-  #dropzone .icon{font-size:34px; display:block; margin-bottom:6px;}
-  #dropzone strong{color:var(--hotpink-dark);}
-  #dropzone small{display:block; color:#8b8195; margin-top:6px; font-size:12.5px;}
+  #dropzone:hover, #dropzone.drag{border-color:var(--magenta); background:#FFE6F1;}
+  #dropzone.drag{transform:scale(1.01);}
+  .dz-pinata{width:92px; height:98px; margin-bottom:4px;}
+  #dropzone:hover .dz-pinata{animation:swing 1.2s ease-in-out infinite; transform-origin:50% 0;}
+  @keyframes swing{0%,100%{transform:rotate(-7deg);} 50%{transform:rotate(7deg);}}
+  #dropzone strong{font-family:var(--head); font-size:19px; font-weight:800; color:var(--magenta);}
+  #dropzone span{color:var(--ink); font-size:14px;}
+  #dropzone small{color:var(--muted); font-size:12.5px; margin-top:4px;}
   #fileInput{display:none;}
-
-  #previewRow{
-    display:none; gap:20px; align-items:flex-start; margin-top:18px;
-  }
+  #previewRow{display:none; gap:14px; align-items:center;}
   #previewRow.show{display:flex;}
   #thumbWrap{
-    flex:none; width:150px; height:150px; border-radius:12px; overflow:hidden;
+    flex:none; width:84px; height:84px; border-radius:14px; overflow:hidden; border:1px solid var(--line);
     background:
-      linear-gradient(45deg,#eee 25%,transparent 25%,transparent 75%,#eee 75%),
-      linear-gradient(45deg,#eee 25%,transparent 25%,transparent 75%,#eee 75%);
-    background-size:16px 16px; background-position:0 0,8px 8px;
-    border:1px solid var(--line);
+      linear-gradient(45deg,#f1ece4 25%,transparent 25%,transparent 75%,#f1ece4 75%),
+      linear-gradient(45deg,#f1ece4 25%,transparent 25%,transparent 75%,#f1ece4 75%);
+    background-size:14px 14px; background-position:0 0,7px 7px; background-color:#fff;
     display:flex; align-items:center; justify-content:center;
   }
   #thumbWrap img{max-width:100%; max-height:100%; display:block;}
-  #fileMeta{font-size:13.5px; color:#5a5265; line-height:1.7;}
-  #fileMeta b{color:var(--ink);}
+  #fileMeta{flex:1; min-width:0; font-size:13px; color:var(--muted); line-height:1.5; overflow-wrap:anywhere;}
+  #fileMeta b{color:var(--ink); font-size:14.5px;}
   #changeFile{
-    margin-top:8px; background:none; border:none; color:var(--hotpink-dark); font-weight:600;
-    font-size:13px; cursor:pointer; padding:0; text-decoration:underline;
+    flex:none; min-height:40px; padding:8px 14px; border-radius:999px; border:1.5px solid var(--magenta); background:#fff;
+    color:var(--magenta); font-weight:700; font-size:13.5px; cursor:pointer;
   }
+  #changeFile:hover{background:var(--soft);}
 
-  input[type=range]{ accent-color:var(--hotpink); }
-
-  /* Controls */
+  /* ---------- Fields ---------- */
   .field{margin-bottom:18px;}
   .field:last-child{margin-bottom:0;}
-  label.fl{display:block; font-weight:600; font-size:14px; margin-bottom:6px;}
-  label.fl .hint{font-weight:400; color:#8b8195; font-size:12.5px;}
-
-  .size-input{
-    display:flex; align-items:center; gap:10px;
-  }
+  label.fl{display:block; font-weight:700; font-size:14px; margin-bottom:7px;}
+  label.fl .hint, .hint{font-weight:400; color:var(--muted); font-size:12.5px;}
+  input[type=range]{accent-color:var(--magenta); min-height:28px;}
+  input[type=number], input[type=text]{color:var(--ink);}
+  .size-input{display:flex; align-items:center; gap:10px; flex-wrap:wrap;}
   .size-input input[type=number]{
-    width:120px; font-size:22px; font-family:'Baloo 2', 'Work Sans', system-ui, sans-serif; font-weight:700;
-    padding:10px 12px; border-radius:10px; border:1.5px solid var(--line); color:var(--ink);
-    background:var(--paper);
+    width:118px; min-height:52px; font-size:24px; font-family:var(--head); font-weight:800;
+    padding:6px 12px; border-radius:14px; border:2px solid var(--line); background:var(--field);
   }
-  .size-input input[type=number]:focus{outline:2px solid var(--hotpink); border-color:var(--hotpink);}
-  .size-input .unit{font-weight:600; color:#6b6178;}
-  .orient-pill{
-    margin-left:auto; font-size:12.5px; font-weight:600; padding:6px 12px; border-radius:999px;
-    background:#F1EAFB; color:var(--violet); display:flex; align-items:center; gap:6px;
-  }
-
-  .seg{display:flex; gap:8px; flex-wrap:wrap;}
-  .seg button{
-    flex:1; min-width:110px; padding:10px 12px; border-radius:10px; border:1.5px solid var(--line);
-    background:var(--paper); font-family:'Work Sans', system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif; font-weight:600; font-size:13.5px; cursor:pointer; color:var(--ink);
-  }
-  .seg button.active{ background:var(--hotpink); border-color:var(--hotpink); color:#fff; }
-
-  details{margin-top:16px;}
-  summary{cursor:pointer; font-weight:600; font-size:13.5px; color:var(--violet); user-select:none;}
-  .adv-grid{
-    display:grid; grid-template-columns:1fr 1fr 1fr; gap:14px; margin-top:14px;
-  }
-  .adv-grid .field label.fl{font-size:12.5px; margin-bottom:4px;}
-  .adv-grid input{
-    width:100%; padding:8px 10px; border-radius:8px; border:1.5px solid var(--line); font-size:14px;
-    font-family:'Work Sans', system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
-  }
-
-  /* Results */
-  #resultStats{
-    display:none; grid-template-columns:repeat(3,1fr); gap:10px; margin-bottom:16px;
-  }
-  #resultStats.show{display:grid;}
-  .stat{
-    background:var(--paper); border:1px solid var(--line); border-radius:12px; padding:14px;
-    text-align:center;
-  }
-  .stat .v{font-family:'Baloo 2', 'Work Sans', system-ui, sans-serif; font-weight:800; font-size:22px; color:var(--hotpink-dark);}
-  .stat .l{font-size:11.5px; color:#7a7086; text-transform:uppercase; letter-spacing:.03em; margin-top:2px;}
-
-  #gridPreview{
-    display:none; margin-bottom:20px;
-  }
-  #gridPreview.show{display:block;}
-
-  button#generateBtn{
-    width:100%; padding:16px; border-radius:12px; border:none; cursor:pointer;
-    background:linear-gradient(135deg, var(--hotpink), var(--hotpink-dark));
-    color:#fff; font-family:'Baloo 2', 'Work Sans', system-ui, sans-serif; font-weight:700; font-size:17px;
-    box-shadow:0 3px 0 var(--hotpink-dark), 0 8px 18px rgba(216,28,93,.25);
-    transition:transform .08s;
-  }
-  button#generateBtn:disabled{ opacity:.45; cursor:not-allowed; box-shadow:none;}
-  button#generateBtn:not(:disabled):active{ transform:translateY(2px); box-shadow:0 1px 0 var(--hotpink-dark);}
-
-  #status{
-    margin-top:14px; font-size:13.5px; text-align:center; color:#6b6178; min-height:18px;
-  }
-  #progressBar{
-    height:6px; border-radius:4px; background:#F1EAFB; margin-top:10px; overflow:hidden; display:none;
-  }
-  #progressBar.show{display:block;}
-  #progressFill{height:100%; width:0%; background:linear-gradient(90deg,var(--turquoise),var(--hotpink)); transition:width .15s;}
-
-  #downloadWrap{display:none; margin-top:16px; text-align:center;}
-  #downloadWrap.show{display:block;}
-  #downloadLink{
-    display:inline-flex; align-items:center; gap:8px; background:var(--ok); color:#fff; text-decoration:none;
-    padding:12px 22px; border-radius:10px; font-weight:700; font-family:'Baloo 2', 'Work Sans', system-ui, sans-serif; font-size:15px;
-  }
-
-  footer{text-align:center; color:#a99bb8; font-size:12.5px; margin-top:30px;}
-  footer b{color:var(--violet);}
-
-  @media(max-width:520px){
-    .adv-grid{grid-template-columns:1fr 1fr;}
-    #resultStats{grid-template-columns:1fr 1fr;}
-    #previewRow{flex-direction:column;}
-  }
-
-  /* Quick size chips */
-  .chips{display:flex; gap:8px; flex-wrap:wrap; margin-bottom:10px;}
+  .size-input input[type=number]:focus{outline:none; border-color:var(--magenta); box-shadow:0 0 0 4px rgba(217,0,108,.14);}
+  .size-input .unit{font-weight:700; color:var(--muted);}
+  .chips{display:flex; gap:8px; flex-wrap:wrap;}
+  .size-input .chips{margin-left:auto;}
   .chips button{
-    padding:9px 18px; border-radius:999px; border:1.5px solid var(--line); background:var(--paper);
-    font-weight:700; font-size:15px; color:var(--ink); cursor:pointer;
+    min-height:44px; padding:8px 16px; border-radius:999px; border:2px solid var(--line); background:#fff;
+    font-family:var(--head); font-weight:700; font-size:15.5px; color:var(--ink); cursor:pointer;
   }
-  .chips button.active{background:var(--violet); border-color:var(--violet); color:#fff;}
-  .size-input{flex-wrap:wrap;}
+  .chips button:hover{border-color:var(--yellow);}
+  .chips button.active{background:var(--yellow); border-color:var(--yellow); color:var(--ink);}
+  .orient-pill{display:block; margin-top:8px; font-size:12.5px; color:var(--muted); font-weight:500;}
 
-  /* Real preview */
-  #previewCanvas{display:block; margin:0 auto; border-radius:6px; box-shadow:0 1px 6px rgba(36,27,51,.15); max-width:100%;}
-  .preview-note{font-size:12.5px; color:#6b6178; text-align:center; margin:10px 0 0;}
-  .preview-empty{font-size:14px; color:#6b6178; text-align:center; margin:4px 0;}
-
-  /* Extra options (collapsible card) */
-  details.extras{margin-top:0;}
-  details.extras > summary{
-    font-family:'Baloo 2', 'Work Sans', system-ui, sans-serif; font-size:16px; font-weight:700;
-    color:var(--violet); list-style-position:inside;
+  .seg{display:flex; gap:4px; padding:4px; background:var(--field); border:1.5px solid var(--line); border-radius:14px;}
+  .seg button{
+    flex:1 1 0; min-width:0; min-height:40px; padding:8px 8px; border-radius:10px; border:none; background:transparent;
+    font-weight:600; font-size:13.5px; cursor:pointer; color:var(--muted);
+    display:flex; align-items:center; justify-content:center; gap:6px;
   }
-  details.extras > summary .hint{font-family:'Work Sans', system-ui, sans-serif; font-weight:400; font-size:12.5px; color:#8b8195;}
-  details.extras[open] > summary{margin-bottom:6px;}
-  .extras-title{font-size:14px; margin:18px 0 0; color:var(--ink);}
+  .seg button:hover{color:var(--ink);}
+  .seg button.active{background:#fff; color:var(--magenta); font-weight:700; box-shadow:0 1px 0 var(--line), 0 2px 8px -3px rgba(42,18,48,.35);}
 
-  /* Sticky action bar */
-  #actionBar{
-    position:fixed; left:0; right:0; bottom:0; z-index:50;
-    background:#ffffff; border-top:1px solid var(--line);
-    box-shadow:0 -6px 20px rgba(36,27,51,.08);
-    padding:10px 16px calc(10px + env(safe-area-inset-bottom));
+  /* ---------- Preview ---------- */
+  #resultStats{display:none; gap:8px; margin-bottom:14px; flex-wrap:wrap;}
+  #resultStats.show{display:flex;}
+  .stat{flex:1 1 0; min-width:0; background:var(--field); border-radius:14px; padding:10px 8px; text-align:center;}
+  .stat .v{font-family:var(--head); font-weight:800; font-size:19px; line-height:1.15; color:var(--ink);}
+  .stat:last-child{background:var(--yellow);}
+  .stat .l{font-size:11px; color:var(--muted); text-transform:uppercase; letter-spacing:.04em; margin-top:2px;}
+  .stat:last-child .l{color:var(--ink);}
+  #gridPreview{display:none;}
+  #gridPreview.show{display:block;}
+  #previewCanvas{display:block; margin:0 auto; border-radius:8px; box-shadow:0 0 0 1px var(--line), 0 8px 20px -12px rgba(42,18,48,.45); max-width:100%;}
+  .preview-note{font-size:12.5px; color:var(--muted); text-align:center; margin:12px 0 0;}
+  .preview-empty{font-size:14px; color:var(--muted); text-align:center; margin:18px 0; }
+
+  /* ---------- Collapsibles ---------- */
+  details > summary{cursor:pointer; user-select:none; list-style:none; display:flex; align-items:center; gap:8px;}
+  details > summary::-webkit-details-marker{display:none;}
+  details > summary::after{
+    content:''; width:9px; height:9px; margin-left:auto; flex:none; border-right:2.5px solid currentColor; border-bottom:2.5px solid currentColor;
+    transform:rotate(45deg) translate(-2px,-2px); transition:transform .15s; color:var(--muted);
   }
-  .bar-inner{max-width:920px; margin:0 auto;}
-  #barSummary{font-size:13.5px; font-weight:600; text-align:center; margin-bottom:8px; min-height:17px;}
-  #actionBar #status{margin:0 0 8px; font-size:12.5px; min-height:0;}
-  #actionBar #status:empty{display:none;}
-  #actionBar #progressBar{margin:0 0 8px;}
-  #actionBar.done #generateBtn{display:none;}
-  #actionBar #downloadWrap{margin-top:0;}
-  #actionBar #downloadWrap.show{display:flex; gap:10px;}
-  #actionBar #downloadLink{flex:1; justify-content:center; padding:14px 16px;}
-  #shareBtn{
-    flex:1; padding:14px 16px; border-radius:10px; border:none; cursor:pointer;
-    background:var(--violet); color:#fff; font-family:'Baloo 2', 'Work Sans', system-ui, sans-serif; font-weight:700; font-size:15px;
-  }
-  button#generateBtn{padding:14px;}
-  button#generateBtn:disabled{opacity:1; background:#F6BFD1; color:#fff; box-shadow:none;}
+  details[open] > summary::after{transform:rotate(-135deg) translate(-2px,-2px);}
+  details.extras > summary{font-family:var(--head); font-size:17px; font-weight:800; color:var(--ink); min-height:28px; flex-wrap:wrap;}
+  details.extras > summary .hint{flex-basis:100%; order:3; font-family:var(--body);}
+  details.extras[open] > summary{margin-bottom:16px;}
+  details.more{margin-top:18px; border-top:1.5px solid var(--line); padding-top:14px;}
+  details.more > summary{font-weight:700; font-size:14px; color:var(--purple);}
+  details.more[open] > summary{margin-bottom:16px;}
+  .adv-grid{display:grid; grid-template-columns:repeat(3,1fr); gap:12px;}
+  .adv-grid .field{margin:0;}
+  .adv-grid label.fl{font-size:12.5px; font-weight:600; margin-bottom:4px;}
+  .adv-grid input{width:100%; min-height:42px; padding:8px 10px; border-radius:12px; border:2px solid var(--line); background:var(--field); font-size:15px; font-weight:600;}
+  .adv-grid input:focus{outline:none; border-color:var(--magenta);}
+  .checklabel{display:flex; align-items:flex-start; gap:10px; cursor:pointer; font-weight:600; font-size:14px;}
+  .checklabel input{width:20px; height:20px; flex:none; margin:1px 0 0; accent-color:var(--magenta);}
 
-  @media(max-width:520px){
-    .card{padding:18px;}
-    #resultStats{grid-template-columns:repeat(3,1fr) !important;}
-    .stat{padding:10px 6px;}
-    .stat .v{font-size:17px;}
-  }
-
-  /* Tabs: icon above label so three tabs fit on a phone */
-  .tabbar button .ti{font-size:17px; line-height:1;}
-
-  /* Facciones */
-  .parts-help{font-size:13.5px; color:#4b4258; margin:0 0 10px;}
-  .parts-toolbar{display:flex; gap:8px; flex-wrap:wrap; margin-bottom:10px;}
+  /* ---------- Facciones ---------- */
+  #toolSeg{margin-bottom:10px;}
+  #toolSeg button{flex-direction:column; gap:2px; font-size:12.5px; min-height:54px;}
+  #toolSeg button.active{background:var(--turq); color:#fff; box-shadow:0 3px 0 var(--yellow);}
+  .parts-help{font-size:13.5px; color:var(--ink); margin:0 0 12px; min-height:38px;}
+  .parts-toolbar{display:flex; gap:8px; margin-bottom:10px;}
   .parts-toolbar button, .small-btn{
-    padding:9px 12px; border-radius:10px; border:1.5px solid var(--line); background:var(--paper);
-    font-weight:600; font-size:13.5px; color:var(--ink); cursor:pointer;
+    min-height:40px; padding:8px 12px; border-radius:999px; border:1.5px solid var(--line); background:#fff;
+    font-weight:700; font-size:13px; color:var(--ink); cursor:pointer; display:inline-flex; align-items:center; justify-content:center; gap:6px;
   }
-  .parts-toolbar button:disabled{opacity:.5; cursor:not-allowed;}
-  .small-btn{background:var(--violet); border-color:var(--violet); color:#fff;}
-  #partsCanvasWrap{
-    overflow:auto; max-height:72vh; border:1px solid var(--line); border-radius:10px; background:#fff;
-    -webkit-overflow-scrolling:touch;
-  }
-  #partsCanvas{display:block; margin:0 auto; touch-action:manipulation; cursor:crosshair; image-rendering:auto;}
-  .parts-status{font-size:12.5px; color:#6b6178; margin:8px 0 14px; min-height:16px;}
+  .parts-toolbar button{flex:1 1 0; min-width:0;}
+  .parts-toolbar button .ic{width:17px; height:17px;}
+  .parts-toolbar button:hover:not(:disabled){border-color:var(--turq);}
+  .parts-toolbar button:disabled{opacity:.45; cursor:not-allowed;}
+  #partNewBtn{background:var(--ink); border-color:var(--ink); color:#fff;}
+  .small-btn{background:var(--purple); border-color:var(--purple); color:#fff;}
+  .wide-btn{width:100%; margin-top:4px; background:#fff; color:var(--purple); border:1.5px solid var(--purple);}
+  .wide-btn:disabled{opacity:.45; cursor:not-allowed;}
+  #partsCanvasWrap{overflow:auto; max-height:72vh; border:1.5px solid var(--line); border-radius:14px; background:#fff; -webkit-overflow-scrolling:touch;}
+  #partsCanvas{display:block; margin:0 auto; touch-action:manipulation; cursor:crosshair;}
+  #partsCanvas.drawing{touch-action:none;}
+  .parts-status{font-size:13px; color:var(--muted); margin:8px 0 16px; min-height:18px;}
   .part-row{
-    display:flex; align-items:center; gap:8px; padding:8px; margin-bottom:8px;
-    border:1.5px solid var(--line); border-radius:10px; background:var(--paper); cursor:pointer;
+    display:flex; align-items:center; gap:8px; padding:6px 6px 6px 8px; margin-bottom:8px;
+    border:1.5px solid var(--line); border-radius:14px; background:#fff; cursor:pointer;
   }
-  .part-row.active{border-color:var(--hotpink); background:#fff; box-shadow:0 0 0 3px rgba(255,62,127,.18);}
-  .part-num{
-    width:26px; height:26px; border-radius:50%; flex:none; color:#fff; font-weight:700; font-size:12px;
-    display:flex; align-items:center; justify-content:center; border:2px solid rgba(0,0,0,.12);
-  }
-  .part-row input[type=text]{
-    flex:1; min-width:0; width:100%; border:1px solid var(--line); border-radius:8px; padding:8px 9px;
-    font-size:14px; background:#fff;
-  }
-  .part-meta{font-size:11.5px; color:#7a7086; flex:none; white-space:nowrap;}
-  .part-del{border:none; background:none; font-size:18px; color:#9a90a6; cursor:pointer; padding:4px 6px; flex:none;}
-  .parts-empty{font-size:13px; color:#8b8195; margin:2px 0;}
-  .checklabel{display:flex; align-items:center; gap:9px; cursor:pointer; font-weight:600; font-size:14px;}
-  .checklabel input{width:18px; height:18px; accent-color:var(--hotpink);}
+  .part-row.active{border-color:var(--turq); box-shadow:0 0 0 3px rgba(0,178,169,.18);}
+  .part-num{width:28px; height:28px; border-radius:50%; flex:none; color:#fff; font-weight:700; font-size:12.5px; display:flex; align-items:center; justify-content:center;}
+  .part-row input[type=text]{flex:1; min-width:0; width:100%; border:none; border-radius:8px; padding:8px 6px; font-size:14.5px; font-weight:600; background:transparent;}
+  .part-row input[type=text]:focus{outline:none; background:var(--field);}
+  .part-meta{font-size:11.5px; color:var(--muted); flex:none; white-space:nowrap;}
+  .part-del{border:none; background:none; font-size:17px; color:var(--muted); cursor:pointer; flex:none; width:36px; height:36px; border-radius:50%;}
+  .part-del:hover{background:var(--soft); color:var(--magenta);}
+  .parts-empty{font-size:13px; color:var(--muted); margin:2px 0 8px;}
 
-  @media(max-width:520px){
-    .tabbar{gap:8px;}
-    .tabbar button{flex-direction:column; gap:3px; padding:9px 4px; font-size:14px;}
+  footer{text-align:center; color:var(--muted); font-size:12.5px; margin:26px auto 0; max-width:520px;}
+  footer b{color:var(--magenta);}
+
+  /* ---------- Sticky action bar ---------- */
+  #actionBar{
+    position:fixed; left:0; right:0; bottom:0; z-index:50; background:#fff;
+    box-shadow:0 -1px 0 var(--line), 0 -12px 28px -14px rgba(42,18,48,.35);
+    padding:10px 16px calc(12px + env(safe-area-inset-bottom));
   }
+  #actionBar::before{
+    content:''; position:absolute; left:0; right:0; top:-5px; height:5px;
+    background:linear-gradient(90deg, var(--magenta) 0 20%, var(--yellow) 20% 40%, var(--turq) 40% 60%, var(--orange) 60% 80%, var(--purple) 80%);
+  }
+  .bar-inner{max-width:620px; margin:0 auto; display:flex; flex-direction:column; gap:8px;}
+  .bar-info{min-width:0;}
+  #barSummary{font-size:13.5px; font-weight:700; text-align:center; min-height:19px;}
+  #status{margin-top:4px; font-size:12.5px; text-align:center; color:var(--muted);}
+  #status:empty{display:none;}
+  #progressBar{height:8px; border-radius:6px; background:var(--field); margin-top:6px; overflow:hidden; display:none;}
+  #progressBar.show{display:block;}
+  #progressFill{height:100%; width:0%; border-radius:6px; transition:width .15s;
+    background:repeating-linear-gradient(90deg, var(--magenta) 0 14px, var(--yellow) 14px 28px, var(--turq) 28px 42px, var(--orange) 42px 56px);}
+  button#generateBtn{
+    width:100%; min-height:54px; padding:12px 16px; border-radius:16px; border:none; cursor:pointer;
+    background:var(--magenta); color:#fff; font-family:var(--head); font-weight:800; font-size:18px;
+    box-shadow:0 4px 0 var(--yellow); transition:transform .08s, box-shadow .08s, background .15s;
+  }
+  button#generateBtn:hover:not(:disabled){background:var(--magenta-d);}
+  button#generateBtn:not(:disabled):active{transform:translateY(3px); box-shadow:0 1px 0 var(--yellow);}
+  button#generateBtn:disabled{background:#EADFE6; color:#9A8AA0; box-shadow:none; cursor:not-allowed; font-size:16px;}
+  #actionBar.done #generateBtn{display:none;}
+  #downloadWrap{display:none; gap:10px;}
+  #downloadWrap.show{display:flex;}
+  #downloadLink, #shareBtn{
+    flex:1; min-height:54px; display:inline-flex; align-items:center; justify-content:center; gap:8px; border-radius:16px;
+    font-family:var(--head); font-weight:800; font-size:17px; cursor:pointer; text-decoration:none;
+  }
+  #downloadLink{background:var(--turq); color:#fff; box-shadow:0 4px 0 var(--yellow);}
+  #downloadLink:hover{background:#009A92;}
+  #shareBtn{background:#fff; color:var(--ink); border:2px solid var(--ink);}
+
+  /* ---------- Phone ---------- */
+  @media(max-width:520px){
+    .top-in{padding:12px 16px 10px; gap:12px;}
+    .logo-mark{width:46px; height:46px;}
+    h1{font-size:21px;}
+    .brand p{font-size:12.5px;}
+    .top-pinata{width:46px; height:50px;}
+    .fleco{height:24px;}
+    .wrap{padding:14px 12px 8px;}
+    .tabbar button{font-size:14px; gap:5px; padding:8px 4px;}
+    .tabbar button .ic{width:18px; height:18px;}
+    .card{padding:24px 16px 18px;}
+    .adv-grid{grid-template-columns:1fr 1fr 1fr; gap:8px;}
+    .stat .v{font-size:16.5px;}
+    .parts-toolbar button{font-size:12.5px; padding:8px 6px;}
+  }
+
+  /* ---------- Desktop: controls on the left, preview always in view ---------- */
+  @media(min-width:940px){
+    body{padding-bottom:calc(104px + env(safe-area-inset-bottom));}
+    .layout{max-width:none; grid-template-columns:minmax(0,400px) minmax(0,1fr); grid-template-rows:auto auto auto 1fr; gap:20px; align-items:start;}
+    .layout > .c1{grid-column:1; grid-row:1;}
+    .layout > .c2{grid-column:1; grid-row:2;}
+    .layout > .extras{grid-column:1; grid-row:3;}
+    .layout > #previewCard, .layout > #partsCard{grid-column:2; grid-row:1 / -1;}
+    .layout > #previewCard{position:sticky; top:16px;}
+    .card{padding:30px 24px 24px;}
+    .bar-inner{max-width:1080px; flex-direction:row; align-items:center; gap:20px;}
+    .bar-info{flex:1;}
+    #barSummary, #status{text-align:left;}
+    .bar-act{flex:none; width:380px;}
+  }
+  @media(prefers-reduced-motion:reduce){ *{animation:none !important; transition:none !important;} }
 </style>
 </head>
 <body>
+<svg width="0" height="0" style="position:absolute" aria-hidden="true"><defs>
+<symbol id="pinata" viewBox="0 0 120 128">
+  <line x1="60" y1="0" x2="60" y2="12" stroke="#B98A5E" stroke-width="1.6"/>
+  <polygon points="72.0,47.0 60.0,10.0 48.0,47.0" fill="#D9006C"/><polygon points="67.4,32.9 64.8,24.8 55.2,24.8 52.6,32.9" fill="#00B2A9"/><line x1="60.0" y1="10.0" x2="57.6" y2="3.4" stroke="#FF7A1A" stroke-width="1.6" stroke-linecap="round"/><line x1="60.0" y1="10.0" x2="60.0" y2="3.0" stroke="#00B2A9" stroke-width="1.6" stroke-linecap="round"/><line x1="60.0" y1="10.0" x2="62.4" y2="3.4" stroke="#58B82E" stroke-width="1.6" stroke-linecap="round"/><polygon points="80.8,62.8 102.2,30.3 65.8,44.0" fill="#FFC800"/><polygon points="88.9,50.5 93.6,43.3 87.7,35.8 79.6,38.8" fill="#FF7A1A"/><line x1="102.2" y1="30.3" x2="105.9" y2="24.4" stroke="#7A2BBF" stroke-width="1.6" stroke-linecap="round"/><line x1="102.2" y1="30.3" x2="107.7" y2="26.0" stroke="#FF7A1A" stroke-width="1.6" stroke-linecap="round"/><line x1="102.2" y1="30.3" x2="108.9" y2="28.1" stroke="#FFC800" stroke-width="1.6" stroke-linecap="round"/><polygon points="73.9,79.5 112.6,76.0 79.2,56.1" fill="#00B2A9"/><polygon points="88.6,78.2 97.1,77.4 99.3,68.0 91.9,63.7" fill="#7A2BBF"/><line x1="112.6" y1="76.0" x2="119.6" y2="75.1" stroke="#58B82E" stroke-width="1.6" stroke-linecap="round"/><line x1="112.6" y1="76.0" x2="119.5" y2="77.6" stroke="#7A2BBF" stroke-width="1.6" stroke-linecap="round"/><line x1="112.6" y1="76.0" x2="118.5" y2="79.8" stroke="#D9006C" stroke-width="1.6" stroke-linecap="round"/><polygon points="56.6,84.5 83.4,112.7 78.2,74.1" fill="#FF7A1A"/><polygon points="66.8,95.2 72.7,101.4 81.3,97.2 80.2,88.8" fill="#58B82E"/><line x1="83.4" y1="112.7" x2="88.4" y2="117.5" stroke="#FFC800" stroke-width="1.6" stroke-linecap="round"/><line x1="83.4" y1="112.7" x2="86.5" y2="119.0" stroke="#58B82E" stroke-width="1.6" stroke-linecap="round"/><line x1="83.4" y1="112.7" x2="84.1" y2="119.6" stroke="#FFC800" stroke-width="1.6" stroke-linecap="round"/><polygon points="41.8,74.1 36.6,112.7 63.4,84.5" fill="#7A2BBF"/><polygon points="39.8,88.8 38.7,97.2 47.3,101.4 53.2,95.2" fill="#FFC800"/><line x1="36.6" y1="112.7" x2="35.9" y2="119.6" stroke="#D9006C" stroke-width="1.6" stroke-linecap="round"/><line x1="36.6" y1="112.7" x2="33.5" y2="119.0" stroke="#FFC800" stroke-width="1.6" stroke-linecap="round"/><line x1="36.6" y1="112.7" x2="31.6" y2="117.5" stroke="#00B2A9" stroke-width="1.6" stroke-linecap="round"/><polygon points="40.8,56.1 7.4,76.0 46.1,79.5" fill="#58B82E"/><polygon points="28.1,63.7 20.7,68.0 22.9,77.4 31.4,78.2" fill="#D9006C"/><line x1="7.4" y1="76.0" x2="1.5" y2="79.8" stroke="#FFC800" stroke-width="1.6" stroke-linecap="round"/><line x1="7.4" y1="76.0" x2="0.5" y2="77.6" stroke="#D9006C" stroke-width="1.6" stroke-linecap="round"/><line x1="7.4" y1="76.0" x2="0.4" y2="75.1" stroke="#FF7A1A" stroke-width="1.6" stroke-linecap="round"/><polygon points="54.2,44.0 17.8,30.3 39.2,62.8" fill="#FFC800"/><polygon points="40.4,38.8 32.3,35.8 26.4,43.3 31.1,50.5" fill="#FFC800"/><line x1="17.8" y1="30.3" x2="11.1" y2="28.1" stroke="#00B2A9" stroke-width="1.6" stroke-linecap="round"/><line x1="17.8" y1="30.3" x2="12.3" y2="26.0" stroke="#FFC800" stroke-width="1.6" stroke-linecap="round"/><line x1="17.8" y1="30.3" x2="14.1" y2="24.4" stroke="#7A2BBF" stroke-width="1.6" stroke-linecap="round"/>
+  <clipPath id="pinBody"><circle cx="60" cy="64" r="22"/></clipPath>
+  <g clip-path="url(#pinBody)">
+    <rect x="30" y="40" width="60" height="10" fill="#D9006C"/><rect x="30" y="50" width="60" height="9" fill="#FFC800"/>
+    <rect x="30" y="59" width="60" height="9" fill="#00B2A9"/><rect x="30" y="68" width="60" height="9" fill="#FF7A1A"/>
+    <rect x="30" y="77" width="60" height="12" fill="#7A2BBF"/>
+    <path d="M30 50h60M30 59h60M30 68h60M30 77h60" stroke="#fff" stroke-opacity=".55" stroke-width="1" stroke-dasharray="1.5 2.5"/>
+  </g>
+</symbol>
+<symbol id="i-image" viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="16" rx="3"/><circle cx="8.5" cy="9.5" r="1.6"/><path d="M4 17l5-5 4 4 3-3 4 4"/></symbol>
+<symbol id="i-circle" viewBox="0 0 24 24"><circle cx="12" cy="12" r="8.5"/></symbol>
+<symbol id="i-scissors" viewBox="0 0 24 24"><circle cx="6.5" cy="7" r="2.6"/><circle cx="6.5" cy="17" r="2.6"/><path d="M8.6 8.6L20 18M8.6 15.4L20 6"/></symbol>
+<symbol id="i-lasso" viewBox="0 0 24 24"><ellipse cx="12" cy="9.5" rx="8.5" ry="5.5" stroke-dasharray="3 2.4"/><path d="M7 14c-1.5 1.2-1.3 3 .4 3.2 1.6.2 2.2-1.4 1.1-2.2-1.6-1.1-3.4 1.6-2.4 5"/></symbol>
+<symbol id="i-drop" viewBox="0 0 24 24"><path d="M12 3.5c3.4 4 5.5 6.800 5.5 9.800a5.500 5.500 0 0 1-11 0c0-3 2.100-5.800 5.500-9.800z"/></symbol>
+<symbol id="i-zone" viewBox="0 0 24 24"><rect x="4" y="4" width="16" height="16" rx="4"/><circle cx="12" cy="12" r="2" fill="currentColor"/></symbol>
+<symbol id="i-eraser" viewBox="0 0 24 24"><path d="M9 19l-4.600-4.600a1.500 1.500 0 0 1 0-2.100l7.700-7.700a1.500 1.500 0 0 1 2.100 0l4.800 4.800a1.500 1.500 0 0 1 0 2.100L11.500 19zM8 10.500l5.500 5.500M9 19h10"/></symbol>
+<symbol id="i-plus" viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></symbol>
+<symbol id="i-undo" viewBox="0 0 24 24"><path d="M8 5L4 9l4 4"/><path d="M4 9h10a5.500 5.500 0 0 1 0 11h-3"/></symbol>
+<symbol id="i-zoom" viewBox="0 0 24 24"><circle cx="10.500" cy="10.500" r="6.500"/><path d="M15.500 15.500L20 20M10.500 8v5M8 10.500h5"/></symbol>
+<symbol id="i-down" viewBox="0 0 24 24"><path d="M12 4v11M7 11l5 5 5-5M5 20h14"/></symbol>
+<symbol id="i-share" viewBox="0 0 24 24"><path d="M12 15V4M8 8l4-4 4 4M5 13v5a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2v-5"/></symbol>
+</defs></svg>
+<header class="top">
+  <div class="top-in">
+    <div class="logo-mark"><img src="data:image/jpeg;base64,/9j/4AAQSkZJRgABAQAAAQABAAD/2wBDAAQDAwMDAgQDAwMEBAQFBgoGBgUFBgwICQcKDgwPDg4MDQ0PERYTDxAVEQ0NExoTFRcYGRkZDxIbHRsYHRYYGRj/2wBDAQQEBAYFBgsGBgsYEA0QGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBj/wAARCACgAKADASIAAhEBAxEB/8QAHwAAAQUBAQEBAQEAAAAAAAAAAAECAwQFBgcICQoL/8QAtRAAAgEDAwIEAwUFBAQAAAF9AQIDAAQRBRIhMUEGE1FhByJxFDKBkaEII0KxwRVS0fAkM2JyggkKFhcYGRolJicoKSo0NTY3ODk6Q0RFRkdISUpTVFVWV1hZWmNkZWZnaGlqc3R1dnd4eXqDhIWGh4iJipKTlJWWl5iZmqKjpKWmp6ipqrKztLW2t7i5usLDxMXGx8jJytLT1NXW19jZ2uHi4+Tl5ufo6erx8vP09fb3+Pn6/8QAHwEAAwEBAQEBAQEBAQAAAAAAAAECAwQFBgcICQoL/8QAtREAAgECBAQDBAcFBAQAAQJ3AAECAxEEBSExBhJBUQdhcRMiMoEIFEKRobHBCSMzUvAVYnLRChYkNOEl8RcYGRomJygpKjU2Nzg5OkNERUZHSElKU1RVVldYWVpjZGVmZ2hpanN0dXZ3eHl6goOEhYaHiImKkpOUlZaXmJmaoqOkpaanqKmqsrO0tba3uLm6wsPExcbHyMnK0tPU1dbX2Nna4uPk5ebn6Onq8vP09fb3+Pn6/9oADAMBAAIRAxEAPwD7+ooooAKKKKACiisDxX418LeB9FOq+KdatdNtuQpmb5pD6Igyzn2ANCVy6dKdWShTTbeyWrZv0mRXyf4r/a31bVtQbRvhb4Tmmlf5UvL+MyyN7rAh4+rN9RXNJ8P/ANpD4qZm8T+Ib20spTkwTT+XGM/9MYsJ+BNYYnF4fCtRr1EpPaO8n6RV5P7j66jwZiIQVXMKsaEf7z97/wABX62PrXV/HngrQGZdb8W6Jp7r1S5vY0b/AL5JzXMzfHz4PQNtfx9pLf8AXNnkH/jqmvFtG/Y0tAqvrvied26lbaNYx/Jj+tberfsr/D3QfC97qs02o3bW0Jk2SXTRhiOxI6flXLLNIJOUKFSSXW0Y/hOUX+Bqst4cpvlqYuc3/dikvxuenQ/Hz4PXDbU8faSp/wCmrPGP/HlFdNpHjvwX4gKjRPFmi6gzdEtr2N2/IHNeHWP7KPw/1fw9Z6hFcanaPcQrIUE7HaSM45zWBrP7GltsZ9D8Tzq3ZbmNXGfyX+dEc0hZSnQqRXpGX4QlJ/gJ5bw5VfLTxc4P+9G6/Cx9YZHrS18UP4C/aP8AhS3neGtfvruyiORDDP5kZ/7Yy5T8jXT+FP2ttW0m/XR/in4UlhlX5Xu7GMxyL7tA55HurfQV1YfF4fFNxoVE5LdbSXrF2kvuM63BmJnB1cuqxrxX8r97/wABf6Nn1hRWD4U8a+FvHGijVfC2t2upW3AYwt80Z9HQ4ZD7ECt6t2rHyNSlOlJwqJprdPRhRRRQQFFFFABRRRQAUZxQeBXyl8d/jzqera5J8LvhbNLNeSuba91G0b52bo0MLDpjnfJ25AIwTQ2knKTslq29ku7PVyjJ8RmtdUKC823tFd2zqvjH+0xpfg+5m8L+B44da8QhjFJMMvb2j9NvH+skz/AOAepzxXl/g/4EeP8A4sa8PGHxO1i9WOY5KzvmZl/ujtGv+wo4/wBmvTPgj+zrpvhS0g8Q+Koo7zWXUMqkfLBnsv8Aj1PsOD3Xx58Q3fhH4A6xe6VM9nM/k2azwDDQLLIqMy46EKWx74ry/bVscv3LdOl3+3P0/lj2+0+nLu/sKeZYbLqsctyNJ1JNRdVrVtu3u9l6fizl9N1f4Q/DS4n8PeDtAufEGqWny3UWi2gn8lh/z2mYiNW9dzlhXUeHvjNpWoa3NpHiLQdR8LXEdjJqMbajJC8csEX+sYPE7AFRyQccV8v+ObB9S+Ing34f+GJoovCUqQyxw2c2Y7jLsZJH2n5yFXOW9c9Tx0vxEtbfxL4l0DVPtMkGhRwakmqzo2ALaCRTKhI/vlCgHvXxeF4opYOvhkqUYUa0Zze7mlFS5XJ31lNxas03dWu2bV8iw9ZRliZtymm+ZtuSte2m2rTVtbbXvqezaL8e7fUPEOiw6l4RvtK0fXbkW2l6nNdRO0rMCYzJCDujDAZB56jOM16B48yfhtrIBIJtW7kfyr5W8Y/2hrPxw8DaJp07ae1tAdTWVI1f7O3UEIw2kqIgACMZIov/AIlePtZ+H/i/UtQ8d3L6Xos7afamKwt1/tF9+MzfKc5yg+TbwSetetlfFFPGYGM8Y1CpUV1FKTspzdOCb11bX5uyRyYrhSNV0qmEcYppNpuT3k0uj3t387I+s/CihPA2kLwALSIcYH8I9AK2MjGa+T9O8U/EC00Twpaaj8TL6xTX40iW1trCBpY3Kh0SBihKoF++77sYHc1LF8UviBcf8JD4Xv8AxYbLS/DcsjX3iiO3j+2TxbQY4VXb5ayDD7nCknAAAJrto8VZW4SSq/BG792XSXJppq+bRJb3PKnwriJSly1Iu2/xbXtfWKvrppf87emeOvjLf+HvGeq6LoPhy01S30O0S71a5ur/AOzBN6lxFH8jAvsXdzgcgVr3HhHwB8Y/h3p2tXWixtbajbJcwl0Akj3DPbow6ZBHTrXzD4uvkPwP87TbzVtRvPGmpqxm1EILqTgAq2z5c/ulUY4+au2g8VfEL4f2mlaJaeKopbq10qa6t9FTTohpxitVTzLfzP8AW79p4fPJ5IGQK8yGf4HGOf8AaFlF1JRpJxfP7iXPJ21jaV9dLW3ParZA6FCnPBSVOqm1e8k3ypX01t7z02SS1uc94x+BPj74Ua6fF3wv1a+McJ3bYH/fKv8Ad6YkX/YYc/7Ven/Bz9pbTPGFzD4X8cJDoviLIijmOUgu36bef9XJn+A8E9DnivVvAvj/AMMfEjwx/aeg3azqqol1buhDQOyBtjBgMjB4I4PUE15J8bv2ddO8V20/iHwtGlnrCjcy/wAEwHZh3+vUe44H0rrV8BpXbqUl13nD1/nj5/Et3zbqFmlDNH9Qz+HJVWiqWtJPtJdV/S7n0P1or5T+BPx51LStcj+F/wAUZZYbuJxbWWo3bfMrdFhmY9c8bJO/AJOQa+rK9PRpSi7p6prZruj5LOMnxGVYh0K6801tJd0wooooPKCiiue8c+LtO8C/D/VPFWqHMFjCZBGDgyueEjHuzED8aErmlKlOrNU6avJuyXds8a/aZ+Mc3hPRV8B+Frhx4g1SPE80B+e0gbgBcciR+QvcDJ6laP2dfghB4R0RPFHiG2V9ZukBVHGfIXrtH9T3PsBnzH4CeDdT+Kvxe1H4neLs3CLctMGb7rTf7Of4UGFUdv8AgNfaSKscaoihVUYAHQCvLrL69XdH/l1Tev8Aemun+GHXvLT7Lv8AcZ5iI5JhFk2FfvvWrJdX/L6Irx6haSapLpyS5uYkDum08A9OelUPFnh7RfFfgvUfD3iG2Nxpt5CUnQEqcdQykchgQCCOhAqKx8VaLf8AjzVfClsZ/wC1NNhimuQ0DKm2QZXD4w34f44wPid47vPCdjp+k6BZwXniPWZWhsIbgkQxhF3STy452IpBwOSSAOtdrqPD05VMRJJK7vslFa66vZbv8EfI0MLXliIU6Sam7NdOl+a/RW1v2Pkf4daf4V8G6JrnxStb7fZRpLBptldXCS3SsTtHm7VUeY2FAABwrMSea4+f4nRn4IL8PGt7v+0JLl5bmaQbRJE0hm27T8wLMwzkY2855rsNO8I+ELjxpqujaBoVhr+o2CST6nqeqzyWVhC+75o4YoAWwGJHJwACMnFWNBv9Jv8A4U654y8N6NFp1xYxtb6lpNxM95Y39uyDK4kO9fkbIKkFSv0Nfn8a2WYnHSxePU581Sk4yaUVBaqknHmc+V8zd3FXbTaR+zurCU+eUHN3hbm0S/lV7t2eurWujdjY1fxv4T0340eH/GT6za3Ol3mivaO9q/nSWz7gwLouWUHdt6Zznjg1yI8c/Cj/AIVnqfgySTWmsLa8W5idFUTakQwdtx+7Dlht+bGFCnrxXMy6T4C0uHRk0eYeILy+syupQ3Fk9x/Z7sUzJHFwWkUeZhW3H5c96v6kngV/Ac19p8WthLJWitYb7w7bv+8ydq/a402qmSWZD83YYNGH4ay2lToP2lZv3VFqMo6wnLkbXK2nq0m9Gve00YfU4JU+Xnadknqtm7acrs73Sv5vQ6LU/i34Pm+NvhfW4nnbQ9OsjCq+QVaCSRXDEJ32jyxx1CnGcUy0+IXwvay8W+Fbm61mOx1aVruTVPLDzzyM+4qsYHyBcKF3Dn5s4r1rw7qnwB074dx6RL8PJdQiuLS3OtTafob3NvHcBASjyKPvqzEfLnaT1HNcteW/gPxv8SrXwLo/grTfDui6Jsv0s7vSJIL68UofMBfgRxbmjyDy3BrfH8O5PgMI606s4qjBfDJOXuTc02rP3uaXX3dU2tLnkUcbGrLklh5wjBfFzLZO6dravmenSzTdtzkrz4nfDNtA8JX32bUll0KUi20ZcbByqq7zH5W2qgcAHLMcHvV3XPiJodhNrc/hHxBN4hv/ABBMi2OlT6cWSxkdVjkJ8wfMXChfLHB7ggE1e+Hd18HtN+KniaHUPCtl4lsriNZNObStLmvGgU5jkg2MpOMYYt0y2Ae1ej+FLj9lzwlrk3iLR9LOmXsKPLDJfWF0hbHDJbiVcFwTt2pz2rbB8I5ZXjSrKU2mr8k3G9pS9pytON1717tPmaunJojH11Qm4ww1Wasmuqd/es9LrXe2r11KHhPwD8VvCHwvup21OW08YeKtatPNe3KlbK2jDFmZgNoAQHOAFACovbP0No3iSPWdVubW3tXNvCuRck8Mc46ds9RXHaf8V/CvinWLTw5q+ieJdCN/J5dodXszaxXjgZEYZWOGIBIVsE4/Cus8RL4h0jwuo8B6NplzeieMfZ7uQwx+WW+dsj+ID/J6H6OSxOIrUXhKkI4eO9rNy6KK6RivJ36aHw+Y1q1dqGMpqNSTunpFa2W/ZKNktlr1PHP2iPghB4t0V/E/h21VNZtl5RBjz1/uH+nofYnB+zP8Y5/Fmit4D8VXDnxDpcf7mWc4e7hU4IbPPmJ0buRg9Q1fQjqskRSRVKsNpU9D7V8X/Hrwbqnwr+LenfFDwjm3RrlZiVHypN/tf7LjKsO//Aquglga6of8uqj0/uTfT/DPp2loviVvZyPERzvCPJsW/fWtKT6P+X0Z9pUVz3gbxdp3jr4faX4q0s4gvoQ5jJyYnHDxn3VgR+FdDXqNW0Ph6tKdKbpzVmnZrzQV8j/tbeLLrW/FugfC3R3LvvS7uUXo0shKQqfoN7H/AHlPavrdiApJOB3PpXxH8ME/4Wt+2Tq3iy4DS2kdxLcxZOdqZ8uEfhGp/KsMXiXhcPOvFXkl7q7yekV85NH1/BdGEK9XMaqvGhFy/wC3npH9X8j6r+F/g608EfDPTdEtEAKRKXbHLEjOT7nJP1JrT02DX4vEd3NfzhrFidgUgAnAAO3kgYz36jNVPHXxB8N/DrQ7fUvEUs6x3Ewt4IraIySSPtLYA9gCck9q3NT1ay0jw/da1eu4tLaBriRo0aQ7FGSQqgknHYVwxyeKhQXPJezd9Hbmdtebvdu78z52tPE1W8RUjf2rdm1u7q9n3V0SWN/Y6jE09jOkyqxRmXsR2r56/aQ1HXfBXjzwp8SLbSJtT0ayt7ixu0iBzEZCpBJAO0HHDEYyuDjNe26RqFnqGjWGu+FrNLmy1ZkuXmOYj5bLnftYZz7V0EkaSIUkRWU9QwyKpUfruHqYPHxTunGVlJRafZvXbs3Z6XLweKeXYpVVC6V0099U007bM+FvBy6X/wAKf8b+KPt8Xh631y7a0gub4mXyIz2OwZYkzSDgdQPc1hQ+J/C76dpfwr8DtcXVnqGpQf2rqVxH5RuQ0qAqqdVUgAc4+UYGck0XPiixubCH4S6xpl5FrJ8VH7XDxhke4bcuAd+fn7DGADmvpf4ifALR5Pg+2jfC7SrDQ9Ws7yLUrRox5fnSx5G135OcMSGOcEDPGa+awfDU69TE1cW5K9RuEXbl9yKjSm3bmlbdK9r62ufpuYZrRwVaMcS3apK610SSSjJ9Xa+nTQ81tILvUv2m9b8Q3CTRafoWnraRzMpVQzIHO09+GlPHTiuXfUtc8V/s86nNY2klyda1kW1hYwp8tnCJVIHHQZRmZ27sSTVmb4fftWaoZr+48qNpYmspLVrqBFMbfebYEKDP94fN6cVW1L4GfHnwj4Wu9I03XLH/AIRy4g8688qcps3KBImzYXPp8rAMMZxk149DgvHU1SrVpU+el7FR1k0o0ruWvKtZSalou6vrdxHMMDFxk8RT548tt2rR36bt2fnrY6h9H1y1+J3grQtFNza+GtHsftE00BKwzOQ6FXI4csdpwf77N71m6daa6mq/E7xm9jcrdPHNZ6dG6HzHSIMu5F6lflTBHBIOM4rN0/4H/tE6lpGnmDxPYrZafElzpeb58ZA+TGF+UhSR8xcDp0q5/wAKO/aWtJ28S2niaybWbtfs9wn2w70iHK/MUKEAkkAKNueOprNcEZi6b/eUm3BRb968v3vtG27bz6vWyVrPcz/tHBpOLxNO7Vn8Wvvc2rt16v5GTbeHfE/hr9n+x03w9aXlp4h12/SK6ltwRPDGQ2xWYcx4VVznG3e3Qmtzx7b6tefFHRncTTab4W0w61dysQqTOpJA3N8u5jCoGegZj2qov7P/AO0TptpLoNl4ksZNM1PM17It44AkcfvN2VMhyepVhu6nHNMm8AftV2SR6jOsd8NPUwJYi5glW5RhtYshULIMAcud3pjnPXW4VzSWLljOalKbdV395P8AeRSX2X8MU4xV7LfyNJZrhqtR1ViKbk3LVtr4lbqumy7bl59MuvEvxb8Ba/o2tyWuieJ9SttTktplGUuoIcgjuN0YK46BgT3FfUviXxgdC8Q6HoNjo93q2parPgQ25Crb26MoluJGPAVA446sSAK+dvhZ8O/i94n+LOheLPiNYR6HpegFpLWwjWOMM5XaAscZIUdMkkn5QAAM17h8V9E8NT+GV8Ta94o1Xwu+kBmi1fS7kwzIHKgx4APmBiqfIQckDFfX8M5bUy7AU8LXtzK+2ul3ypuy5mo8qbtrY+Tzeth8RjKGH5lNKLXu6+827bWcvs3t2sjo9U0a/vPENpf22oNBDGw3Rr14B+bByCecdOhrM+J3g+z8bfDTU9Du0z5kLFGxkqccEe4IB+oFYGl+NfEXh/8AZuHi/W9J1fV9St4naKCa2EV1dJ5pWF5Y0yIyUKM2M4GTivQNFu7/AFDw5Z3mq6Y2m3k0KvPZPIshgcjlCw4OOma2qZJQUK6jdOq7t3btJLRpPa1k1bqeFP6xg5xqpr93JxTVt46vztrvY+WP2SvFd3ofi7X/AIWay5SQO93bIx+7LGQkyj6jYw/3WPevreviP4oofhV+2NpHi2BTFaS3Md1Jg43Jny5h+MbD86+21IKAqQQehHeu3CYl4rD068laTXvLtJaSXykme7xnRhOvSzGkvdrxUv8At5aS/R/M5X4maw2gfBzxRrEbFZLbS7iSMjs/lkL+pFfPv7GmiKmk65rjoNzTC3VvZFH9WavWv2jbg237Mvil1JBeGKLj0aeNT+hrkf2RoFj+Ccs+OZLuRj/32w/oK58yXNGhT6SqL/yWMpr8Yo0y/wDc8NYqot51Ix+SV/1PfJLe3lmjllgjeSMko7KCUyMHB7cVJlfu8fSuR17xXpJ1BdM0vxbo0WrW8wMmnPeRLJJ6oVJyD7UjJcQfEez1ObzY7a9i8tQ+Rsbb9w++RmuLMM4ng6saboyacoLm2Vp6cyevwuya03XQ+WjgpON5u2jaXe3+fRmPrnxLv9O8V6hoOi+GYr0acY45Zpr4W43MgcBV2NwARzWc3xM8ZucR+FNHTP8Af1N2/lFXM65NNB8YvFcEdsXL3dqdxcAOWthhR7/KTVZdQuNqMyQhcRuX83gqW2g9OjHj2r8x4n46znL8zrYTCqHJFq11d6pPv3PrMPluD9lBulduMXvLdpPuereEn8P+MtAsPHE/h6xg1GVW3Ssiu8bIxQgSYBI+Xj2rlbr4o+I9R1C4m8MWGkHSUlaKC4vWlL3AU4MihMAITnHqBnvXI2/ig2nwh07wPZ3Itr3VLu9jndZOba1Wd/MIP95vuD6se1QDULW1gigtZ9PjsxHGkQ87btV/lTjHGMV9Bxpxfictp0aOXr97NKTbV0ovbyu3+XmZ4bJ6UKlSdWN1dqKd9k2r/ovR+R1zePfiIx4bwwg9redv/ZxVyw8Vap4x+CHiK/1KG1bymlghuLRWWK5RcfOoLZAzkdcHGeleTeJvEkbWZ09L+FbV0aW/uLRjJJb26t5ZCAdZJG+RV6knj1ql4k+K0+maMnha61pPDFikIiXQtGsY7y5ij7CeeT5Fk6Eqg49T1rThTNM2xeGlWzWd3UuoQjDV2+KVoq9k9LvT70d39gSx3LSwdJKV73s9EvS7d/Sy62uj6E1LUtc0T4BnU/DdlHe6jbaUJYopJCnSPJIwh3MOoXA3EY4zR8NNW8Z+JPhpHdeN9PfRtZLNC8S27QuoAAD4YkEty3HAzjqDXiHgT44atbolvp2uHxRaWkWZNIv7FLO/EKjlrd4zslYAZ2MMnHUV760mq+KJ/C/iPwn4ogt9BbN1dQfZhJ9vhdMoAx5jIPPr+WK+8w1enXpujZqSsmmnFrTs0nZ9GtH0eh4mZ5VXyyDw2KpxTbupvmvon7trdel46vrZMz/GPiWb4a/Ct9RkkGoXqskFuk5wryMeBxztAyfXA615HF+0n4mX/X+H9IfHXZJIn9TTP2lvEv2nxLpvha3aRxYxfa5xEcESSfKoP0UE/wDAq8FJBjLqbwEdAUJ6fc7f5713YPCU6NGNKK0Ssuui83qfX8NcNYTE4JYjG0+aU231WnTa3r8z6f8ACf7Qc2teLtP0fU/D0FpDeTLB9oiuS3ls3CkgryM4HXvXr2vabomrQ2VrraxMEvIbm2WRsfvo2DoR64I6V8FWs0lrdRy2890HRg8bFDwQdwJ+X+8P8ivvDw/fWPinwjo+vNFFL58EdyhYZ8tyvOPQg5H4VOLhOEb0bX89vP8AA8Li/JaGWVKVbCxcYu6dm91tu3v+ht5GcZ59KwltfFg+Ir3balp58M/YQi2QhP2gXO/O8v027eMfp3rOVLib4kXmoxCWS3s4fLYJzubb9we/OaXQvFWkjUX0zVPFmjyatcTEx6cl5E0kfogUHJPtXhZdnM8ZVlTVGSSlOPNurQ05r6W5ndJK70fQ+VWGnCLcLS91X0u1f77W76HgP7Zeiq+j6HraJ8yTNAx9nU/1Ra+gfhjq7a98GvC2ryMWkudLt3kJ7v5YDfqDXlX7XMCyfBOOYjmO7iI/77Uf1Ndd+znObj9mXwqzEkpDLF/3zPIo/lXZlq5Y16a2jUf/AJNGM3+MmfTY/wDfcM4Wo/sVJR+TV/0G/tH27XH7MnilV6pFDL+Czxk/oK5P9keZZPglJCDkx3cgI9PnY/1FeqfE/R21/wCDPijR41LSXOl3CRgd38slf1ArwD9jTWlk0XXNDdxvjmFwoz2dR/VWp5j7saFTpGov/JoygvxkgwH77hnE01vCpGXyat+hc8Wfsx+D9O1DVPFPiD4hzaZo8k73D+fbpmPexO0yM3zHJwPlyfc10nwXl0E6lJovhHx94m8TaHBw9vqulO1tEw5Hl3BRfLPcLkj2716X8RPhxoPxM8O22ja/PfQwW9yt0jWcojbcAVwcggghiOmR1Fa2mWnh7wjpum+GtLt4bC2C+Va20anHA559e5J5JNejiMXTVL9/LTRa2trovveiMsXxLWx+XKhias6lTZK0VGMUt/hbb+at3Z8mftA6hY6b8d9SF/cPEJorZlC7+f3eC3y+nT15ryseJdEAVgz5wpwYnOOeR07DmvevjD8Prbxr8eNUlvtSkso7extUi2RhtzOrcnJ7ba4+P4F+Gwd0/iG82/eA2RrweMfnzXy2Y8b5HleIlhcU37SNr2g3uk1rbsz9IyHMsso5dQhiJPnUVey8u55mPFGkeSIyszJ8y7DCzAAZ2/gT27UsOv6ZNeJb21hLO0rKqRrbYLEjkfXOBXp8XwT8Hxt+91u/dVwWy0a7tvXt/FWlongnwp4A8W6Z4ntRJq8FhPuu4ZXV28k8mWML1aPOcdwp7issJ4jZHi68MPScuaTsm42V/N+uh3YnO8tjSl9WUpTtonZJvoamqeCR8PPh34Jk1KKNbvWPEltJqDYwsbCKQwR/7qvs/EV8/wDhqHS7n4ipF41lCRNLMLprksEE+G/1u0htu/qARX1T+0H4q0XUtNs/DVyI7rRYbVNf1B4iN00e/bbQxN/CZJMksOQqHHWvlW9XxB4+8TarrNnpKSzhDdXEdogUIowowOrMfTlmwa9eXJUxGJdWfJT9moSnfl5JNtx5W+rU7vt7m99OTgZ1q2Cr18a+SNRO8r2abelvv+5R7mh4ejtJfjrYf8Ir50dgmpia3aTOY7dG3OTnnaEDdexANfXv7OWs2178BonN1CI7a8vMRbwXtoTO7orr1T5TkA44xXyT4D8cad4T0XVv+JdjVJoWNpfRcl2I2iOTP8AJ3jGOVGc8VeXx3rMvgHU/El+0MGqwvFp9rqtovkXF20gPmxTbcCVBFknI4LL3rGq8Zh8e5VKP7lKlSjJyvKWr961tV72uqas3Z6m/GGRYnNIeya5YQcIxk3dy318782vVW2epL418bad4p8faxr0upCKWed5Ej8wAhAdka8jrsA/WshJ7eeXfY6kshglG/ayMNiDhuP4fm6nriuA2XLEuUBOfU8/p+NezfBjwrpmr+CvGF7qt7YWs5sGgtFnnRGkk6/KCRn7uPxr62pBQhdM9bM8PRyfAKom7R5Ul80vy/I5lL+1j4GsRnAdfvR87Dn/9XrX1l+zZ4ki1X4aXWii7S4k0u5IUqwP7uUb16f7W8fhXwdLBJBcvCbcEo23qOxr3j9k/xM2i/GGTQ7geXDrFs0QyePMTLqf0YfjSr0VyXueXxrkSr5PUqwbbhaS0fTf8Lns/xnk0E6imi+L/AB/4l8M6JPgR2+laU6W8rHk+ZcBW8w99uQPY9a5rwn+zH4O1G/0vxT4e+Ic2p6RHOlwnkQRkybGB2iRW+U5GD8uR7GvavF/iLwBd63b/AA28VTW9zc61EwSwdC+8ZAGdo+QnJKnj7jHIxUvw7+HGg/DPw9c6PoE19LBc3LXTteSh23EBQBgAYAUDpk9TXLCp7Kmow0/Kx+XYbiDE5dlipYepOlOXTljyTi7ptPlTTTVr3lfujzD9redY/gikJPzSXcQH/fan+hrrP2cYDb/syeFlbq8U0n4NPIR+hryn9srW0j0HRNDVxvknM7D/AGUU/wBWWvfPhfo76B8GPC2jyrtlttLt0kHo/lgt+pNeRlr5o16nSVR2/wC3Yxg/xiysf+54Zw1N7zqSl8krfqdYwBQgjIxyK+I/hTI3ws/bG1fwldN5VtJcS2seeNy58yE/jGx/Ovt2vkT9rPwpeaB458P/ABT0ZCjM6Wtw69Fniy8TH/eUMv8AwAetdGLw8sVh6lCGkmvd8pJ3i/k0iODK0KletltV+7Xi4/8Aby1j+qPqbWrfWbmG3Gj3sdsyyBpC4zuX8jUV14n8NWfimDw/f6vZQarJEJobeeQI7qW2DbnqS3GBzWZ8NvF1l41+G+ma5ZyBhLCu9c8qccg+45B9wazL34Q+Fr74xW/xIbz4NVt/LZEg2rG7qHBdwQdzMrBc8Y2jHPNc2XRpV08Xd++lo3dJrpbZNP4rdUfPxo0qVSdDGtxcFK1kruXRPbTz1t2PIPjHr6+H/jteO+lQ3v2jTrPBlfaAA8mV+6fvdM9veuHf4j3bwmM6Fp6t5bFZTJnBLcN9zsPl963P2jvC3iLxP8e7e00IviPRYp5CJ/KAIlkVe/Jz+VeYL8GPHrFUluYUiOAWa/Jwp5bj2P5185nWD4SeLlUzWcVWdm05ST2SWifY/W8iwWW1Muo1MTUipOK0bd+2yOyPxS1b7Q8CeHLCOPfIolLNs3BRmMHaMlAQ2fr6Up+JutoVhi0/TUcsi42uQSFzjHHDDk/pXVfDn4XSeKf2a/E/g/UERdc07WpjDcByxWYRRkYfqQQcH6141ofwf8R6xp73K3VpFNHcS201vNM4kikTjawx1zz9CDRieHeEcvw6xWIpRjTdrSbm07q66vcvL/7IrVa1Ks1F05W3k7p6pr1Jpry41u41Xw88ytPqWmwHSIQ3ylreZpPsybjnkO4UE9cD0rm/DPiZPDv2+zvNJj1C2uTH5tvJK9vJFLE++N1dfmR1bNdl/wAM961cwh5Nc0+2lHlvHIm8lCR16D+LGKv6F8MPjF4r0g3sD+GNfmt5ms7n+2LJHubWVOCjttJbgghiTlSDXZhc0y/M5V6GAlGvTlyuUW5RaaSSadnf4Y9mmr31PVqZ5gMBSnRk41KMmr/FGz6a2fZfNb6nnl62peOvFuo6hovh4CVgbia205Cypgcscn7x9OrHoK2vDeoRah8PL6x1jTYZbTSmMumXYQeYL2UgLbBcYm8zHzKeQqk56V6jefs/ePR4H1DXfH/juHR7XSbd722s9FhWCGKSNdyuQoXJBHHAPvXiFj8RfER8QWeq6wNL1CWyErQQmLyoxNIuGnYJjdKePmPPFduOwmYYrCLDUqMOWFuVKTvHl2Sk0k+Ze627WTd1NOxWGzyWeUJYfA04uFO1tXpbom7XutOll3ufRKeEvA03lT3fhq1gkJV2CwyKqkIB6dAflrXtLDwvpelw2Nrp9jFbRgKqNCG25OTywzx3zXlPhX4ueMPFPiWy8Madp2nR3t60NtDOXeQRkfecofvbh15GMV7OPAHxvi4GpeGZQCD/AMejrnB6H953r8crcBcT1FyVZWS2Tqv71v6Hx2aTrZdNUMdV5W9Um7/lc5K78CfDu61KS/uNOj+0TSeewWdkBc8Y2g4HHOPxqA+FPCnhJV1/wxbqmraaEuYG89n3CJxIV5P8QDDPeqvjrxh46+F2pW1j4v0vTL2W8RZ4ZLBngCqsnzqd2/JI4zxj3rlP+F/yLJl/DPmgiVWja8GG3MCuf3fRVyD657V2YXhnjPD1adSDnOMGnb2qcXbW1m9ulrfgelgsJmmOoRq0W50n/e0a2tZv5bH2kdJ8Na5dab4rn06zubmGESWd7KgZoUbD5Qn7ueORU9lpItdau9UF/NMtyAREx+RPp/SvLfghf6d8Sv2Y4tD1hGmhjSbSLuISlW2D7o3DBH7tk59q6/xlrWjfDH4OTSxkwWWm2Qt7eNnLNtVdqrk8k9Bk9yK/Y80hRpwWIrxu6Tul52aSVnq3eyXdn5fiMFWo4mWX3bqKTha2lr9HfvrZLzufLfxYk/4Wn+2Fo/hG1bzbaO4itJNvO1SfMlP4RqPyr7bUBUAUAADgDtXyL+yb4Vvdf8eeIPinrCFirPa2zt0aeUh5WH+6u1f+Bn0r67rfCYeWFw9OhP4kry85N3k//Amz2uM60KdejltJ+7Qio/8Abz1l+gVzXj/wdp/j74dap4V1LCx3kJVJcZMMg5SQe6sAfzHeuloroTs7o+Qo1Z0akatN2lF3T7NHxf8As+eNtR+GfxR1H4YeLwbUNctEqOeI5x1APowwynv/AMCr7PVldA6kFSMgjoa+cv2nPg5P4j00fEXwrA/9u6bGDdxQDD3MKch1xyZI8ZHcrx1VRV79nj43W3jLQo/DWvXCR61aoBknAnXoHX2Pf0PsRXl1n9Rrut/y6qPX+7N9f8M/wl/i0+4z3DRzrCrOsIveWlWK6S/m9GRfGc+INH+MVrrdh4e1vVbG40iO2I0xEbEqXJc79xGMIzY964p/EXilraRLf4ceM33rKAJDGoBLfu8/vOmPve/TNfUniXU7nRfCl9q1lot1rNxbRGSOwtQDLOf7q57/AJ9Oh6Vz/jDx83hD4eWXiWXwnrN/cXRiT+zbOHfNC7ru2yYyFxjaTzzgd683MeDsszPEvFYiDc3bq1srL8Dy8BmeIlTp0KdKMn8K1s2/vXffY5z4D6brdp4f8R6jrWmXunf2nrD3dvb3rhpli8tFG4gkfwnv0xWF8Tfh/wCIdM8cS+NPBGktqi6hH5eo6UtwYAZQMR3CHpvH3T6rXe6F4s8RXOhwXfiHRoNI1HUJlFnpAcyS28RIAaduBuPJ2gDHA5Oa7jcM7cjPXFdsqGAxdGeVtKUIKMWu2miv3SSe91o+pw1sbicPi5YhpXd00tYtLTo9VpunutGfLMek/FiZo3/4VhAGDRkibVeCFHzrwh+8eR6V3nwc8KeP9H8caprPibTLDSrO8so4pbe1maX7RMjfJK2QArBCUOOox6V3UvjHUZ9Vl0/TNEaSVHKDzGPY4yQBwPqarXPjpdP+Jfh7wCZ4bzWdQEt1eiMYW0gSJmHHYswUDPUbj6V4XDWHyR4mc8ppO8bpy9+3mrydn8k9rvWx3V8Vjq9KVH2cVeLbtdvlXvN6t2Wn37akPxp8K6/41+Dmp+G/DlxFFeXTR5EnAkRXDMmR0zgV8iS/swfFSM86dZSe4lPP6V9r63e6jdyXug6TqUemaq0CzWNzJGJELc8Op+8uRggYOCcEEV4nc/tEePPCfiuDw347+Gey8eZYhJYTOFnBON0IZWDg9gG9jg19vgMZ7eM1h5J8raa6prf+u2p6vC2NzuhRnQytx/mcXyptW3XM1dadG7GJ8APgT4o8KfE//hI/Fmn28EdnC32bawYtI3GenGATX0ve6hqNvrtnaW+nNNbTZ82cZxH/AJ681j+LviR4Q8DTWMPiXVorOW9kVIo267SwUyHsEXOWbsK57x38UrXwL4q8L3t/MsvhXWopYZb6HDi3kGxo5QR95CrNnHYZHTnLGUa+KiuSbi7p3SWqTu1qmtVoePiquZZ7io4itT5pTTUdGk+VO/L3a7dXocx+018OtU8ceBtOutB08Xmo2Fwf3YIDNGw5wT7gGvlQfAz4l5JHhC447715/WvvzS9Z1S6vIIzaQXthOu+LU7Rw0UiYyrcZHPHQ9+Kk0e58Wy+Lddg1vTtOg0aJ4v7Knt5S0sylf3nmKeAQcY6fj1qcuzT28JezTXK7NSi07/Pf1V12Z6OUcWZlk2GeFo8jjHXXV6u1lr31tutWeK/sueDfGXgnTfEUPibT/wCz7G4aKWGORwTvUMHbjoMbfyrzn9oTxxqHxM+Jmn/C7wgGusXKxOidJJj0U/7KjLse2P8AZNeo/tD/ABst/BXh9/DuhXEb61doQCDkQL3dvYdvU+wNZ/7MfwduPDunN8RvFcEn9u6mhNrFcDL20L8l2zyJJOp7heOrEVxwm8xxCxD/AIVN6dpzXX/DD8Zf4dfVw2Jlh1U4lzGK9pPSnG1rytbmt2R7T8P/AAbp/gH4c6X4U04h47OELJLjBmkPLyH3ZiT+Q7V0tFFek3d3Z+cVqs61SVWo7yk7t92wooopGYHkV8l/HX4Gar4a1+T4p/C2KWBonN1e2FovzQN1aaJR1Q8707ZJAwSB9aUEZoaTTjJXT0aezXZnrZPnFfKq/tqOqejT2kuz/rQ8A+CH7Q2l+NLKHQfEcsVlraLgZb5Z8fxIT1Ht1HuOa92vHnbS5nsNrzmMmHJ4LY4r54+MX7MVp4hvJfFfw4eLSNd3maWyDeVBcP13Iw/1Ume4+Unrg5NcD4H/AGiPGXw31c+EPijpV4fs52s80ZWeMerL/GP9tevX5uteTUw9fCQcKN50mumtSHp/Ol0+0v73T6bEZHhc4i8Zkr97eVJ7r07o+lfDHh7Um11tY1lJFdCSolILO+MZPsK619Psxq41d1xcJEYt5YgBM56dKwPCXxG8I+NdMS80LWLadW6qHGVPofQ+xwfarfjbwnZ+OfAeoeFr68urW3vUCtNasFdcMGGM8EZAyDwRkV5/DmUZdhMKqGGlzpS5m5ay5+72tJdrJo+XxU6ssUo4u9PZPTZddOvpfU5T44+PdV+Hfwql1zQrRJL2edLVJ3XcltuDHzGHfG3AB4yRn0PjX7Pvh7XDD4j+LviNrmae7ga1srm6JL3DOw8yXJ7AhVB6feA4FfTGheG7DQvBVh4YVpb20tLZLYNekStIqjHz5GD+WKPEOlS6h4YlsLFURxtMafdX5SDj24Fe1m9WtDLcRDCRvUcZWtu3Z2t8z2MBn1HCYGpltKmr1JLmqdXBNe7bptrr8upxV7DPqHhHTtagLtPZA28rKfmAU/K34cc+9dV4S1WfWtHaS9QPJA+wTY4fjr9fXFS+E9IutI0R4L0IJJJC5RTuCjAGP0rcSNI0CRoqKOgUYFfGcL8P4vD1KWZ1KjhKdOKqU2t5JJKT10dkr6XvfXVnk47F05KVCKuk3Z9l2OY8Z/Dzwv4+htY/EtlJci03m32zNH5Ttj5xg8sNoxnI5PHNUfin8O7X4kfDa48OPMltdKVnsrhlyIplztJA/hIJU47H2rq9PsF06CSIXM8++Rpd077iM9h7Vg+LPiL4R8GaZJe65rFtAqjhTIMsfQep9hk+1faSzGOHpRqYlqD7Xvr2Xd+SWpOCxONjXpLCSk5U3eFruzvfRdLvfv1POv2evAnxB+H2l61p/jKaGHTDIjWVqtyJgjDd5kikcIrfLxxkgnA70fjd+0NpPgmwl0Pw9NHe63IuMK3ywA/xOew9up9hzXl/jn9ofxj8SNXHhD4XaVe5uDtV4o908g9VX+Ef7bdPRetd78Hf2Y7Xw/eReLPiQ8Wr67v86OxZvNht367pGP8ArZM9/ug9MnBrGpGvmL5qydOk+m05/wDyEX1+0/7vX7jGYSlRxEs34hsqk9VSjo27btdF3vu79TnPgX8C9V8Ta+nxT+Kcck7TOLmy0+7X5p26rNKp6IONid8AkAAA/WfQUdKK9FJRSjFWS0SWyXZHxOcZxXzWv7atoloktorsv61Ciiig8kKKKKACiiigArmPGnw98H/EDR/7O8V6Jb36KD5UpGyWE+qSDDL+Bwe4NdPRTTtsaUa1SjNVKUnGS2a0aPkPxR+yf4s8O6m2sfCvxXJJtOVtbub7NcKPQSr8j/8AAgtYEXxe+P3wrdbXxl4eu5raPjzL23ZVb6SoDGfyr7b4prKjIVYAqeCD0Nc+JwmHxUuevBOX8yupf+BK0vxPrqXGdarBU8yoxrx7yVpf+BL/ACPlrRv2ytIkiVdZ8N3cT92gKyL/ADB/Surtv2tfhpMg877dC3o0D/0WvTNZ+FXw21+RpdX8D6Dcyt1lNmiuf+BKAf1rmLj9m34LXDbj4LiiP/TG8uEH5CSuf+zlH+HXqRXrGX4yjJ/iafXuGa2tTDVIf4ZJr8bHN3H7Wvw0iQmH7fM3osD/ANVFcrrP7ZWjRRsujeG7yZ+zXBWJfzyT+lenW/7NnwWt23DwXHIf+mt5cOPyMldPo/wq+G2gSrLpPgfQbaVekos0Zx/wJgT+tDy5S/iV6kl6xj+MYxf4h9e4Yo608NUm/wC9JJfhc+VZvi98ffim72ngzw9dw20nHmWVuWVPrM4EY/Kt7wv+yf4s8R6mmsfFTxXJGWOXtbSX7TcMPQyt8qf8BDfhX10qoqBVACjgAdBTq3w+Dw+Glz0YJS/md5S+cpXl+JFXjOtSg6eW0Y0I94q8v/An/kcx4M+H3hD4f6R/Z3hTRLexRgPNlA3SzH1eQ5ZvxOB2Arp6KK6W77nyFatUrTdSrJyk929WwooopGYUUUUAf//Z" alt="Mundo Piñatas K&A"></div>
+    <div class="brand">
+      <h1>Plantillas K&A</h1>
+      <p>Moldes de piñata listos para imprimir</p>
+    </div>
+    <svg class="top-pinata" aria-hidden="true"><use href="#pinata"/></svg>
+  </div>
+  <div class="fleco" aria-hidden="true"></div>
+</header>
+
 <div class="wrap">
 
-  <header>
-    <div class="logo-mark"><img src="data:image/jpeg;base64,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" alt="Mundo Piñatas K&A"></div>
-    <div>
-      <h1>Plantillas K&A</h1>
-      <p>Tu diseño en hojas listas para imprimir y armar</p>
-    </div>
-  </header>
-
-  <div class="torn"></div>
-
   <div class="tabbar" id="modeTabs">
-    <button data-mode="image" class="active"><span class="ti">🖼️</span><span>Imagen</span></button>
-    <button data-mode="circle"><span class="ti">⚪</span><span>Círculo</span></button>
-    <button data-mode="parts"><span class="ti">✂️</span><span>Facciones</span></button>
+    <button type="button" data-mode="image" class="active"><svg class="ic" aria-hidden="true"><use href="#i-image"/></svg><span>Imagen</span></button>
+    <button type="button" data-mode="circle"><svg class="ic" aria-hidden="true"><use href="#i-circle"/></svg><span>Círculo</span></button>
+    <button type="button" data-mode="parts"><svg class="ic" aria-hidden="true"><use href="#i-scissors"/></svg><span>Facciones</span></button>
   </div>
+  <p class="mode-hint" id="modeHint"></p>
+
+  <div class="layout">
 
   <!-- STEP 1 -->
-  <section class="card">
+  <section class="card c1">
     <h2 class="step"><span class="num">1</span><span id="step1Label">Diseño</span></h2>
 
     <div id="imageFields">
-      <div id="dropzone">
-        <span class="icon">🖼️</span>
-        <strong>Toca para elegir una imagen</strong> o arrástrala aquí
-        <small>JPG o PNG · con o sin transparencia</small>
+      <div id="dropzone" role="button" tabindex="0">
+        <svg class="dz-pinata" aria-hidden="true"><use href="#pinata"/></svg>
+        <strong>Elige tu diseño</strong>
+        <span>Toca aquí o arrastra una imagen</span>
+        <small>JPG o PNG · con o sin fondo</small>
       </div>
       <input type="file" id="fileInput" accept="image/png, image/jpeg">
 
       <div id="previewRow">
-        <div id="thumbWrap"><img id="thumbImg" alt="Vista previa"></div>
+        <div id="thumbWrap"><img id="thumbImg" alt="Tu diseño"></div>
         <div id="fileMeta"></div>
+        <button type="button" id="changeFile" style="display:none;">Cambiar</button>
       </div>
-      <button id="changeFile" style="display:none;">Cambiar imagen</button>
     </div>
 
     <div id="circleFields" style="display:none;">
       <div class="field">
-        <label class="fl">Medida del círculo</label>
-        <div class="chips" id="circleChips">
-          <button type="button" data-dia="43">43 cm de diámetro</button>
-        </div>
+        <label class="fl" for="radiusInput">Medida del círculo</label>
         <div class="size-input">
           <input type="number" inputmode="decimal" id="radiusInput" value="30" min="1" max="300" step="0.5">
           <span class="unit">cm</span>
+          <div class="chips" id="circleChips">
+            <button type="button" data-dia="43">Ø 43 cm</button>
+          </div>
         </div>
       </div>
       <div class="field">
         <label class="fl">Esa medida es el</label>
         <div class="seg" id="circleDimSeg">
-          <button data-circledim="radius" class="active">Radio</button>
-          <button data-circledim="diameter">Diámetro</button>
+          <button type="button" data-circledim="radius" class="active">Radio</button>
+          <button type="button" data-circledim="diameter">Diámetro</button>
         </div>
       </div>
       <div class="field">
-        <label class="fl">Grosor del contorno <span class="hint">— solo la línea, sin relleno</span></label>
+        <label class="fl" for="circleStrokeInput">Grosor de la línea</label>
         <div class="size-input">
           <input type="number" inputmode="decimal" id="circleStrokeInput" value="3" min="0.5" max="15" step="0.5">
           <span class="unit">mm</span>
@@ -392,73 +407,79 @@
   </section>
 
   <!-- STEP 2 -->
-  <section class="card">
-    <h2 class="step"><span class="num">2</span><span id="step2Label">Tamaño y papel</span></h2>
+  <section class="card c2">
+    <h2 class="step"><span class="num">2</span><span id="step2Label">Tamaño</span></h2>
 
     <div id="sizeFields">
       <div class="field">
-        <label class="fl">Medida <span class="hint" id="sizeHint">— del lado más largo del diseño</span></label>
-        <div class="chips" id="sizeChips">
-          <button type="button" data-size="65">65 cm</button>
-          <button type="button" data-size="80">80 cm</button>
-        </div>
+        <label class="fl" for="sizeInput">Medida <span class="hint" id="sizeHint">— del lado más largo</span></label>
         <div class="size-input">
           <input type="number" inputmode="decimal" id="sizeInput" value="65" min="10" max="300" step="0.5">
           <span class="unit">cm</span>
-          <span class="orient-pill" id="orientPill">Sube una imagen primero</span>
+          <div class="chips" id="sizeChips">
+            <button type="button" data-size="65">65</button>
+            <button type="button" data-size="80">80</button>
+          </div>
         </div>
+        <span class="orient-pill" id="orientPill">Sube una imagen primero</span>
       </div>
 
       <div class="field">
-        <label class="fl">Aplicar la medida a</label>
+        <label class="fl">Aplicar la medida al</label>
         <div class="seg" id="dimSeg">
-          <button data-dim="auto" class="active">Automático</button>
-          <button data-dim="height">Alto</button>
-          <button data-dim="width">Ancho</button>
+          <button type="button" data-dim="auto" class="active">Lado largo</button>
+          <button type="button" data-dim="height">Alto</button>
+          <button type="button" data-dim="width">Ancho</button>
         </div>
       </div>
     </div>
 
     <div class="field">
-      <label class="fl">Papel de impresión</label>
+      <label class="fl">Papel</label>
       <div class="seg" id="paperSeg">
-        <button data-paper="letter" class="active">Carta (Letter)</button>
-        <button data-paper="a4">A4</button>
+        <button type="button" data-paper="letter" class="active">Carta</button>
+        <button type="button" data-paper="a4">A4</button>
       </div>
     </div>
   </section>
 
   <!-- STEP 3 -->
-  <section class="card" id="previewCard">
+  <section class="card c3" id="previewCard">
     <h2 class="step"><span class="num">3</span>Vista previa</h2>
 
     <div id="resultStats">
-      <div class="stat"><div class="v" id="statSize">—</div><div class="l">Tamaño final</div></div>
-      <div class="stat"><div class="v" id="statGrid">—</div><div class="l">Columnas × filas</div></div>
+      <div class="stat"><div class="v" id="statSize">—</div><div class="l">Tamaño</div></div>
+      <div class="stat"><div class="v" id="statGrid">—</div><div class="l">Col × filas</div></div>
       <div class="stat"><div class="v" id="statPages">—</div><div class="l">Hojas</div></div>
     </div>
 
     <div id="gridPreview">
       <canvas id="previewCanvas"></canvas>
-      <p class="preview-note" id="previewNote">Cada número es una hoja · la franja rosa es donde se pegan dos hojas</p>
+      <p class="preview-note" id="previewNote"></p>
     </div>
     <p id="previewEmpty" class="preview-empty">Sube una imagen para ver cómo se divide en hojas.</p>
   </section>
 
   <!-- STEP 3 (Facciones) -->
-  <section class="card" id="partsCard" style="display:none;">
+  <section class="card c3" id="partsCard" style="display:none;">
     <h2 class="step"><span class="num">3</span>Piezas</h2>
-    <p class="parts-help">Toca una zona del diseño para agregarla a la <b>pieza activa</b>. Tócala otra vez para quitarla.</p>
+    <div class="seg" id="toolSeg">
+      <button type="button" data-tool="lasso" class="active"><svg class="ic" aria-hidden="true"><use href="#i-lasso"/></svg>Lazo</button>
+      <button type="button" data-tool="wand"><svg class="ic" aria-hidden="true"><use href="#i-drop"/></svg>Color</button>
+      <button type="button" data-tool="zone"><svg class="ic" aria-hidden="true"><use href="#i-zone"/></svg>Zona</button>
+      <button type="button" data-tool="erase"><svg class="ic" aria-hidden="true"><use href="#i-eraser"/></svg>Borrar</button>
+    </div>
+    <p class="parts-help" id="partsHelp"></p>
     <div class="parts-toolbar">
-      <button type="button" id="partNewBtn">＋ Nueva pieza</button>
-      <button type="button" id="partUndoBtn">↶ Deshacer</button>
-      <button type="button" id="partZoomBtn">🔍 Ampliar</button>
+      <button type="button" id="partNewBtn"><svg class="ic" aria-hidden="true"><use href="#i-plus"/></svg>Nueva</button>
+      <button type="button" id="partUndoBtn"><svg class="ic" aria-hidden="true"><use href="#i-undo"/></svg>Deshacer</button>
+      <button type="button" id="partZoomBtn"><svg class="ic" aria-hidden="true"><use href="#i-zoom"/></svg><span id="partZoomLabel">Ampliar</span></button>
     </div>
     <div id="partsCanvasWrap"><canvas id="partsCanvas"></canvas></div>
     <div id="partsStatus" class="parts-status">Sube una imagen para empezar.</div>
 
-    <div class="field">
-      <label class="fl">Tolerancia de color <span class="hint">— más alta agrega tonos más distintos al tocar</span></label>
+    <div class="field" id="tolField" style="display:none;">
+      <label class="fl" for="tolSlider">Tolerancia de color <span class="hint">— más alta toma tonos más distintos</span></label>
       <div class="size-input">
         <input type="range" id="tolSlider" min="5" max="120" value="40" style="flex:1;">
         <span class="unit" id="tolVal">40</span>
@@ -466,73 +487,84 @@
     </div>
 
     <div class="field">
-      <label class="fl">Piezas <span class="hint">— toca una fila para hacerla la pieza activa</span></label>
+      <label class="fl">Piezas <span class="hint">— toca una para hacerla la activa</span></label>
       <div id="partsList"></div>
-    </div>
-
-    <div class="field auto-box">
-      <label class="fl">Separar automáticamente por colores <span class="hint">— crea piezas iniciales que luego puedes ajustar</span></label>
-      <div class="size-input">
-        <input type="range" id="autoCountSlider" min="2" max="10" value="5" style="flex:1;">
-        <span class="unit" id="autoCountVal">5</span>
-        <button type="button" id="autoBtn" class="small-btn">Separar</button>
-      </div>
+      <button type="button" id="splitBtn" class="small-btn wide-btn" disabled>Separar la pieza activa en capas de color</button>
     </div>
 
     <div class="field">
-      <label class="fl">Margen de traslape <span class="hint">— extra alrededor de cada pieza para pegarla debajo de su vecina</span></label>
-      <div class="size-input">
-        <input type="number" inputmode="decimal" id="bleedInput" value="2" min="0" max="10" step="0.5">
-        <span class="unit">mm</span>
+      <label class="fl">Dentro de cada pieza</label>
+      <div class="seg" id="fillSeg">
+        <button type="button" data-fill="lines" class="active">Líneas</button>
+        <button type="button" data-fill="color">Color liso</button>
+        <button type="button" data-fill="image">Imagen</button>
       </div>
     </div>
 
-    <label class="checklabel">
-      <input type="checkbox" id="linesEnabled">
-      Agregar hojas de contornos (bordes y líneas del diseño)
-    </label>
-        <div id="linesPanel" style="display:none; margin-top:10px;">
-          <div class="field">
-            <label class="fl">Sensibilidad de bordes <span class="hint">— más bajo captura también detalles finos, más alto solo líneas fuertes</span></label>
-            <div class="size-input">
-              <input type="range" id="linesThresholdSlider" min="10" max="80" value="35" style="flex:1;">
-              <span class="unit" id="linesThresholdVal">35</span>
-            </div>
-          </div>
-          <div class="field">
-            <label class="fl">Grosor de línea</label>
-            <div class="size-input">
-              <input type="number" inputmode="decimal" id="linesStrokeInput" value="1.5" min="0.5" max="8" step="0.5">
-              <span class="unit">mm</span>
-            </div>
-          </div>
-          <div class="field" style="font-size:12.5px; color:#8b8195;">
-            Se agrega al PDF como hojas extra ("Contornos") del tamaño completo del diseño.
+    <details class="more">
+      <summary>Más opciones de piezas</summary>
+
+      <div class="field">
+        <label class="fl" for="autoCountSlider">Separar todo por colores <span class="hint">— crea piezas iniciales que luego ajustas</span></label>
+        <div class="size-input">
+          <input type="range" id="autoCountSlider" min="2" max="10" value="5" style="flex:1;">
+          <span class="unit" id="autoCountVal">5</span>
+          <button type="button" id="autoBtn" class="small-btn">Separar</button>
+        </div>
+      </div>
+
+      <div class="field">
+        <label class="fl" for="bleedInput">Margen de traslape <span class="hint">— extra alrededor de cada pieza para pegarla debajo de su vecina</span></label>
+        <div class="size-input">
+          <input type="number" inputmode="decimal" id="bleedInput" value="2" min="0" max="10" step="0.5">
+          <span class="unit">mm</span>
+        </div>
+      </div>
+
+      <label class="checklabel">
+        <input type="checkbox" id="linesEnabled">
+        <span>Agregar hojas de contornos <span class="hint">— todas las líneas del diseño a tamaño real</span></span>
+      </label>
+      <div id="linesPanel" style="display:none; margin-top:14px;">
+        <div class="field">
+          <label class="fl" for="linesThresholdSlider">Sensibilidad <span class="hint">— baja capta detalles finos, alta solo líneas fuertes</span></label>
+          <div class="size-input">
+            <input type="range" id="linesThresholdSlider" min="10" max="80" value="35" style="flex:1;">
+            <span class="unit" id="linesThresholdVal">35</span>
           </div>
         </div>
+        <div class="field">
+          <label class="fl" for="linesStrokeInput">Grosor de línea</label>
+          <div class="size-input">
+            <input type="number" inputmode="decimal" id="linesStrokeInput" value="1.5" min="0.5" max="8" step="0.5">
+            <span class="unit">mm</span>
+          </div>
+        </div>
+      </div>
+    </details>
   </section>
 
   <!-- EXTRA OPTIONS -->
   <details class="card extras">
-    <summary>Opciones extra <span class="hint">— márgenes, solape y orientación</span></summary>
+    <summary>Ajustes de impresión <span class="hint">Márgenes, solape y orientación de la hoja</span></summary>
 
     <div class="adv-grid">
       <div class="field">
-        <label class="fl">Margen (mm)</label>
+        <label class="fl" for="marginInput">Margen (mm)</label>
         <input type="number" inputmode="decimal" id="marginInput" value="8" min="3" max="20" step="0.5">
       </div>
       <div class="field">
-        <label class="fl">Solape (mm)</label>
+        <label class="fl" for="overlapInput">Solape (mm)</label>
         <input type="number" inputmode="decimal" id="overlapInput" value="4" min="3" max="15" step="0.5">
       </div>
       <div class="field">
-        <label class="fl">Marca de corte (mm)</label>
+        <label class="fl" for="cropInput">Marca (mm)</label>
         <input type="number" inputmode="decimal" id="cropInput" value="3" min="2" max="6" step="0.5">
       </div>
     </div>
 
-    <div class="field" style="margin-top:14px;">
-      <label class="fl">Orientación de la hoja <span class="hint">— automática elige la que gasta menos hojas</span></label>
+    <div class="field" style="margin-top:18px;">
+      <label class="fl">Orientación de la hoja <span class="hint">— automática usa la que gasta menos hojas</span></label>
       <div class="seg" id="orientSeg">
         <button type="button" data-orient="auto" class="active">Automática</button>
         <button type="button" data-orient="portrait">Vertical</button>
@@ -540,25 +572,31 @@
       </div>
     </div>
 
-    <label class="checklabel" style="margin-top:14px;">
+    <label class="checklabel">
       <input type="checkbox" id="skipBlankChk" checked>
-      Omitir hojas en blanco <span class="hint">— no imprime las hojas donde no cae nada del diseño</span>
+      <span>Omitir hojas en blanco <span class="hint">— no imprime las hojas donde no cae nada del diseño</span></span>
     </label>
   </details>
 
-  <footer>Hecho para <b>Mundo Piñatas K&A</b> · Cuernavaca, Morelos · Todo se procesa en tu navegador, ninguna imagen se sube a internet.</footer>
+  </div>
+
+  <footer>Hecho para <b>Mundo Piñatas K&A</b> · Cuernavaca, Morelos<br>Todo se procesa en tu navegador: ninguna imagen se sube a internet.</footer>
 </div>
 
-<!-- Sticky action bar: always reachable on phones -->
+<!-- Sticky action bar: always reachable -->
 <div id="actionBar">
   <div class="bar-inner">
-    <div id="barSummary"></div>
-    <div id="progressBar"><div id="progressFill"></div></div>
-    <div id="status"></div>
-    <button id="generateBtn" disabled>Sube una imagen para continuar</button>
-    <div id="downloadWrap">
-      <a id="downloadLink" href="#" download="plantilla_pinata.pdf">⬇ Descargar</a>
-      <button type="button" id="shareBtn" style="display:none;">Compartir</button>
+    <div class="bar-info">
+      <div id="barSummary"></div>
+      <div id="progressBar"><div id="progressFill"></div></div>
+      <div id="status"></div>
+    </div>
+    <div class="bar-act">
+      <button type="button" id="generateBtn" disabled>Elige un diseño para empezar</button>
+      <div id="downloadWrap">
+        <a id="downloadLink" href="#" download="plantilla_pinata.pdf"><svg class="ic" aria-hidden="true"><use href="#i-down"/></svg>Descargar PDF</a>
+        <button type="button" id="shareBtn" style="display:none;"><svg class="ic" aria-hidden="true"><use href="#i-share"/></svg>Compartir</button>
+      </div>
     </div>
   </div>
 </div>
@@ -580,6 +618,8 @@
     paper: 'letter',
     dim: 'auto',
     circleDim: 'radius',
+    tool: 'lasso',       // Facciones tool: lasso | wand | zone | erase
+    partFill: 'lines',   // inside each printed piece: lines | color | image
     orient: 'auto'       // sheet orientation: auto | portrait | landscape
   };
 
@@ -643,6 +683,11 @@
   const autoCountVal  = document.getElementById('autoCountVal');
   const autoBtn       = document.getElementById('autoBtn');
   const bleedInput    = document.getElementById('bleedInput');
+  const toolSeg       = document.getElementById('toolSeg');
+  const fillSeg       = document.getElementById('fillSeg');
+  const partsHelp     = document.getElementById('partsHelp');
+  const tolField      = document.getElementById('tolField');
+  const splitBtn      = document.getElementById('splitBtn');
 
   // ---------- Mode tabs ----------
   modeTabs.addEventListener('click', e => {
@@ -659,7 +704,12 @@
     circleFields.style.display = isCircle ? 'block' : 'none';
     sizeFields.style.display   = isCircle ? 'none'  : 'block';
     step1Label.textContent = isCircle ? 'Medidas del círculo' : 'Diseño';
-    step2Label.textContent = isCircle ? 'Papel' : 'Tamaño y papel';
+    step2Label.textContent = isCircle ? 'Papel' : 'Tamaño';
+    document.getElementById('modeHint').textContent = {
+      image: 'Sube un diseño, elige el tamaño y descarga el molde en hojas.',
+      circle: 'Un círculo del tamaño que necesites, repartido en hojas.',
+      parts: 'Saca ojos, boca y otras piezas del diseño para pasarlas a foami.'
+    }[state.mode];
     previewCard.style.display = isParts ? 'none' : 'block';
     partsCard.style.display   = isParts ? 'block' : 'none';
     if (isParts) ensurePartsWork();
@@ -671,11 +721,11 @@
     if (state.mode === 'parts'){
       const ok = imgTrimmedCanvas && (partsHaveContent() || linesEnabledChk.checked);
       generateBtn.disabled = !ok;
-      generateBtn.textContent = !imgTrimmedCanvas ? 'Sube una imagen para continuar'
-        : ok ? 'Generar PDF' : 'Toca el diseño para crear piezas';
+      generateBtn.textContent = !imgTrimmedCanvas ? 'Elige un diseño para empezar'
+        : ok ? 'Generar PDF' : 'Crea al menos una pieza';
     } else if (state.mode === 'image'){
       generateBtn.disabled = !imgTrimmedCanvas;
-      generateBtn.textContent = imgTrimmedCanvas ? 'Generar PDF' : 'Sube una imagen para continuar';
+      generateBtn.textContent = imgTrimmedCanvas ? 'Generar PDF' : 'Elige un diseño para empezar';
     } else {
       const r = parseFloat(radiusInput.value) || 0;
       generateBtn.disabled = r <= 0;
@@ -717,6 +767,7 @@
 
   // ---------- File handling ----------
   dropzone.addEventListener('click', () => fileInput.click());
+  dropzone.addEventListener('keydown', e => { if (e.key === 'Enter' || e.key === ' '){ e.preventDefault(); fileInput.click(); } });
   dropzone.addEventListener('dragover', e => { e.preventDefault(); dropzone.classList.add('drag'); });
   dropzone.addEventListener('dragleave', () => dropzone.classList.remove('drag'));
   dropzone.addEventListener('drop', e => {
@@ -1210,27 +1261,31 @@
     }};
   }
 
-  // Low-resolution copy of the printed design plus an "ink" mask (anything that is not
-  // white paper). Used to find blank sheets and as the thumbnail of the assembly map.
+  // Low-resolution copy of something that will be printed plus an "ink" mask (anything
+  // that is not white paper). Used to find blank sheets and as the assembly-map thumbnail.
+  function makeProbe(render, fullW, fullH){
+    const sc = Math.min(1/8, 1400 / Math.max(fullW, fullH));
+    const w = Math.max(1, Math.ceil(fullW * sc)), h = Math.max(1, Math.ceil(fullH * sc));
+    const canvas = document.createElement('canvas');
+    canvas.width = w; canvas.height = h;
+    const ctx = canvas.getContext('2d', { willReadFrequently: true });
+    ctx.fillStyle = '#ffffff'; ctx.fillRect(0, 0, w, h);
+    ctx.save(); ctx.scale(sc, sc); render(ctx); ctx.restore();
+    const px = ctx.getImageData(0, 0, w, h).data;
+    const ink = new Uint8Array(w*h);
+    for (let i = 0, q = 0; q < w*h; i += 4, q++){
+      if (px[i] < 248 || px[i+1] < 248 || px[i+2] < 248) ink[q] = 1;
+    }
+    return { canvas, ink, w, h, pxPerPt: (PRINT_DPI / 72) * sc };
+  }
+
   let probeCache = { key: null, src: null, val: null };
   function designProbe(imgWpt, imgHpt){
     const key = [state.mode, imgWpt.toFixed(2), imgHpt.toFixed(2),
                  state.mode === 'circle' ? circleStrokeInput.value : ''].join('|');
     if (probeCache.key === key && probeCache.src === imgTrimmedCanvas) return probeCache.val;
     const d = designRenderer(imgWpt, imgHpt);
-    const sc = Math.min(1/8, 1400 / Math.max(d.fullW, d.fullH));
-    const w = Math.max(1, Math.ceil(d.fullW * sc)), h = Math.max(1, Math.ceil(d.fullH * sc));
-    const canvas = document.createElement('canvas');
-    canvas.width = w; canvas.height = h;
-    const ctx = canvas.getContext('2d', { willReadFrequently: true });
-    ctx.fillStyle = '#ffffff'; ctx.fillRect(0, 0, w, h);
-    ctx.save(); ctx.scale(sc, sc); d.render(ctx); ctx.restore();
-    const px = ctx.getImageData(0, 0, w, h).data;
-    const ink = new Uint8Array(w*h);
-    for (let i = 0, q = 0; q < w*h; i += 4, q++){
-      if (px[i] < 248 || px[i+1] < 248 || px[i+2] < 248) ink[q] = 1;
-    }
-    const val = { canvas, ink, w, h, pxPerPt: (PRINT_DPI / 72) * sc };
+    const val = makeProbe(d.render, d.fullW, d.fullH);
     probeCache = { key, src: imgTrimmedCanvas, val };
     return val;
   }
@@ -1276,7 +1331,7 @@
       previewEmpty.textContent = state.mode === 'circle'
         ? 'Ingresa la medida del círculo.'
         : 'Sube una imagen para ver cómo se divide en hojas.';
-      barSummary.textContent = state.mode === 'circle' ? 'Ingresa la medida del círculo' : 'Sube una imagen para empezar';
+      barSummary.textContent = state.mode === 'circle' ? 'Ingresa la medida del círculo' : 'Paso 1: elige tu diseño';
       if (state.mode === 'circle'){
         orientPill.textContent = 'Ingresa un radio';
       } else {
@@ -1286,12 +1341,12 @@
     }
 
     if (state.mode === 'circle'){
-      orientPill.textContent = `⚪ Círculo · ${circleMeasureLabel()}`;
+      orientPill.textContent = `Círculo · ${circleMeasureLabel()}`;
     } else {
       const dimLabel = L.appliedTo === 'height' ? 'al alto' : 'al ancho';
       const modeLabel = state.dim === 'auto'
-        ? `${L.landscape ? '↔ Horizontal' : '↕ Vertical'} · aplicado ${dimLabel}`
-        : `Manual · aplicado ${dimLabel}`;
+        ? `Diseño ${L.landscape ? 'horizontal' : 'vertical'}: la medida se aplica ${dimLabel}`
+        : `La medida se aplica ${dimLabel}`;
       orientPill.textContent = modeLabel;
     }
 
@@ -1346,10 +1401,10 @@
     }
 
     const stepW = (L.printW - L.OL) * k, stepH = (L.printH - L.OL) * k, ol = Math.max(1.5, L.OL * k);
-    ctx.fillStyle = 'rgba(255,62,127,0.35)';
+    ctx.fillStyle = 'rgba(217,0,108,0.35)';
     for (let c = 1; c < L.cols; c++) ctx.fillRect(c*stepW, 0, ol, h);
     for (let r = 1; r < L.rows; r++) ctx.fillRect(0, r*stepH, w, ol);
-    ctx.strokeStyle = '#D81C5D'; ctx.lineWidth = 1;
+    ctx.strokeStyle = '#D9006C'; ctx.lineWidth = 1;
     ctx.strokeRect(0.5, 0.5, w - 1, h - 1);
 
     const cellW = L.printW * k, cellH = L.printH * k;
@@ -1378,8 +1433,8 @@
         const cy = Math.min(Math.max((y0 + y1) / 2, rad + 1), h - rad - 1);
         ctx.fillStyle = 'rgba(255,255,255,0.92)';
         ctx.beginPath(); ctx.arc(cx, cy, rad, 0, Math.PI*2); ctx.fill();
-        ctx.strokeStyle = '#D81C5D'; ctx.lineWidth = 1.2; ctx.stroke();
-        ctx.fillStyle = '#D81C5D'; ctx.fillText(String(sheetNum), cx, cy + 0.5);
+        ctx.strokeStyle = '#D9006C'; ctx.lineWidth = 1.2; ctx.stroke();
+        ctx.fillStyle = '#D9006C'; ctx.fillText(String(sheetNum), cx, cy + 0.5);
       }
     }
   }
@@ -1613,10 +1668,12 @@
   // ---------- Facciones: split the design into pieces ----------
   // =====================================================================
   // The design is analysed on a working copy (max 1100 px per side). Every working
-  // pixel is owned by at most one piece (parts.owner = piece id, -1 = none). Tapping
-  // runs a "magic wand" (contiguous area of similar colour) and adds it to the active
-  // piece, or removes it if it already belongs to the active piece. The background is
-  // never selectable.
+  // pixel is owned by at most one piece (parts.owner = piece id, -1 = none). Tools:
+  //   lasso  draw around an area: everything inside becomes a new piece
+  //   wand   tap: contiguous area of similar colour, added to / removed from the active piece
+  //   zone   tap: the whole area enclosed by dark outline strokes, whatever its colours
+  //   erase  draw around an area to take it out of every piece
+  // The background is never selectable.
   const PART_WORK_MAX = 1100;
   const PART_COLORS = [
     [255,62,127],[20,184,174],[91,62,142],[255,166,0],[46,134,222],
@@ -1625,7 +1682,7 @@
   const parts = {
     ready: false, src: null, w: 0, h: 0, data: null, bg: null, owner: null,
     work: null, overlay: null, pieces: [], activeId: -1, nextId: 0,
-    history: [], zoom: false
+    history: [], zoom: false, dark: null, line: null
   };
 
   function partsHaveContent(){ return parts.pieces.some(p => p.count > 0); }
@@ -1653,7 +1710,8 @@
       pieces: [], activeId: -1, nextId: 0, history: []
     });
     parts.overlay.width = w; parts.overlay.height = h;
-    partsStatus.textContent = 'Toca el cabello, la cara, los ojos… cada toque agrega esa zona a la pieza activa.';
+    computeLineMasks();
+    partsStatus.textContent = 'Empieza rodeando con el dedo un ojo, la boca o la nariz.';
     renderParts(); renderPartsList(); updateGenerateButtonState(); updatePreview();
   }
 
@@ -1664,6 +1722,130 @@
     parts.pieces.push(piece);
     parts.activeId = id;
     return piece;
+  }
+
+  // parts.dark = dark pixels of the design; parts.line = the thin dark strokes among
+  // them (drawing outlines). A dark pixel is "thin" when it disappears under a
+  // morphological opening, so solid dark shapes such as pupils are not lines.
+  function computeLineMasks(){
+    const { w, h, data, bg } = parts, n = w*h;
+    const dark = new Uint8Array(n);
+    for (let p = 0, i = 0; p < n; p++, i += 4){
+      if (!bg[p] && 0.299*data[i] + 0.587*data[i+1] + 0.114*data[i+2] < 85) dark[p] = 1;
+    }
+    // opening with a round element of radius r: strokes up to ~2r wide count as lines
+    const r = Math.max(3, Math.round(Math.max(w, h) / 140));
+    const depth = distToZero(dark, w, h);
+    const notCore = new Uint8Array(n);
+    for (let p = 0; p < n; p++) notCore[p] = depth[p] > 3*r ? 0 : 1;
+    const toCore = distToZero(notCore, w, h);
+    const line = new Uint8Array(n);
+    for (let p = 0; p < n; p++) line[p] = dark[p] && toCore[p] > 3*(r + 1.5) ? 1 : 0;
+    parts.dark = dark; parts.line = line;
+  }
+
+  // Chamfer (3-4) distance from every set pixel to the nearest unset one, in thirds
+  // of a pixel. Unset pixels get 0.
+  function distToZero(mask, w, h){
+    const BIG = 1e7, d = new Int32Array(w*h);
+    for (let p = 0; p < w*h; p++) d[p] = mask[p] ? BIG : 0;
+    for (let y = 0; y < h; y++){
+      for (let x = 0; x < w; x++){
+        const p = y*w + x; let v = d[p];
+        if (!v) continue;
+        if (x > 0 && d[p-1] + 3 < v) v = d[p-1] + 3;
+        if (y > 0){
+          if (d[p-w] + 3 < v) v = d[p-w] + 3;
+          if (x > 0 && d[p-w-1] + 4 < v) v = d[p-w-1] + 4;
+          if (x < w-1 && d[p-w+1] + 4 < v) v = d[p-w+1] + 4;
+        }
+        d[p] = v;
+      }
+    }
+    for (let y = h-1; y >= 0; y--){
+      for (let x = w-1; x >= 0; x--){
+        const p = y*w + x; let v = d[p];
+        if (!v) continue;
+        if (x < w-1 && d[p+1] + 3 < v) v = d[p+1] + 3;
+        if (y < h-1){
+          if (d[p+w] + 3 < v) v = d[p+w] + 3;
+          if (x < w-1 && d[p+w+1] + 4 < v) v = d[p+w+1] + 4;
+          if (x > 0 && d[p+w-1] + 4 < v) v = d[p+w-1] + 4;
+        }
+        d[p] = v;
+      }
+    }
+    return d;
+  }
+
+  // Flood fill from (sx, sy) over the pixels where pass[p] is set.
+  function floodMask(sx, sy, pass){
+    const { w, h } = parts;
+    const visited = new Uint8Array(w*h), stack = new Int32Array(w*h), out = [];
+    let sp = 0;
+    stack[sp++] = sy*w + sx; visited[sy*w + sx] = 1;
+    while (sp){
+      const p = stack[--sp];
+      out.push(p);
+      const x = p % w, y = (p / w) | 0;
+      if (x > 0     && !visited[p-1] && pass[p-1]){ visited[p-1] = 1; stack[sp++] = p-1; }
+      if (x < w-1   && !visited[p+1] && pass[p+1]){ visited[p+1] = 1; stack[sp++] = p+1; }
+      if (y > 0     && !visited[p-w] && pass[p-w]){ visited[p-w] = 1; stack[sp++] = p-w; }
+      if (y < h-1   && !visited[p+w] && pass[p+w]){ visited[p+w] = 1; stack[sp++] = p+w; }
+    }
+    return out;
+  }
+
+  // Area enclosed by outline strokes around the tapped pixel, whatever its colours.
+  // Tapping a solid dark shape (a pupil) selects that shape. The result is grown a
+  // little so it reaches the middle of the surrounding outline. null = tapped a line.
+  function zoneRegion(sx, sy){
+    const { w, h, bg, dark, line } = parts, n = w*h, seed = sy*w + sx;
+    if (line[seed]) return null;
+    const pass = new Uint8Array(n);
+    if (dark[seed]){
+      for (let p = 0; p < n; p++) pass[p] = dark[p] && !line[p] ? 1 : 0;
+    } else {
+      const wall = fastDilate(dark, w, h, 1);           // closes hairline gaps in the outline
+      for (let p = 0; p < n; p++) pass[p] = !bg[p] && !wall[p] ? 1 : 0;
+      if (!pass[seed]) for (let p = 0; p < n; p++) pass[p] = !bg[p] && !dark[p] ? 1 : 0;
+    }
+    const core = floodMask(sx, sy, pass);
+    const m = new Uint8Array(n);
+    for (const p of core) m[p] = 1;
+    const grown = fastDilate(m, w, h, Math.max(2, Math.round(Math.max(w, h) / 350)));
+    const out = [];
+    for (let p = 0; p < n; p++) if (grown[p] && !bg[p] && (m[p] || dark[p])) out.push(p);
+    return Int32Array.from(out);
+  }
+
+  // Pixels inside a hand-drawn closed path (points in working-pixel coordinates).
+  function lassoRegion(pts){
+    const { w, h, bg } = parts;
+    const c = document.createElement('canvas');
+    c.width = w; c.height = h;
+    const ctx = c.getContext('2d');
+    ctx.beginPath();
+    pts.forEach((pt, i) => { if (i) ctx.lineTo(pt.x, pt.y); else ctx.moveTo(pt.x, pt.y); });
+    ctx.closePath(); ctx.fillStyle = '#000'; ctx.fill();
+    const a = ctx.getImageData(0, 0, w, h).data, out = [];
+    for (let p = 0; p < w*h; p++) if (a[p*4 + 3] > 127 && !bg[p]) out.push(p);
+    return out;
+  }
+
+  // Gives the pixels of `region` to piece `target` (-1 = no piece) and records an undo
+  // step. `only(cur)` filters by current owner. Returns how many pixels changed.
+  function assignRegion(region, target, only){
+    const idx = [], prev = [];
+    for (const q of region){
+      const cur = parts.owner[q];
+      if (cur !== target && (!only || only(cur))){ idx.push(q); prev.push(cur); }
+    }
+    if (!idx.length) return 0;
+    for (const q of idx) parts.owner[q] = target;
+    parts.history.push({ idx: Int32Array.from(idx), prev: Int16Array.from(prev) });
+    if (parts.history.length > 30) parts.history.shift();
+    return idx.length;
   }
 
   // Contiguous region of colour within `tol` (RGB distance) of the tapped pixel, never crossing background.
@@ -1727,7 +1909,7 @@
     partUndoBtn.disabled = parts.history.length === 0;
     const { w, h, owner } = parts;
     if (partsCanvas.width !== w || partsCanvas.height !== h){ partsCanvas.width = w; partsCanvas.height = h; }
-    const base = Math.max(200, (partsCanvasWrap.clientWidth || 320) - 2);
+    const base = Math.min(560, Math.max(200, (partsCanvasWrap.clientWidth || 320) - 2));
     const dispW = parts.zoom ? base * 2.4 : base;
     partsCanvas.style.width = Math.round(dispW) + 'px';
     partsCanvas.style.height = Math.round(dispW * h / w) + 'px';
@@ -1743,19 +1925,105 @@
       od.data[k+3] = id === parts.activeId ? 150 : 95;
     }
     octx.putImageData(od, 0, 0);
+    paintParts();
+    document.getElementById('partZoomLabel').textContent = parts.zoom ? 'Reducir' : 'Ampliar';
+  }
+
+  // Design + piece overlay + the path being drawn with the lasso / eraser.
+  let lassoPts = null;
+  function paintParts(){
+    if (!parts.ready) return;
+    const { w, h } = parts;
     const ctx = partsCanvas.getContext('2d');
     ctx.clearRect(0, 0, w, h);
     ctx.drawImage(parts.work, 0, 0);
     ctx.drawImage(parts.overlay, 0, 0);
-    partZoomBtn.textContent = parts.zoom ? '🔍 Reducir' : '🔍 Ampliar';
+    if (lassoPts && lassoPts.length > 1){
+      const lw = Math.max(2, w / 220);
+      ctx.beginPath();
+      lassoPts.forEach((pt, i) => { if (i) ctx.lineTo(pt.x, pt.y); else ctx.moveTo(pt.x, pt.y); });
+      ctx.lineJoin = ctx.lineCap = 'round';
+      ctx.fillStyle = state.tool === 'erase' ? 'rgba(60,60,60,0.18)' : 'rgba(217,0,108,0.18)';
+      ctx.fill();
+      ctx.strokeStyle = '#fff'; ctx.lineWidth = lw * 2; ctx.stroke();
+      ctx.strokeStyle = state.tool === 'erase' ? '#3c3c3c' : '#D9006C'; ctx.lineWidth = lw; ctx.stroke();
+    }
+  }
+
+  const TOOL_HELP = {
+    lasso: 'Rodea con el dedo una parte del diseño (un ojo, la boca, la nariz). Todo lo que quede dentro se vuelve una <b>pieza nueva</b>.',
+    wand:  'Toca una zona para agregar ese color a la <b>pieza activa</b>. Tócala otra vez para quitarla.',
+    zone:  'Toca dentro de una zona cerrada por líneas oscuras: se agrega completa a la <b>pieza activa</b>, sin importar sus colores. Ideal para dibujos con contorno negro.',
+    erase: 'Rodea con el dedo lo que quieras quitar de las piezas.'
+  };
+  const isDrawTool = () => state.tool === 'lasso' || state.tool === 'erase';
+  function applyTool(){
+    [...toolSeg.children].forEach(b => b.classList.toggle('active', b.dataset.tool === state.tool));
+    partsHelp.innerHTML = TOOL_HELP[state.tool];
+    tolField.style.display = state.tool === 'wand' ? '' : 'none';
+    partsCanvas.classList.toggle('drawing', isDrawTool());
+  }
+  toolSeg.addEventListener('click', e => {
+    const btn = e.target.closest('button'); if (!btn) return;
+    state.tool = btn.dataset.tool;
+    applyTool();
+  });
+  fillSeg.addEventListener('click', e => {
+    const btn = e.target.closest('button'); if (!btn) return;
+    [...fillSeg.children].forEach(b => b.classList.toggle('active', b === btn));
+    state.partFill = btn.dataset.fill;
+  });
+  applyTool();
+
+  function canvasPoint(e){
+    const rect = partsCanvas.getBoundingClientRect();
+    return { x: (e.clientX - rect.left) / rect.width * parts.w, y: (e.clientY - rect.top) / rect.height * parts.h };
+  }
+  partsCanvas.addEventListener('pointerdown', e => {
+    if (!parts.ready || !isDrawTool() || (e.pointerType === 'mouse' && e.button !== 0)) return;
+    e.preventDefault();
+    try { partsCanvas.setPointerCapture(e.pointerId); } catch(_) {}
+    lassoPts = [canvasPoint(e)];
+  });
+  partsCanvas.addEventListener('pointermove', e => {
+    if (!lassoPts) return;
+    const pt = canvasPoint(e), last = lassoPts[lassoPts.length - 1];
+    if (Math.abs(pt.x - last.x) + Math.abs(pt.y - last.y) < 1.5) return;
+    lassoPts.push(pt);
+    paintParts();
+  });
+  function finishLasso(cancel){
+    const pts = lassoPts; lassoPts = null;
+    if (!pts) return;
+    if (cancel || pts.length < 4){ paintParts(); return; }
+    const region = lassoRegion(pts);
+    if (!region.length){ partsStatus.textContent = 'Ahí no hay diseño. Rodea una parte del dibujo.'; paintParts(); return; }
+    if (state.tool === 'erase'){
+      const n = assignRegion(region, -1, cur => cur >= 0);
+      partsStatus.textContent = n ? 'Se borró esa zona de las piezas.' : 'Esa zona no pertenecía a ninguna pieza.';
+    } else {
+      let piece = pieceById(parts.activeId);
+      if (!piece || piece.count > 0) piece = newPiece();
+      assignRegion(region, piece.id);
+      partsStatus.textContent = `Pieza creada: "${piece.name}". Ponle nombre en la lista o rodea otra parte.`;
+    }
+    partsChanged();
+  }
+  partsCanvas.addEventListener('pointerup', () => finishLasso(false));
+  partsCanvas.addEventListener('pointercancel', () => finishLasso(true));
+
+  function updateSplitBtn(){
+    const p = pieceById(parts.activeId);
+    splitBtn.disabled = !(parts.ready && p && p.count > 0);
   }
 
   function renderPartsList(){
+    updateSplitBtn();
     partsList.textContent = '';
     if (!parts.ready || !parts.pieces.length){
       const p = document.createElement('p');
       p.className = 'parts-empty';
-      p.textContent = parts.ready ? 'Aún no hay piezas. Toca el diseño para crear la primera.' : 'Sube una imagen para empezar.';
+      p.textContent = parts.ready ? 'Aún no hay piezas. Rodea una parte del diseño para crear la primera.' : 'Sube una imagen para empezar.';
       partsList.appendChild(p);
       return;
     }
@@ -1797,6 +2065,7 @@
       r.classList.toggle('active', parts.pieces[i] && parts.pieces[i].id === id));
     const p = pieceById(id);
     if (p) partsStatus.textContent = `Pieza activa: ${p.name}`;
+    updateSplitBtn();
   }
 
   function deletePiece(id){
@@ -1809,34 +2078,155 @@
   }
 
   partsCanvas.addEventListener('click', e => {
-    if (!parts.ready) return;
-    const rect = partsCanvas.getBoundingClientRect();
-    const x = Math.min(parts.w - 1, Math.max(0, Math.floor((e.clientX - rect.left) / rect.width * parts.w)));
-    const y = Math.min(parts.h - 1, Math.max(0, Math.floor((e.clientY - rect.top) / rect.height * parts.h)));
+    if (!parts.ready || isDrawTool()) return;
+    const pt = canvasPoint(e);
+    const x = Math.min(parts.w - 1, Math.max(0, Math.floor(pt.x)));
+    const y = Math.min(parts.h - 1, Math.max(0, Math.floor(pt.y)));
     const p = y*parts.w + x;
     if (parts.bg[p]){ partsStatus.textContent = 'Ese punto es fondo. Toca dentro del diseño.'; return; }
+    let region;
+    if (state.tool === 'zone'){
+      region = zoneRegion(x, y);
+      if (!region){ partsStatus.textContent = 'Tocaste una línea del dibujo. Toca dentro de la zona.'; return; }
+    } else {
+      region = wandRegion(x, y, parseFloat(tolSlider.value) || 40);
+    }
     if (!pieceById(parts.activeId)) newPiece();
     const active = parts.activeId;
-    const region = wandRegion(x, y, parseFloat(tolSlider.value) || 40);
     const removing = parts.owner[p] === active;
-    const idx = [], prev = [];
-    for (const q of region){
-      const cur = parts.owner[q];
-      if (removing ? cur === active : cur !== active){ idx.push(q); prev.push(cur); }
-    }
-    if (!idx.length) return;
-    for (const q of idx) parts.owner[q] = removing ? -1 : active;
-    parts.history.push({ idx: Int32Array.from(idx), prev: Int16Array.from(prev) });
-    if (parts.history.length > 30) parts.history.shift();
+    const n = removing ? assignRegion(region, -1, cur => cur === active) : assignRegion(region, active);
+    if (!n) return;
     const piece = pieceById(active);
     partsStatus.textContent = removing ? `Se quitó una zona de "${piece.name}".` : `Se agregó una zona a "${piece.name}".`;
+    partsChanged();
+  });
+
+  // Splits the active piece into colour layers (white of the eye, iris, pupil…): each
+  // layer becomes its own piece, to be cut from a different sheet of foam and stacked.
+  // Outline strokes are not a layer: they join the colour next to them.
+  splitBtn.addEventListener('click', async () => {
+    const piece = pieceById(parts.activeId);
+    if (!parts.ready || !piece || !piece.count) return;
+    partsStatus.textContent = 'Separando en capas de color…';
+    await nextFrame();
+    const { w, h, data, owner, line, dark } = parts, n = w*h;
+    // strokes and the blurred fringe around dark shapes have no colour of their own
+    const fringe = fastDilate(dark, w, h, 2);
+    const px = [], strokes = [];
+    for (let p = 0; p < n; p++) if (owner[p] === piece.id) (line[p] || (fringe[p] && !dark[p]) ? strokes : px).push(p);
+    if (px.length < 30){ partsStatus.textContent = 'Esa pieza es demasiado pequeña para separarla.'; return; }
+    const col = p => [data[p*4], data[p*4+1], data[p*4+2]];
+    const samples = [];
+    for (let i = 0; i < Math.min(4000, px.length); i++) samples.push(col(px[Math.floor(Math.random()*px.length)]));
+    let cents = kmeansPlusPlusInit(samples, Math.min(6, samples.length)).map(c => ({ c, n: 1 }));
+    for (let iter = 0; iter < 12; iter++){
+      const sums = cents.map(() => [0,0,0,0]);
+      for (const sm of samples){
+        let best = 0, bd = Infinity;
+        cents.forEach((k, ci) => { const d = dist2(sm, k.c); if (d < bd){ bd = d; best = ci; } });
+        sums[best][0] += sm[0]; sums[best][1] += sm[1]; sums[best][2] += sm[2]; sums[best][3]++;
+      }
+      cents = cents.map((k, ci) => sums[ci][3] ? { c: [sums[ci][0]/sums[ci][3], sums[ci][1]/sums[ci][3], sums[ci][2]/sums[ci][3]], n: sums[ci][3] } : { c: k.c, n: 0 });
+    }
+    cents = cents.filter(k => k.n > 0);
+    // merge colours that are close to each other (shading of the same material)
+    const MERGE2 = 55*55;
+    for (;;){
+      let bi = -1, bj = -1, bd = MERGE2;
+      for (let i = 0; i < cents.length; i++) for (let j = i+1; j < cents.length; j++){
+        const d = dist2(cents[i].c, cents[j].c); if (d < bd){ bd = d; bi = i; bj = j; }
+      }
+      if (bi < 0) break;
+      const a = cents[bi], b = cents[bj], t = a.n + b.n;
+      cents[bi] = { c: [0,1,2].map(q => (a.c[q]*a.n + b.c[q]*b.n) / t), n: t };
+      cents.splice(bj, 1);
+    }
+    const label = new Int8Array(n).fill(-1), counts = cents.map(() => 0);
+    for (const p of px){
+      const c = col(p); let best = 0, bd = Infinity;
+      cents.forEach((k, ci) => { const d = dist2(c, k.c); if (d < bd){ bd = d; best = ci; } });
+      label[p] = best; counts[best]++;
+    }
+    // drop specks: layers under 1.5 % of the piece join the nearest remaining colour
+    const keep = counts.map(c => c >= Math.max(25, px.length * 0.015));
+    if (keep.filter(Boolean).length < 2){
+      partsStatus.textContent = `"${piece.name}" es de un solo color: no hay capas que separar.`;
+      return;
+    }
+    for (const p of px){
+      if (keep[label[p]]) continue;
+      const c = col(p); let best = -1, bd = Infinity;
+      cents.forEach((k, ci) => { if (!keep[ci]) return; const d = dist2(c, k.c); if (d < bd){ bd = d; best = ci; } });
+      label[p] = best;
+    }
+    // outline strokes take the layer of the nearest coloured pixel
+    const pending = new Uint8Array(n);
+    for (const p of strokes) pending[p] = 1;
+    const nb4 = p => { const x = p % w, y = (p / w) | 0; return [x > 0 ? p-1 : -1, x < w-1 ? p+1 : -1, y > 0 ? p-w : -1, y < h-1 ? p+w : -1]; };
+    const absorb = () => {
+      let frontier = [];
+      for (let p = 0; p < n; p++) if (label[p] >= 0) frontier.push(p);
+      while (frontier.length){
+        const next = [];
+        for (const p of frontier){
+          for (const q of nb4(p)){
+            if (q >= 0 && pending[q]){ pending[q] = 0; label[q] = label[p]; next.push(q); }
+          }
+        }
+        frontier = next;
+      }
+    };
+    absorb();
+    // specks: islands of a layer that are too small to cut join what surrounds them
+    const minIsland = Math.max(40, Math.round(piece.count * 0.004));
+    const seen = new Uint8Array(n);
+    let dropped = false;
+    for (let p0 = 0; p0 < n; p0++){
+      if (label[p0] < 0 || seen[p0]) continue;
+      const comp = [p0]; seen[p0] = 1;
+      for (let i = 0; i < comp.length; i++){
+        for (const q of nb4(comp[i])){
+          if (q >= 0 && !seen[q] && label[q] === label[p0]){ seen[q] = 1; comp.push(q); }
+        }
+      }
+      if (comp.length < minIsland && comp.length < piece.count * 0.5){
+        for (const q of comp){ label[q] = -1; pending[q] = 1; }
+        dropped = true;
+      }
+    }
+    if (dropped) absorb();
+    // biggest layer first: it keeps the original piece and goes at the bottom
+    const size = cents.map(() => 0);
+    for (let p = 0; p < n; p++) if (label[p] >= 0) size[label[p]]++;
+    const order = cents.map((_, i) => i).filter(i => keep[i] && size[i] > 0).sort((a, b) => size[b] - size[a]);
+    if (order.length < 2){ partsStatus.textContent = `"${piece.name}" es de un solo color: no hay capas que separar.`; return; }
+    const baseName = (piece.name || 'Pieza').trim();
+    const idx = [], prev = [], idOf = {};
+    order.forEach((ci, rank) => {
+      if (rank === 0){ idOf[ci] = piece.id; piece.name = `${baseName} · capa 1`; }
+      else {
+        const at = parts.pieces.indexOf(pieceById(idOf[order[rank-1]]));
+        const np = newPiece(`${baseName} · capa ${rank+1}`);
+        parts.pieces.splice(parts.pieces.indexOf(np), 1);
+        parts.pieces.splice(at + 1, 0, np);       // keep the layers together in the list
+        idOf[ci] = np.id;
+      }
+    });
+    for (let p = 0; p < n; p++){
+      if (owner[p] !== piece.id) continue;
+      const t = label[p] >= 0 ? idOf[label[p]] : piece.id;
+      if (t !== piece.id){ idx.push(p); prev.push(piece.id); owner[p] = t; }
+    }
+    parts.history.push({ idx: Int32Array.from(idx), prev: Int16Array.from(prev) });
+    parts.activeId = piece.id;
+    partsStatus.textContent = `"${baseName}" quedó en ${order.length} capas de color. Se pegan una sobre otra, de la más grande a la más chica.`;
     partsChanged();
   });
 
   partNewBtn.addEventListener('click', () => {
     if (!parts.ready) return;
     const p = newPiece();
-    partsStatus.textContent = `Nueva pieza: ${p.name}. Toca las zonas que la forman.`;
+    partsStatus.textContent = `Nueva pieza: ${p.name}. Agrégale zonas con Color o Zona, o rodéala con el Lazo.`;
     renderParts(); renderPartsList();
   });
   partUndoBtn.addEventListener('click', () => {
@@ -1895,7 +2285,7 @@
     });
     parts.pieces = parts.pieces.filter(pc => pc.count >= minCount);
     parts.activeId = parts.pieces.length ? parts.pieces[0].id : -1;
-    partsStatus.textContent = `${parts.pieces.length} piezas creadas por color. Renómbralas y ajústalas tocando el diseño.`;
+    partsStatus.textContent = `${parts.pieces.length} piezas creadas por color. Renómbralas y ajústalas con las herramientas.`;
     partsChanged();
   });
 
@@ -1942,6 +2332,81 @@
       if (i === 0) ctx.moveTo(x, y); else ctx.lineTo(x, y);
     });
     ctx.closePath();
+  }
+
+  // Packs boxes on as few sheets as possible (MaxRects, best short side fit). Every item
+  // offers `opts` = [{rot, w, h}] (upright and/or turned 90°); the chosen one is written
+  // back as it.rot / it.boxW / it.boxH together with its position it.x / it.y.
+  function packSheets(items, binW, binH, gap){
+    const bins = [];
+    const order = items.slice().sort((a, b) =>
+      Math.max(b.opts[0].w, b.opts[0].h) - Math.max(a.opts[0].w, a.opts[0].h));
+    const place = (bin, it) => {
+      let best = null;
+      for (const fr of bin.free){
+        for (const o of it.opts){
+          const w = o.w + gap, h = o.h + gap;
+          if (w > fr.w + 0.01 || h > fr.h + 0.01) continue;
+          const score = Math.min(fr.w - w, fr.h - h);
+          if (!best || score < best.score || (score === best.score && fr.y < best.y)) best = { score, x: fr.x, y: fr.y, w, h, o };
+        }
+      }
+      if (!best) return false;
+      it.x = best.x; it.y = best.y; it.rot = best.o.rot; it.boxW = best.o.w; it.boxH = best.o.h;
+      bin.items.push(it);
+      const used = best, out = [];
+      for (const fr of bin.free){
+        if (used.x >= fr.x + fr.w || used.x + used.w <= fr.x || used.y >= fr.y + fr.h || used.y + used.h <= fr.y){ out.push(fr); continue; }
+        if (used.x > fr.x) out.push({ x: fr.x, y: fr.y, w: used.x - fr.x, h: fr.h });
+        if (used.x + used.w < fr.x + fr.w) out.push({ x: used.x + used.w, y: fr.y, w: fr.x + fr.w - used.x - used.w, h: fr.h });
+        if (used.y > fr.y) out.push({ x: fr.x, y: fr.y, w: fr.w, h: used.y - fr.y });
+        if (used.y + used.h < fr.y + fr.h) out.push({ x: fr.x, y: used.y + used.h, w: fr.w, h: fr.y + fr.h - used.y - used.h });
+      }
+      bin.free = out.filter((a, i) => a.w > 1 && a.h > 1 && !out.some((b, j) => j !== i &&
+        a.x >= b.x && a.y >= b.y && a.x + a.w <= b.x + b.w && a.y + a.h <= b.y + b.h && (j < i || !(a.x === b.x && a.y === b.y && a.w === b.w && a.h === b.h))));
+      return true;
+    };
+    for (const it of order){
+      if (bins.some(bin => place(bin, it))) continue;
+      const bin = { free: [{ x: 0, y: 0, w: binW + gap, h: binH + gap }], items: [] };
+      bins.push(bin);
+      place(bin, it);
+    }
+    return bins.map(b => b.items);
+  }
+
+  // Inner detail of the design as black strokes on a transparent canvas (working
+  // resolution): the drawing's own outline strokes, the edge of solid dark shapes and
+  // the borders between clearly different colours.
+  function buildDetailCanvas(){
+    const { w, h, data, bg, dark, line } = parts, n = w*h;
+    const edge = new Uint8Array(n);
+    const nearDark = fastDilate(dark, w, h, 2);
+    const diff = (p, q) => {
+      const i = p*4, j = q*4;
+      return Math.max(Math.abs(data[i]-data[j]), Math.abs(data[i+1]-data[j+1]), Math.abs(data[i+2]-data[j+2]));
+    };
+    for (let y = 0; y < h; y++){
+      for (let x = 0; x < w; x++){
+        const p = y*w + x;
+        if (bg[p]) continue;
+        if (line[p]){ edge[p] = 1; continue; }
+        if (dark[p]){   // solid dark shape: draw only its rim
+          if ((x > 0 && !dark[p-1]) || (x < w-1 && !dark[p+1]) || (y > 0 && !dark[p-w]) || (y < h-1 && !dark[p+w])) edge[p] = 1;
+          continue;
+        }
+        if (nearDark[p]) continue;   // the stroke next to it already marks this border
+        if ((x < w-2 && !bg[p+2] && !nearDark[p+2] && diff(p, p+2) > 55) ||
+            (y < h-2 && !bg[p+2*w] && !nearDark[p+2*w] && diff(p, p+2*w) > 55)) edge[p] = 1;
+      }
+    }
+    const c = document.createElement('canvas');
+    c.width = w; c.height = h;
+    const ctx = c.getContext('2d');
+    const id = ctx.createImageData(w, h);
+    for (let p = 0; p < n; p++) if (edge[p]){ id.data[p*4+3] = 255; }
+    ctx.putImageData(id, 0, 0);
+    return c;
   }
 
   // ---------- Facciones PDF ----------
@@ -1993,35 +2458,90 @@
       infos.push(info);
     }
 
-    // 2) orientation: turn a piece 90° when that lets it fit on one sheet, or when it
-    //    needs fewer sheets when tiled. dw/dh are the drawn (possibly rotated) sizes.
+    // 2) what goes inside each silhouette, and the piece renderer
+    const itemLabelOf = (it, rot) => `${it.info.num} · ${it.info.name}${it.nParts > 1 ? ` (${it.ci+1}/${it.nParts})` : ''}${rot ? ' (girada)' : ''}`;
+    const fillMode = state.partFill;
+    const detailCanvas = fillMode === 'lines' ? buildDetailCanvas() : null;
+    const tileFormat = fillMode === 'image' ? 'JPEG' : 'PNG';
+    const sPx = ptPerPx * pxPerPt;
+    const drawSilhouette = (ctx, it, ox, oy) => {
+      ctx.beginPath();
+      it.ct.forEach((pt, i) => {   // rotated pieces are turned 90° clockwise
+        const x = it.rot ? ox + (it.maxY - pt.y) * sPx : ox + (pt.x - it.minX) * sPx;
+        const y = it.rot ? oy + (pt.x - it.minX) * sPx : oy + (pt.y - it.minY) * sPx;
+        if (i === 0) ctx.moveTo(x, y); else ctx.lineTo(x, y);
+      });
+      ctx.closePath();
+      if (fillMode === 'color'){
+        ctx.fillStyle = `rgb(${it.info.color.join(',')})`; ctx.fill();
+      } else {
+        ctx.fillStyle = '#fff'; ctx.fill();
+        ctx.save();
+        ctx.clip();
+        if (it.rot) ctx.transform(0, sPx, -sPx, 0, ox + it.maxY * sPx, oy - it.minX * sPx);
+        else ctx.transform(sPx, 0, 0, sPx, ox - it.minX * sPx, oy - it.minY * sPx);
+        ctx.imageSmoothingEnabled = true; ctx.imageSmoothingQuality = 'high';
+        ctx.drawImage(fillMode === 'image' ? imgTrimmedCanvas : detailCanvas, 0, 0, W, H);
+        ctx.restore();
+      }
+      ctx.strokeStyle = '#000'; ctx.lineWidth = outlinePt * pxPerPt; ctx.lineJoin = 'round'; ctx.stroke();
+    };
+
+    //    Layout: every piece may be turned 90°. Pieces that fit on a sheet are packed
+    //    together on as few sheets as possible; bigger ones are tiled in whichever
+    //    orientation needs fewer sheets, leaving out the tiles that stay blank.
     const fits = (bw, bh) => bw <= L.printW && bh <= L.printH;
     const tilesFor = (wf, hf) => tileCount(wf, L.printW, L.OL) * tileCount(hf, L.printH, L.OL);
+    const skipBlank = skipBlankChk.checked;
+    const small = [], big = [];
+    const meter = document.createElement('canvas').getContext('2d');
+    meter.font = "700 9px 'Work Sans', system-ui, sans-serif";
+    const labelW = (it, rot) => meter.measureText(itemLabelOf(it, rot)).width + padPt;   // label never runs into the next piece
     items.forEach(it => {
-      if (fits(it.boxW, it.boxH)) it.rot = false;
-      else if (fits(it.hPt + 2*padPt, it.wPt + 2*padPt + labelPt)) it.rot = true;
-      else it.rot = tilesFor(it.hPt + 2*padPt, it.wPt + 2*padPt) < tilesFor(it.wPt + 2*padPt, it.hPt + 2*padPt);
-      it.dw = it.rot ? it.hPt : it.wPt;
-      it.dh = it.rot ? it.wPt : it.hPt;
-      it.boxW = it.dw + 2*padPt; it.boxH = it.dh + 2*padPt + labelPt;
+      it.opts = [{ rot: false, w: Math.max(it.wPt + 2*padPt, labelW(it, false)), h: it.hPt + 2*padPt + labelPt },
+                 { rot: true,  w: Math.max(it.hPt + 2*padPt, labelW(it, true)),  h: it.wPt + 2*padPt + labelPt }].filter(o => fits(o.w, o.h));
+      if (it.opts.length){ small.push(it); return; }
+      it.rot = tilesFor(it.hPt + 2*padPt, it.wPt + 2*padPt) < tilesFor(it.wPt + 2*padPt, it.hPt + 2*padPt);
+      big.push(it);
     });
-
-    // pack items that fit on one sheet; bigger ones get tiled
-    const small = items.filter(it => fits(it.boxW, it.boxH)).sort((a, b) => b.boxH - a.boxH);
-    const big = items.filter(it => !fits(it.boxW, it.boxH));
-    const sheets = [];
-    let sheet = null, x = 0, y = 0, shelfH = 0;
-    for (const it of small){
-      if (!sheet){ sheet = []; sheets.push(sheet); x = 0; y = 0; shelfH = 0; }
-      if (x > 0 && x + it.boxW > L.printW){ y += shelfH + gapPt; x = 0; shelfH = 0; }
-      if (y + it.boxH > L.printH){ sheet = []; sheets.push(sheet); x = 0; y = 0; shelfH = 0; }
-      it.x = x; it.y = y; sheet.push(it);
-      x += it.boxW + gapPt; shelfH = Math.max(shelfH, it.boxH);
-    }
-    big.forEach(it => {
+    const sheets = packSheets(small, L.printW, L.printH, gapPt);
+    items.forEach(it => { it.dw = it.rot ? it.hPt : it.wPt; it.dh = it.rot ? it.wPt : it.hPt; });
+    let skippedTiles = 0;
+    for (const it of big){
       it.wFull = it.dw + 2*padPt; it.hFull = it.dh + 2*padPt;
       it.cols = tileCount(it.wFull, L.printW, L.OL); it.rows = tileCount(it.hFull, L.printH, L.OL);
-    });
+      const g = { cols: it.cols, rows: it.rows, printW: L.printW, printH: L.printH };
+      const probe = skipBlank ? makeProbe(ctx => drawSilhouette(ctx, it, padPt * pxPerPt, padPt * pxPerPt), it.wFull * pxPerPt, it.hFull * pxPerPt) : null;
+      Object.assign(it, sheetPlan(probe, g, it.wFull, it.hFull, L.OL, skipBlank));
+      if (probe) probe.canvas.width = probe.canvas.height = 0;
+      skippedTiles += it.cols*it.rows - it.printed;
+    }
+
+    //    contour sheets (edge detection over the whole design), prepared now so the
+    //    page plan knows which of them stay blank
+    let lineRaster = null, lineRender = null, linePlan = null;
+    if (useLines){
+      statusEl.textContent = 'Detectando bordes y líneas…';
+      await nextFrame();
+      const { mask, ww: eww, wh: ewh } = detectEdgeMask(imgTrimmedCanvas, parseFloat(linesThresholdSlider.value) || 35);
+      const fullWpx = L.imgWpt * pxPerPt, fullHpx = L.imgHpt * pxPerPt;
+      const strokePx = ((parseFloat(linesStrokeInput.value) || 1.5) / 10 / 2.54) * PRINT_DPI;
+      const dil = binaryDilate(mask, eww, ewh, Math.max(1, Math.round((strokePx * (eww / fullWpx)) / 2)));
+      lineRaster = document.createElement('canvas');
+      lineRaster.width = eww; lineRaster.height = ewh;
+      const rctx = lineRaster.getContext('2d');
+      const id = rctx.createImageData(eww, ewh);
+      for (let p = 0; p < eww*ewh; p++){
+        const i = p*4;
+        const v = dil[p] ? 15 : 255;
+        id.data[i] = id.data[i+1] = id.data[i+2] = v; id.data[i+3] = 255;
+      }
+      rctx.putImageData(id, 0, 0);
+      lineRender = ctx => { ctx.imageSmoothingEnabled = true; ctx.imageSmoothingQuality = 'high'; ctx.drawImage(lineRaster, 0, 0, fullWpx, fullHpx); };
+      const probe = skipBlank ? makeProbe(lineRender, fullWpx, fullHpx) : null;
+      linePlan = sheetPlan(probe, L, L.imgWpt, L.imgHpt, L.OL, skipBlank);
+      skippedTiles += L.cols*L.rows - linePlan.printed;
+    }
 
     // 3) page plan (needed up front so the list can say where each piece is)
     const mapH = Math.min(L.printH * 0.55, L.printW * L.imgHpt / L.imgWpt);
@@ -2031,9 +2551,9 @@
     const legendPages = 1 + Math.max(0, Math.ceil((infos.length - firstRows) / nextRows));
     let page = legendPages + 1;
     sheets.forEach(sh => { sh.page = page; sh.forEach(it => it.info.pages.push(page)); page++; });
-    big.forEach(it => { it.page = page; for (let k = 0; k < it.cols*it.rows; k++) it.info.pages.push(page + k); page += it.cols*it.rows; });
+    big.forEach(it => { it.page = page; for (let k = 0; k < it.printed; k++) it.info.pages.push(page + k); page += it.printed; });
     const linesStart = page;
-    const lineTiles = useLines ? L.cols*L.rows : 0;
+    const lineTiles = useLines ? linePlan.printed : 0;
     const totalPages = page - 1 + lineTiles + 1;
     const pagesText = arr => {
       const u = [...new Set(arr)].sort((a, b) => a - b);
@@ -2100,21 +2620,9 @@
       pdf.setTextColor(100,100,100); pdf.text('Sin piezas: este PDF solo incluye las hojas de contornos.', L.M, ly);
     }
 
-    const itemLabel = it => `${it.info.num} · ${it.info.name}${it.nParts > 1 ? ` (${it.ci+1}/${it.nParts})` : ''}${it.rot ? ' (girada)' : ''}`;
-    const drawSilhouette = (ctx, it, ox, oy) => {
-      const s = ptPerPx * pxPerPt;
-      ctx.beginPath();
-      it.ct.forEach((pt, i) => {   // rotated pieces are turned 90° clockwise
-        const x = it.rot ? ox + (it.maxY - pt.y) * s : ox + (pt.x - it.minX) * s;
-        const y = it.rot ? oy + (pt.x - it.minX) * s : oy + (pt.y - it.minY) * s;
-        if (i === 0) ctx.moveTo(x, y); else ctx.lineTo(x, y);
-      });
-      ctx.closePath();
-      ctx.fillStyle = `rgb(${it.info.color.join(',')})`; ctx.fill();
-      ctx.strokeStyle = '#000'; ctx.lineWidth = outlinePt * pxPerPt; ctx.lineJoin = 'round'; ctx.stroke();
-    };
+    const itemLabel = it => itemLabelOf(it, it.rot);
     let done = 0;
-    const work = sheets.length + big.reduce((a, it) => a + it.cols*it.rows, 0) + lineTiles;
+    const work = sheets.length + big.reduce((a, it) => a + it.printed, 0) + lineTiles;
     const tick = async (msg) => {
       done++;
       progressFill.style.width = Math.round(30 + (done / Math.max(1, work)) * 65) + '%';
@@ -2135,7 +2643,8 @@
         ctx.fillText(itemLabel(it), (it.x + padPt) * pxPerPt, (it.y + 2*padPt + it.dh + 8) * pxPerPt);
       }
       pdf.addPage([L.page.w, L.page.h], L.orient);
-      pdf.addImage(cv.toDataURL('image/png'), 'PNG', L.M, L.M, L.printW, L.printH, undefined, 'FAST');
+      if (fillMode === 'image') pdf.addImage(cv.toDataURL('image/jpeg', 0.92), 'JPEG', L.M, L.M, L.printW, L.printH, undefined, 'FAST');
+      else pdf.addImage(cv.toDataURL('image/png'), 'PNG', L.M, L.M, L.printW, L.printH, undefined, 'FAST');
       cv.width = cv.height = 0;
       pdf.setFontSize(6); pdf.setTextColor(130,130,130);
       pdf.text(`Piezas · hoja ${sh.page}/${totalPages}  ·  Mundo Piñatas K&A`, L.M, 14);
@@ -2145,34 +2654,18 @@
     // 6) pieces bigger than a sheet: tiled with overlap guides
     for (const it of big){
       await emitTiles(pdf, L, {
-        wPt: it.wFull, hPt: it.hFull, cols: it.cols, rows: it.rows, format: 'PNG',
+        wPt: it.wFull, hPt: it.hFull, cols: it.cols, rows: it.rows, format: tileFormat, num: it.num,
         render: ctx => drawSilhouette(ctx, it, padPt * pxPerPt, padPt * pxPerPt),
         label: (row, col, n, pages) => `Pieza ${itemLabel(it)}  |  Hoja ${n}/${pages}  |  Fila ${row+1}/${it.rows} Col ${col+1}/${it.cols}  ·  Mundo Piñatas K&A`,
         onTile: () => tick('Pieza grande…')
       });
     }
 
-    // 7) optional contour sheets (edge detection over the whole design)
+    // 7) optional contour sheets
     if (useLines){
-      statusEl.textContent = 'Detectando bordes y líneas…';
-      await nextFrame();
-      const { mask, ww: eww, wh: ewh } = detectEdgeMask(imgTrimmedCanvas, parseFloat(linesThresholdSlider.value) || 35);
-      const fullWpx = L.imgWpt * pxPerPt, fullHpx = L.imgHpt * pxPerPt;
-      const strokePx = ((parseFloat(linesStrokeInput.value) || 1.5) / 10 / 2.54) * PRINT_DPI;
-      const dil = binaryDilate(mask, eww, ewh, Math.max(1, Math.round((strokePx * (eww / fullWpx)) / 2)));
-      const raster = document.createElement('canvas');
-      raster.width = eww; raster.height = ewh;
-      const rctx = raster.getContext('2d');
-      const id = rctx.createImageData(eww, ewh);
-      for (let p = 0; p < eww*ewh; p++){
-        const i = p*4;
-        const v = dil[p] ? 15 : 255;
-        id.data[i] = id.data[i+1] = id.data[i+2] = v; id.data[i+3] = 255;
-      }
-      rctx.putImageData(id, 0, 0);
       await emitTiles(pdf, L, {
-        wPt: L.imgWpt, hPt: L.imgHpt, cols: L.cols, rows: L.rows, format: 'PNG',
-        render: ctx => { ctx.imageSmoothingEnabled = true; ctx.imageSmoothingQuality = 'high'; ctx.drawImage(raster, 0, 0, fullWpx, fullHpx); },
+        wPt: L.imgWpt, hPt: L.imgHpt, cols: L.cols, rows: L.rows, format: 'PNG', num: linePlan.num,
+        render: lineRender,
         label: (row, col, n, pages) => `Contornos  |  Hoja ${n}/${pages} (pág. ${linesStart + n - 1})  |  Fila ${row+1}/${L.rows} Col ${col+1}/${L.cols}  ·  Mundo Piñatas K&A`,
         onTile: () => tick('Contornos…')
       });
@@ -2189,7 +2682,10 @@
       '  •  Seleccionar "Tamaño real" o "Escala 100%" y desactivar "Ajustar al área imprimible".',
       `  •  Papel: ${L.page.label}  ·  Calidad: Alta.`,
       'PIEZAS (FACCIONES):',
-      '  •  Cada silueta es una pieza: recórtala por la línea negra y cálcala sobre el material de su color.',
+      '  •  Cada silueta es una pieza: recórtala por la línea negra gruesa y cálcala sobre el foami o el material de su color.',
+      fillMode === 'lines' ? '  •  Las líneas delgadas dentro de cada pieza son los detalles del diseño: sirven de guía para dibujarlos o para ubicar las capas.' : '',
+      active.some(p => / · capa \d+$/.test(p.name)) ? '  •  Las piezas "capa" van una sobre otra: pega primero la capa 1 (la más grande) y encima las siguientes.' : '',
+      skippedTiles ? `  •  ${skippedTiles === 1 ? 'Se omitió una hoja' : 'Se omitieron ' + skippedTiles + ' hojas'} en blanco de las piezas grandes o contornos; el mini mapa de cada hoja muestra su lugar.` : '',
       '  •  El número de cada pieza indica su lugar en el mapa de armado (página 1).',
       `  •  Las siluetas ya incluyen ${bleedMm} mm de traslape: esa orilla va debajo de la pieza vecina.`,
       '  •  Piezas grandes vienen en varias hojas: únelas primero: la franja rosa indica qué hoja se pega encima.',
@@ -2197,6 +2693,7 @@
       '  •  Arma de atrás hacia adelante: primero las piezas grandes (cuerpo, cabello) y al final los detalles (ojos, boca).',
     ];
     if (useLines) lines.push('  •  Las hojas de "Contornos" muestran todas las líneas del diseño a tamaño real, como guía.');
+    for (let i = lines.length - 1; i >= 0; i--) if (!lines[i]) lines.splice(i, 1);
     lines.push(`Diseño: ${L.finalWcm.toFixed(1)} × ${L.finalHcm.toFixed(1)} cm  ·  300 DPI`, 'Mundo Piñatas K&A · Cuernavaca, Morelos, México');
     let yy = L.M + 44;
     pdf.setFontSize(10.5);
